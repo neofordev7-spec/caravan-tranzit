@@ -1,0 +1,13 @@
+# Core Bot Framework
+aiogram==3.15.0
+
+# Database
+asyncpg==0.30.0
+
+# Environment Variables
+python-dotenv==1.0.1
+
+# Additional Dependencies (optional but recommended)
+aiohttp==3.9.1  # For webhooks and HTTP requests + Mini App static files
+# redis==5.0.1    # For FSM storage (production)
+# aiofiles==23.2.1  # For async file operations

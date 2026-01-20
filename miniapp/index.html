@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MYBOJXONA - Caravan Broker</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header with Logo -->
+    <header class="app-header">
+        <div class="logo-container">
+            <img src="assets/logo.svg" alt="MYBOJXONA" class="logo">
+            <h1>MYBOJXONA</h1>
+            <p class="subtitle">Caravan Broker LTD</p>
+        </div>
+    </header>
+
+    <!-- Progress Indicator (hidden on home page) -->
+    <div class="progress-container" id="progressContainer" style="display: none;">
+        <div class="progress-steps">
+            <div class="step active" data-step="1">
+                <div class="step-circle">1</div>
+                <div class="step-label">Yo'nalish</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Chegara</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Manzil</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-circle">4</div>
+                <div class="step-label">Mashina</div>
+            </div>
+            <div class="step" data-step="5">
+                <div class="step-circle">5</div>
+                <div class="step-label">Hujjatlar</div>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="app-main" id="appMain">
+        <!-- Home Page: Service Selection -->
+        <div class="screen active" id="homeScreen">
+            <div class="welcome-message">
+                <h2>Xush kelibsiz! 🚛</h2>
+                <p>Xizmatni tanlang:</p>
+            </div>
+
+            <div class="service-cards">
+                <button class="service-card" onclick="startFlow('EPI')">
+                    <div class="card-icon">📄</div>
+                    <div class="card-content">
+                        <h3>EPI KOD AT DEKLARATSIYA</h3>
+                        <p>Import yoki tranzit yuklari uchun</p>
+                    </div>
+                    <div class="card-arrow">→</div>
+                </button>
+
+                <button class="service-card" onclick="startFlow('MB')">
+                    <div class="card-icon">📋</div>
+                    <div class="card-content">
+                        <h3>MB DEKLARATSIYA</h3>
+                        <p>Yo'lovchi avtomobillari uchun</p>
+                    </div>
+                    <div class="card-arrow">→</div>
+                </button>
+
+                <button class="service-card secondary" onclick="viewApplications()">
+                    <div class="card-icon">🎫</div>
+                    <div class="card-content">
+                        <h3>ARIZALARIM</h3>
+                        <p>Barcha yuborilgan arizalar</p>
+                    </div>
+                    <div class="card-arrow">→</div>
+                </button>
+
+                <button class="service-card secondary" onclick="viewPrices()">
+                    <div class="card-icon">💰</div>
+                    <div class="card-content">
+                        <h3>NARXLAR KATALOGI</h3>
+                        <p>Xizmatlar narxlari</p>
+                    </div>
+                    <div class="card-arrow">→</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 1: Direction Selection -->
+        <div class="screen" id="directionScreen">
+            <div class="screen-header">
+                <h2>Yo'nalishni tanlang</h2>
+                <p>Qaysi yo'nalishda harakatlanasiz?</p>
+            </div>
+
+            <div class="direction-cards">
+                <button class="direction-card" onclick="selectDirection('IMPORT')">
+                    <div class="direction-icon">🚛</div>
+                    <h3>IMPORT</h3>
+                    <p>Xorijdan O'zbekistonga</p>
+                </button>
+
+                <button class="direction-card" onclick="selectDirection('EKSPORT')">
+                    <div class="direction-icon">📦</div>
+                    <h3>EKSPORT</h3>
+                    <p>O'zbekistondan xorijga</p>
+                </button>
+
+                <button class="direction-card" onclick="selectDirection('TRANZIT')">
+                    <div class="direction-icon">🔄</div>
+                    <h3>TRANZIT</h3>
+                    <p>O'zbekiston orqali tranzit</p>
+                </button>
+            </div>
+
+            <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
+        </div>
+
+        <!-- Step 2: Border Post Selection -->
+        <div class="screen" id="borderPostScreen">
+            <div class="screen-header">
+                <h2>Chegara postini tanlang</h2>
+                <p>Qaysi postdan o'tasiz?</p>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="borderPostSearch" placeholder="🔍 Qidirish..." onkeyup="filterPosts('border')">
+            </div>
+
+            <div class="posts-list" id="borderPostsList">
+                <!-- Posts will be loaded dynamically -->
+            </div>
+
+            <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
+        </div>
+
+        <!-- Step 3: Destination Post Selection -->
+        <div class="screen" id="destPostScreen">
+            <div class="screen-header">
+                <h2>Manzil postini tanlang</h2>
+                <p>Qayerga borasiz?</p>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="destPostSearch" placeholder="🔍 Qidirish..." onkeyup="filterPosts('dest')">
+            </div>
+
+            <div class="posts-list" id="destPostsList">
+                <!-- Posts will be loaded dynamically -->
+            </div>
+
+            <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
+        </div>
+
+        <!-- Step 4: Vehicle Number -->
+        <div class="screen" id="vehicleScreen">
+            <div class="screen-header">
+                <h2>Mashina raqamini kiriting</h2>
+                <p>Misol: 01A777AA</p>
+            </div>
+
+            <div class="input-container">
+                <input type="text"
+                       id="vehicleNumber"
+                       placeholder="01A777AA"
+                       class="vehicle-input"
+                       maxlength="8"
+                       oninput="formatVehicleNumber(this)">
+                <div class="input-hint">
+                    <span class="hint-icon">💡</span>
+                    <span>Raqamni lotin harflarda kiriting</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="submitVehicle()">
+                Davom etish →
+            </button>
+
+            <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
+        </div>
+
+        <!-- Step 5: Document Upload -->
+        <div class="screen" id="documentsScreen">
+            <div class="screen-header">
+                <h2>Hujjatlarni yuklang</h2>
+                <p id="docListTitle">Kerakli hujjatlar:</p>
+            </div>
+
+            <div class="doc-checklist" id="docChecklist">
+                <!-- Will be populated based on service type -->
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <input type="file"
+                       id="fileInput"
+                       multiple
+                       accept="image/*,.pdf"
+                       onchange="handleFileSelect(event)"
+                       style="display: none;">
+                <button class="upload-button" onclick="document.getElementById('fileInput').click()">
+                    <span class="upload-icon">📸</span>
+                    <span>Rasm yuklash</span>
+                </button>
+                <p class="upload-hint">yoki faylni bu yerga torting</p>
+            </div>
+
+            <div class="uploaded-files" id="uploadedFiles">
+                <!-- Uploaded files will appear here -->
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-primary" onclick="submitApplication()" id="submitBtn" disabled>
+                    ✅ Yuborish
+                </button>
+                <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
+            </div>
+        </div>
+
+        <!-- Success Screen -->
+        <div class="screen" id="successScreen">
+            <div class="success-animation">
+                <div class="success-icon">✅</div>
+                <h2>Muvaffaqiyatli!</h2>
+                <p>Arizangiz yuborildi</p>
+            </div>
+
+            <div class="application-info">
+                <div class="info-row">
+                    <span class="info-label">Ariza kodi:</span>
+                    <span class="info-value" id="appCode">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Mashina:</span>
+                    <span class="info-value" id="appVehicle">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value status-pending">Kutilmoqda</span>
+                </div>
+            </div>
+
+            <div class="success-message">
+                <p>⏳ Admin javobini kuting...</p>
+                <p class="success-hint">Siz bilan tez orada bog'lanamiz</p>
+            </div>
+
+            <button class="btn-primary" onclick="backToHome()">
+                🏠 Asosiy sahifa
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-links">
+            <a href="tel:+998917020099">📞 +998 91 702 00 99</a>
+            <a href="https://t.me/mybojxona">💬 Telegram</a>
+        </div>
+        <p class="footer-text">© 2024 MYBOJXONA Caravan Broker LTD</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

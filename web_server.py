@@ -1,0 +1,157 @@
+"""
+MYBOJXONA Web Server
+Serves Mini App static files alongside the Telegram bot
+"""
+import os
+from aiohttp import web
+import logging
+
+logger = logging.getLogger(__name__)
+
+async def create_web_app():
+    """Create aiohttp web application for serving static files"""
+    app = web.Application()
+
+    # Get port from environment (Railway provides PORT env variable)
+    port = int(os.getenv('PORT', 8080))
+
+    # Serve miniapp static files
+    miniapp_path = os.path.join(os.path.dirname(__file__), 'miniapp')
+
+    # Health check endpoint
+    async def health_check(request):
+        return web.json_response({
+            'status': 'ok',
+            'service': 'MYBOJXONA Bot + Mini App',
+            'miniapp_url': '/miniapp/'
+        })
+
+    # Root endpoint
+    async def root_handler(request):
+        return web.Response(
+            text="""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>MYBOJXONA - Caravan Broker</title>
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #8304F9 0%, #6503C7 100%);
+                        color: white;
+                    }
+                    .container {
+                        text-align: center;
+                        padding: 40px;
+                        background: rgba(255,255,255,0.1);
+                        border-radius: 20px;
+                        backdrop-filter: blur(10px);
+                    }
+                    h1 { font-size: 48px; margin: 0 0 20px; }
+                    p { font-size: 18px; margin: 10px 0; opacity: 0.9; }
+                    a {
+                        display: inline-block;
+                        margin: 20px 10px;
+                        padding: 15px 30px;
+                        background: white;
+                        color: #8304F9;
+                        text-decoration: none;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        transition: transform 0.2s;
+                    }
+                    a:hover { transform: scale(1.05); }
+                    .emoji { font-size: 64px; margin: 20px 0; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="emoji">🚛</div>
+                    <h1>MYBOJXONA</h1>
+                    <p>Caravan Broker LTD</p>
+                    <p>Telegram Bot va Mini App xizmati</p>
+                    <div style="margin-top: 30px;">
+                        <a href="/miniapp/">📱 Mini App ochish</a>
+                        <a href="https://t.me/mybojxona_bot" target="_blank">🤖 Telegram Bot</a>
+                    </div>
+                    <p style="margin-top: 40px; font-size: 14px;">
+                        📞 +998 91 702 00 99 | +998 94 312 00 99
+                    </p>
+                </div>
+            </body>
+            </html>
+            """,
+            content_type='text/html'
+        )
+
+    # Miniapp index handler to ensure index.html is served
+    async def miniapp_index(request):
+        """Serve the miniapp index.html file"""
+        index_path = os.path.join(miniapp_path, 'index.html')
+        if os.path.exists(index_path):
+            with open(index_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            return web.Response(text=content, content_type='text/html')
+        else:
+            return web.Response(text='Mini App not found', status=404)
+
+    # API endpoint for Mini App submissions (placeholder)
+    async def miniapp_api_submit(request):
+        try:
+            data = await request.json()
+            # Here you would process the application
+            # For now, just return success
+            app_code = f"{data.get('service_type', 'EP')}-{os.urandom(3).hex().upper()}"
+
+            logger.info(f"Mini App submission: {data}")
+
+            return web.json_response({
+                'success': True,
+                'app_code': app_code,
+                'message': 'Ariza qabul qilindi!'
+            })
+        except Exception as e:
+            logger.error(f"API error: {e}")
+            return web.json_response({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+
+    # Setup routes
+    app.router.add_get('/', root_handler)
+    app.router.add_get('/health', health_check)
+    app.router.add_get('/miniapp', miniapp_index)  # Redirect without trailing slash
+    app.router.add_get('/miniapp/', miniapp_index)  # Main miniapp entry point
+    app.router.add_post('/api/applications', miniapp_api_submit)
+
+    # Serve miniapp static files (CSS, JS, images, etc.)
+    app.router.add_static('/miniapp/', miniapp_path, name='miniapp', show_index=True)
+
+    logger.info(f"✅ Web server configured on port {port}")
+    logger.info(f"📱 Mini App will be available at: /miniapp/")
+
+    return app, port
+
+async def start_web_server():
+    """Start the web server"""
+    app, port = await create_web_app()
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    logger.info(f"🌐 Web server started on http://0.0.0.0:{port}")
+    return runner
+
+if __name__ == '__main__':
+    async def run():
+        app, port = await create_web_app()
+        return app
+
+    logging.basicConfig(level=logging.INFO)
+    web.run_app(run())

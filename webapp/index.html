@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MYBOJXONA - Customs Declaration</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: #F5F7FA;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* Custom styles */
+        .wallet-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            color: white;
+        }
+        .declaration-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .btn-primary {
+            background: #10B981;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .status-processing { background: #FEF3C7; color: #92400E; }
+        .status-approved { background: #D1FAE5; color: #065F46; }
+        .status-draft { background: #F3F4F6; color: #6B7280; }
+        .status-unpaid { background: #FEE2E2; color: #991B1B; }
+
+        /* Progress indicator */
+        .progress-step {
+            width: 25%;
+            height: 4px;
+            background: #E5E7EB;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        .progress-step.active {
+            background: #10B981;
+        }
+
+        /* Selection cards */
+        .selection-card {
+            border: 2px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+        .selection-card:hover {
+            border-color: #10B981;
+        }
+        .selection-card.selected {
+            border-color: #10B981;
+            background: #F0FDF4;
+        }
+        .selection-card .radio-dot {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #D1D5DB;
+            border-radius: 50%;
+            position: relative;
+        }
+        .selection-card.selected .radio-dot {
+            border-color: #10B981;
+        }
+        .selection-card.selected .radio-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: #10B981;
+            border-radius: 50%;
+        }
+
+        /* Upload zone */
+        .upload-zone {
+            border: 2px dashed #D1D5DB;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #F9FAFB;
+        }
+        .upload-zone:hover {
+            border-color: #10B981;
+            background: #F0FDF4;
+        }
+        .upload-zone.dragover {
+            border-color: #10B981;
+            background: #F0FDF4;
+        }
+
+        /* Document preview */
+        .doc-preview {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #10B981;
+            background: white;
+            padding: 16px;
+        }
+        .doc-preview img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #EF4444;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        /* Payment methods */
+        .payment-method {
+            border: 2px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .payment-method:hover {
+            border-color: #10B981;
+        }
+        .payment-method.selected {
+            border-color: #10B981;
+            background: #F0FDF4;
+        }
+
+        /* Navigation bar */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            color: #9CA3AF;
+            transition: color 0.3s;
+        }
+        .nav-item.active {
+            color: #10B981;
+        }
+    </style>
+</head>
+<body>
+    <!-- SCREEN 0: DASHBOARD (HOME) -->
+    <div id="screen-dashboard" class="screen active" style="padding-bottom: 80px;">
+        <!-- Header -->
+        <div class="bg-white p-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-xl">
+                        👤
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Welcome back,</p>
+                        <p class="font-bold text-lg" id="user-name">User</p>
+                    </div>
+                </div>
+                <button class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                    🔔
+                </button>
+            </div>
+        </div>
+
+        <div class="px-4">
+            <!-- Wallet Balance Card -->
+            <div class="wallet-card p-6 mb-4">
+                <p class="text-sm opacity-90 mb-1">Wallet Balance</p>
+                <div class="flex items-baseline gap-2 mb-4">
+                    <span class="text-4xl font-bold" id="wallet-balance">35,000</span>
+                    <span class="text-lg opacity-90">Coins</span>
+                </div>
+                <div class="flex gap-3">
+                    <button class="flex-1 bg-white bg-opacity-20 backdrop-blur py-2 rounded-lg font-medium">
+                        Add Funds
+                    </button>
+                    <button class="flex-1 bg-white bg-opacity-20 backdrop-blur py-2 rounded-lg font-medium">
+                        History
+                    </button>
+                </div>
+            </div>
+
+            <!-- New Declaration Button -->
+            <button id="btn-new-declaration" class="btn-primary w-full py-4 rounded-2xl mb-6 flex items-center justify-center gap-2 text-lg">
+                <span class="text-2xl">➕</span>
+                <span>New Declaration</span>
+            </button>
+
+            <!-- Recent Declarations -->
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-xl">Recent Declarations</h3>
+                <a href="#" class="text-green-600 font-medium text-sm">View All</a>
+            </div>
+
+            <div class="space-y-3 mb-4">
+                <!-- Declaration Item 1 -->
+                <div class="declaration-card p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-xl">
+                            ⏳
+                        </div>
+                        <div>
+                            <p class="font-semibold">Declaration #1239</p>
+                            <span class="status-badge status-processing">Processing</span>
+                        </div>
+                    </div>
+                    <span class="text-gray-400">›</span>
+                </div>
+
+                <!-- Declaration Item 2 -->
+                <div class="declaration-card p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-xl">
+                            ✓
+                        </div>
+                        <div>
+                            <p class="font-semibold">Declaration #1238</p>
+                            <span class="status-badge status-approved">Approved</span>
+                        </div>
+                    </div>
+                    <span class="text-gray-400">›</span>
+                </div>
+
+                <!-- Declaration Item 3 -->
+                <div class="declaration-card p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-xl">
+                            📄
+                        </div>
+                        <div>
+                            <p class="font-semibold">Declaration #1235</p>
+                            <span class="status-badge status-draft">Draft • Saved Yesterday</span>
+                        </div>
+                    </div>
+                    <span class="text-gray-400">›</span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="declaration-card p-4">
+                    <p class="text-sm text-gray-500 mb-1">THIS MONTH</p>
+                    <p class="text-3xl font-bold">12</p>
+                    <p class="text-sm text-gray-600">Declarations</p>
+                </div>
+                <div class="declaration-card p-4">
+                    <p class="text-sm text-gray-500 mb-1">EXPENSES</p>
+                    <p class="text-3xl font-bold">8.5k</p>
+                    <p class="text-sm text-gray-600">Coins used</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 1: LOCATION & AGENT SELECTION -->
+    <div id="screen-step1" class="screen p-4" style="padding-bottom: 100px;">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <button id="btn-back-step1" class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow">
+                ‹
+            </button>
+            <h1 class="font-bold text-xl">Declaration Wizard</h1>
+            <button class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow">
+                ⋮
+            </button>
+        </div>
+
+        <!-- Progress -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-green-600 font-medium">Location</span>
+                <span class="text-sm text-gray-500">Step 1 of 4</span>
+            </div>
+            <div class="flex gap-2">
+                <div class="progress-step active"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-bold mb-6">Select Crossing Point</h2>
+
+        <!-- Search -->
+        <div class="mb-6">
+            <div class="relative">
+                <input
+                    type="text"
+                    id="search-post"
+                    placeholder="Search border posts or agents..."
+                    class="w-full pl-10 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:outline-none focus:border-green-500"
+                >
+                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+            </div>
+        </div>
+
+        <!-- Popular Posts -->
+        <div class="mb-6">
+            <h3 class="text-sm font-semibold text-gray-500 mb-3">POPULAR POSTS</h3>
+            <div class="space-y-3" id="posts-list">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+
+        <!-- Available Agents -->
+        <div id="agents-section" style="display: none;">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-500">AVAILABLE AGENTS</h3>
+                <a href="#" class="text-green-600 text-sm font-medium">View All</a>
+            </div>
+            <div class="space-y-3" id="agents-list">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+
+        <!-- Next Button -->
+        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+            <button id="btn-next-step1" class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-2" disabled>
+                <span>Next Step</span>
+                <span>→</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: VEHICLE INFORMATION -->
+    <div id="screen-step2" class="screen p-4" style="padding-bottom: 100px;">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <button id="btn-back-step2" class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow">
+                ‹
+            </button>
+            <h1 class="font-bold text-xl">Vehicle Information</h1>
+            <div class="w-10"></div>
+        </div>
+
+        <!-- Progress -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-gray-500">Step 1 of 4</span>
+                <span class="text-sm text-green-600 font-medium">25% Completed</span>
+            </div>
+            <div class="flex gap-2">
+                <div class="progress-step active"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-bold mb-6">Vehicle Details</h2>
+
+        <!-- License Plate -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-2">License Plate Number</label>
+            <div class="relative">
+                <div class="absolute left-3 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold">
+                    UZ
+                </div>
+                <input
+                    type="text"
+                    id="vehicle-number"
+                    placeholder="01 A 777 AA"
+                    class="w-full pl-16 pr-4 py-4 bg-white rounded-xl border-2 border-gray-200 focus:outline-none focus:border-green-500 font-mono text-lg tracking-widest uppercase"
+                    maxlength="12"
+                >
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Enter number without spaces if preferred.</p>
+        </div>
+
+        <!-- Vehicle Type -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-3">Select Vehicle Type</label>
+            <div class="space-y-3">
+                <div class="selection-card selected" id="type-truck" data-type="truck">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-2xl">
+                                🚛
+                            </div>
+                            <div>
+                                <p class="font-semibold text-lg">Truck</p>
+                                <p class="text-sm text-gray-500">Heavy goods vehicle</p>
+                            </div>
+                        </div>
+                        <div class="radio-dot"></div>
+                    </div>
+                </div>
+
+                <div class="selection-card" id="type-car" data-type="car">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-2xl">
+                                🚗
+                            </div>
+                            <div>
+                                <p class="font-semibold text-lg">Passenger Car</p>
+                                <p class="text-sm text-gray-500">Light vehicle under 3.5t</p>
+                            </div>
+                        </div>
+                        <div class="radio-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Continue Button -->
+        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+            <button id="btn-next-step2" class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-2" disabled>
+                <span>Continue</span>
+                <span>→</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: UPLOAD DOCUMENTS -->
+    <div id="screen-step3" class="screen p-4" style="padding-bottom: 100px;">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <button id="btn-back-step3" class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow">
+                ‹
+            </button>
+            <h1 class="font-bold text-xl">Declaration Wizard</h1>
+            <div class="w-10"></div>
+        </div>
+
+        <!-- Progress -->
+        <div class="mb-6">
+            <div class="flex gap-2">
+                <div class="progress-step active"></div>
+                <div class="progress-step active"></div>
+                <div class="progress-step active"></div>
+                <div class="progress-step"></div>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-bold mb-2">Upload Documents</h2>
+        <p class="text-gray-600 mb-6">Please photograph your documents clearly. High contrast and good lighting help prevent delays.</p>
+
+        <!-- Passport Upload -->
+        <div class="mb-6">
+            <div id="passport-upload" class="upload-zone" data-doc-type="passport">
+                <input type="file" id="passport-input" accept="image/*" style="display: none;">
+                <div class="text-4xl mb-2">👤</div>
+                <p class="font-semibold text-lg mb-1">Passport</p>
+                <p class="text-sm text-gray-500">Tap to scan ID page</p>
+            </div>
+            <div id="passport-preview" style="display: none;"></div>
+        </div>
+
+        <!-- Tech Passport Upload -->
+        <div class="mb-6" id="tech-passport-section">
+            <div id="tech-passport-upload" class="upload-zone" data-doc-type="tech-passport">
+                <input type="file" id="tech-passport-input" accept="image/*" style="display: none;">
+                <div class="text-4xl mb-2">🚗</div>
+                <p class="font-semibold text-lg mb-1">Tech Passport</p>
+                <p class="text-sm text-gray-500">Tap to scan vehicle documents</p>
+            </div>
+            <div id="tech-passport-preview" style="display: none;"></div>
+        </div>
+
+        <!-- Invoice Upload -->
+        <div class="mb-6">
+            <div id="invoice-upload" class="upload-zone" data-doc-type="invoice">
+                <input type="file" id="invoice-input" accept="image/*" style="display: none;">
+                <div class="text-4xl mb-2">📄</div>
+                <p class="font-semibold text-lg mb-1">Invoice</p>
+                <p class="text-sm text-gray-500">Tap to scan cargo manifest</p>
+            </div>
+            <div id="invoice-preview" style="display: none;"></div>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-6 flex items-center gap-2">
+            <span class="text-blue-600">ℹ️</span>
+            <p class="text-sm text-blue-800">All documents are required to proceed</p>
+        </div>
+
+        <!-- Continue Button -->
+        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+            <button id="btn-next-step3" class="btn-primary w-full py-4 rounded-2xl" disabled>
+                Continue →
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: PAYMENT SUMMARY -->
+    <div id="screen-payment" class="screen p-4" style="padding-bottom: 100px;">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <button id="btn-back-payment" class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow">
+                ‹
+            </button>
+            <h1 class="font-bold text-xl">Payment Summary</h1>
+            <div class="w-10"></div>
+        </div>
+
+        <!-- Amount Card -->
+        <div class="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+            <div class="flex justify-center mb-4">
+                <span class="status-badge status-unpaid">••• UNPAID</span>
+            </div>
+            <div class="text-center mb-4">
+                <p class="text-5xl font-bold mb-2">35,000 <span class="text-2xl">UZS</span></p>
+                <p class="text-gray-500">Total Amount to Pay</p>
+            </div>
+            <div class="border-t pt-4 space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Declaration ID</span>
+                    <span class="font-semibold">#829102</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Date</span>
+                    <span class="font-semibold">Oct 24, 2023</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <h3 class="font-bold text-lg mb-4">Choose Payment Method</h3>
+        <div class="space-y-3 mb-6">
+            <div class="payment-method selected" data-method="click">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-2xl">
+                    💳
+                </div>
+                <div class="flex-1">
+                    <p class="font-semibold">Click</p>
+                    <p class="text-sm text-gray-500">Fast & Secure</p>
+                </div>
+                <span class="text-gray-400">›</span>
+            </div>
+
+            <div class="payment-method" data-method="payme">
+                <div class="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center text-2xl">
+                    💰
+                </div>
+                <div class="flex-1">
+                    <p class="font-semibold">Payme</p>
+                    <p class="text-sm text-gray-500">National Payment System</p>
+                </div>
+                <span class="text-gray-400">›</span>
+            </div>
+
+            <div class="payment-method" data-method="uzum">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-2xl">
+                    🏦
+                </div>
+                <div class="flex-1">
+                    <p class="font-semibold">Uzum</p>
+                    <p class="text-sm text-gray-500">Bank & Wallet</p>
+                </div>
+                <span class="text-gray-400">›</span>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-6 flex items-center justify-center gap-2">
+            <span>🔒</span>
+            <p class="text-sm text-gray-600">Payments are secure and encrypted</p>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+            <button id="btn-submit-payment" class="btn-primary w-full py-4 rounded-2xl text-lg">
+                Proceed to Payment
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Bar (Only visible on Dashboard) -->
+    <div id="nav-bar" class="nav-bar">
+        <div class="nav-item active" data-nav="home">
+            <span class="text-2xl">🏠</span>
+            <span class="text-xs font-medium">Home</span>
+        </div>
+        <div class="nav-item" data-nav="history">
+            <span class="text-2xl">📁</span>
+            <span class="text-xs font-medium">History</span>
+        </div>
+        <div class="nav-item" data-nav="settings">
+            <span class="text-2xl">⚙️</span>
+            <span class="text-xs font-medium">Settings</span>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
