@@ -106,6 +106,24 @@ TIF_POSTS_LIST = [
     "Elektron tijorat"
 ]
 
+# O'ZBEKISTON VILOYATLARI (14 ta hudud)
+VILOYATLAR_LIST = [
+    "Qoraqalpogʻiston Respublikasi",
+    "Andijon viloyati",
+    "Buxoro viloyati",
+    "Fargʻona viloyati",
+    "Jizzax viloyati",
+    "Xorazm viloyati",
+    "Namangan viloyati",
+    "Navoiy viloyati",
+    "Qashqadaryo viloyati",
+    "Samarqand viloyati",
+    "Sirdaryo viloyati",
+    "Surxondaryo viloyati",
+    "Toshkent viloyati",
+    "Toshkent shahri"
+]
+
 # =========================================================
 # 2. REGISTRATION KEYBOARDS
 # =========================================================
@@ -334,28 +352,42 @@ def get_social_media_kb():
 # 12. DINAMIK POSTLAR (2 QATORLI)
 # =========================================================
 def get_posts_kb():
-    """Chegara postlari"""
+    """Chegara postlari - birinchi qatorda ANIQ EMAS"""
     builder = ReplyKeyboardBuilder()
+    # Birinchi qatorda ANIQ EMAS
+    builder.add(KeyboardButton(text="❓ ANIQ EMAS"))
     for post in BORDER_POSTS_LIST:
         builder.add(KeyboardButton(text=post))
     builder.add(KeyboardButton(text="⬅️ Ortga"))
-    builder.adjust(2)
+    builder.adjust(1, 2)  # Birinchi qator 1 ta, qolganlari 2 tadan
     return builder.as_markup(resize_keyboard=True)
 
 def get_dest_posts_kb():
-    """TIF (Manzil) postlari - faqat IMPORT uchun"""
+    """TIF (Manzil) postlari - birinchi qatorda ANIQ EMAS"""
     builder = ReplyKeyboardBuilder()
+    # Birinchi qatorda ANIQ EMAS
+    builder.add(KeyboardButton(text="❓ ANIQ EMAS"))
     for post in TIF_POSTS_LIST:
         builder.add(KeyboardButton(text=post))
     builder.add(KeyboardButton(text="⬅️ Ortga"))
-    builder.adjust(2)
+    builder.adjust(1, 2)  # Birinchi qator 1 ta, qolganlari 2 tadan
     return builder.as_markup(resize_keyboard=True)
 
 def get_dest_border_posts_kb():
     """Manzil chegara postlari - TRANZIT uchun"""
     builder = ReplyKeyboardBuilder()
+    builder.add(KeyboardButton(text="❓ ANIQ EMAS"))
     for post in BORDER_POSTS_LIST:
         builder.add(KeyboardButton(text=post))
+    builder.add(KeyboardButton(text="⬅️ Ortga"))
+    builder.adjust(1, 2)
+    return builder.as_markup(resize_keyboard=True)
+
+def get_viloyatlar_kb():
+    """O'zbekiston viloyatlari - ANIQ EMAS bosilganda"""
+    builder = ReplyKeyboardBuilder()
+    for viloyat in VILOYATLAR_LIST:
+        builder.add(KeyboardButton(text=viloyat))
     builder.add(KeyboardButton(text="⬅️ Ortga"))
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)

@@ -267,11 +267,9 @@ async def settings_menu(message: Message, state: FSMContext):
 
 @router.message(F.text.contains("NARXLAR KATALOGI"))
 async def show_prices(message: Message, state: FSMContext):
-    """Show prices catalog with user balance"""
-    lang = await get_user_lang(state)
-    balance = await db.get_user_balance(message.from_user.id)
-    t = await get_text(state, 'prices_catalog', balance=balance)
-    await message.answer(t, parse_mode="Markdown")
+    """Show prices catalog"""
+    t = await get_text(state, 'prices_catalog')
+    await message.answer(t, parse_mode="HTML")
 
 @router.message(F.text.contains("DASTURNI YUKLAB OLING"))
 async def app_download(message: Message, state: FSMContext):
@@ -351,9 +349,36 @@ async def epi_border_post_selected(message: Message, state: FSMContext):
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         return
 
+    # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
+    if "ANIQ EMAS" in message.text:
+        await message.answer(
+            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
+            reply_markup=kb.get_viloyatlar_kb(),
+            parse_mode="Markdown"
+        )
+        await state.set_state(EPIKodFlow.select_viloyat_border)
+        return
+
     await state.update_data(border_post=message.text)
 
-    # Yo'nalish tanlash olib tashlandi - to'g'ridan-to'g'ri TIF postlarini ko'rsatamiz
+    # To'g'ridan-to'g'ri TIF postlarini ko'rsatamiz
+    t = await get_text(state, 'select_dest_post')
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await state.set_state(EPIKodFlow.select_dest_post)
+
+@router.message(EPIKodFlow.select_viloyat_border)
+async def epi_viloyat_border_selected(message: Message, state: FSMContext):
+    """EPI: Viloyat selected for border post (ANIQ EMAS)"""
+    if "Ortga" in message.text or "Back" in message.text:
+        t = await get_text(state, 'epi_start')
+        await message.answer(t, reply_markup=kb.get_posts_kb())
+        await state.set_state(EPIKodFlow.select_border_post)
+        return
+
+    # Viloyat nomini saqlash
+    await state.update_data(border_post=f"ANIQ EMAS ({message.text})")
+
+    # Manzil postini tanlashga o'tish
     t = await get_text(state, 'select_dest_post')
     await message.answer(t, reply_markup=kb.get_dest_posts_kb())
     await state.set_state(EPIKodFlow.select_dest_post)
@@ -367,7 +392,33 @@ async def epi_dest_post_selected(message: Message, state: FSMContext):
         await state.set_state(EPIKodFlow.select_border_post)
         return
 
+    # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
+    if "ANIQ EMAS" in message.text:
+        await message.answer(
+            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
+            reply_markup=kb.get_viloyatlar_kb(),
+            parse_mode="Markdown"
+        )
+        await state.set_state(EPIKodFlow.select_viloyat_dest)
+        return
+
     await state.update_data(dest_post=message.text)
+
+    t = await get_text(state, 'enter_car_number')
+    await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
+    await state.set_state(EPIKodFlow.enter_car_number)
+
+@router.message(EPIKodFlow.select_viloyat_dest)
+async def epi_viloyat_dest_selected(message: Message, state: FSMContext):
+    """EPI: Viloyat selected for destination post (ANIQ EMAS)"""
+    if "Ortga" in message.text or "Back" in message.text:
+        t = await get_text(state, 'select_dest_post')
+        await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+        await state.set_state(EPIKodFlow.select_dest_post)
+        return
+
+    # Viloyat nomini saqlash
+    await state.update_data(dest_post=f"ANIQ EMAS ({message.text})")
 
     t = await get_text(state, 'enter_car_number')
     await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
@@ -458,9 +509,36 @@ async def mb_border_post_selected(message: Message, state: FSMContext):
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         return
 
+    # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
+    if "ANIQ EMAS" in message.text:
+        await message.answer(
+            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
+            reply_markup=kb.get_viloyatlar_kb(),
+            parse_mode="Markdown"
+        )
+        await state.set_state(MBDeklaratsiyaFlow.select_viloyat_border)
+        return
+
     await state.update_data(border_post=message.text)
 
-    # Yo'nalish tanlash olib tashlandi - to'g'ridan-to'g'ri TIF postlarini ko'rsatamiz
+    # To'g'ridan-to'g'ri TIF postlarini ko'rsatamiz
+    t = await get_text(state, 'select_dest_post')
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
+
+@router.message(MBDeklaratsiyaFlow.select_viloyat_border)
+async def mb_viloyat_border_selected(message: Message, state: FSMContext):
+    """MB: Viloyat selected for border post (ANIQ EMAS)"""
+    if "Ortga" in message.text or "Back" in message.text:
+        t = await get_text(state, 'mb_start')
+        await message.answer(t, reply_markup=kb.get_posts_kb())
+        await state.set_state(MBDeklaratsiyaFlow.select_border_post)
+        return
+
+    # Viloyat nomini saqlash
+    await state.update_data(border_post=f"ANIQ EMAS ({message.text})")
+
+    # Manzil postini tanlashga o'tish
     t = await get_text(state, 'select_dest_post')
     await message.answer(t, reply_markup=kb.get_dest_posts_kb())
     await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
@@ -474,7 +552,33 @@ async def mb_dest_post_selected(message: Message, state: FSMContext):
         await state.set_state(MBDeklaratsiyaFlow.select_border_post)
         return
 
+    # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
+    if "ANIQ EMAS" in message.text:
+        await message.answer(
+            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
+            reply_markup=kb.get_viloyatlar_kb(),
+            parse_mode="Markdown"
+        )
+        await state.set_state(MBDeklaratsiyaFlow.select_viloyat_dest)
+        return
+
     await state.update_data(dest_post=message.text)
+
+    t = await get_text(state, 'enter_car_number')
+    await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
+    await state.set_state(MBDeklaratsiyaFlow.enter_car_number)
+
+@router.message(MBDeklaratsiyaFlow.select_viloyat_dest)
+async def mb_viloyat_dest_selected(message: Message, state: FSMContext):
+    """MB: Viloyat selected for destination post (ANIQ EMAS)"""
+    if "Ortga" in message.text or "Back" in message.text:
+        t = await get_text(state, 'select_dest_post')
+        await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+        await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
+        return
+
+    # Viloyat nomini saqlash
+    await state.update_data(dest_post=f"ANIQ EMAS ({message.text})")
 
     t = await get_text(state, 'enter_car_number')
     await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
