@@ -138,7 +138,7 @@ class ClickAPI:
     def generate_payment_url(
         app_code: str,
         amount: Decimal,
-        return_url: str = "https://t.me/mybojxona_bot"
+        return_url: str = "https://t.me/caravan_tranzit_bot"
     ) -> str:
         """
         Generate Click payment URL for user

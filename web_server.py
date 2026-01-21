@@ -1,5 +1,5 @@
 """
-MYBOJXONA Web Server
+CARAVAN TRANZIT Web Server
 Serves Mini App static files alongside the Telegram bot
 """
 import os
@@ -22,7 +22,7 @@ async def create_web_app():
     async def health_check(request):
         return web.json_response({
             'status': 'ok',
-            'service': 'MYBOJXONA Bot + Mini App',
+            'service': 'CARAVAN TRANZIT Bot + Mini App',
             'miniapp_url': '/miniapp/'
         })
 
@@ -34,7 +34,7 @@ async def create_web_app():
             <html>
             <head>
                 <meta charset="UTF-8">
-                <title>MYBOJXONA - Caravan Broker</title>
+                <title>CARAVAN TRANZIT - Caravan Broker</title>
                 <style>
                     body {
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -73,12 +73,12 @@ async def create_web_app():
             <body>
                 <div class="container">
                     <div class="emoji">🚛</div>
-                    <h1>MYBOJXONA</h1>
+                    <h1>CARAVAN TRANZIT</h1>
                     <p>Caravan Broker LTD</p>
                     <p>Telegram Bot va Mini App xizmati</p>
                     <div style="margin-top: 30px;">
                         <a href="/miniapp/">📱 Mini App ochish</a>
-                        <a href="https://t.me/mybojxona_bot" target="_blank">🤖 Telegram Bot</a>
+                        <a href="https://t.me/caravan_tranzit_bot" target="_blank">🤖 Telegram Bot</a>
                     </div>
                     <p style="margin-top: 40px; font-size: 14px;">
                         📞 +998 91 702 00 99 | +998 94 312 00 99

@@ -1,5 +1,5 @@
 /**
- * MYBOJXONA Mini App JavaScript
+ * CARAVAN TRANZIT Mini App JavaScript
  * Telegram Web App Integration
  */
 
@@ -513,5 +513,5 @@ function setupDragDrop() {
 document.addEventListener('DOMContentLoaded', () => {
     initTelegramApp();
     setupDragDrop();
-    console.log('MYBOJXONA Mini App loaded');
+    console.log('CARAVAN TRANZIT Mini App loaded');
 });

@@ -1,4 +1,4 @@
-# MYBOJXONA Bot - Ko'p tillilik qo'llanmasi
+# CARAVAN TRANZIT Bot - Ko'p tillilik qo'llanmasi
 
 ## 📚 Mavjud tillar
 
@@ -47,13 +47,13 @@ for lang in ['kg', 'tj', 'tr', 'tm', 'zh']:
 ### 2. Ishonch telefonlari (5 kalit)
 
 ```python
-'contacts_msg': "📞 **ISHONCH TELEFONLARI**\n\n📱 +998 91 702 00 99\n📱 +998 94 312 00 99\n\n📱 Telegram: @MYBOJXONA, @mybojxona1\n\n💬 WhatsApp: +998 91 702 00 99",
+'contacts_msg': "📞 **ISHONCH TELEFONLARI**\n\n📱 +998 91 702 00 99\n📱 +998 94 312 00 99\n\n📱 Telegram: @CARAVAN TRANZIT, @caravan_tranzit1\n\n💬 WhatsApp: +998 91 702 00 99",
 ```
 
 ### 3. Narxlar katalogi (1 kalit)
 
 ```python
-'prices_catalog': "📣 **MYBOJXONA: EPI-KOD xizmatlari narxlari**\n\nHurmatli mijozlar, EPI-KOD xizmatlari uchun belgilangan narxlar bilan tanishing:\n\n📦 **1-2 partiya:** 35 000 so'm\n📦 **3 partiya:** 45 000 so'm\n📦 **4 partiya:** 60 000 so'm\n📦 **5 partiya:** 75 000 so'm\n📦 **6 partiya:** 105 000 so'm\n📦 **7 partiya:** 126 000 so'm\n📦 **8 partiya:** 144 000 so'm\n\n🔄 **Boshqa holatlarda:** Har bir partiya uchun **20 000 so'mdan** hisoblanadi (X*20000).\n\n📞 **Ishonch telefonlari:**\n▪️ +998 94 312 00 99\n▪️ +998 91 702 00 99\n\n💎 **Sizning tangalaringiz hisobi:** {balance} ta tanga",
+'prices_catalog': "📣 **CARAVAN TRANZIT: EPI-KOD xizmatlari narxlari**\n\nHurmatli mijozlar, EPI-KOD xizmatlari uchun belgilangan narxlar bilan tanishing:\n\n📦 **1-2 partiya:** 35 000 so'm\n📦 **3 partiya:** 45 000 so'm\n📦 **4 partiya:** 60 000 so'm\n📦 **5 partiya:** 75 000 so'm\n📦 **6 partiya:** 105 000 so'm\n📦 **7 partiya:** 126 000 so'm\n📦 **8 partiya:** 144 000 so'm\n\n🔄 **Boshqa holatlarda:** Har bir partiya uchun **20 000 so'mdan** hisoblanadi (X*20000).\n\n📞 **Ishonch telefonlari:**\n▪️ +998 94 312 00 99\n▪️ +998 91 702 00 99\n\n💎 **Sizning tangalaringiz hisobi:** {balance} ta tanga",
 ```
 
 ### 4. Arizalarim (5 kalit)
@@ -75,7 +75,7 @@ for lang in ['kg', 'tj', 'tr', 'tm', 'zh']:
 'change_lang_msg': "🌐 **Tilni o'zgartirish**\n\nTilni tanlang:",
 'clear_cache_msg': "🗑 **Xotirani tozalash**\n\nBarcha saqlangan hujjatlaringiz o'chiriladi. Davom etasizmi?",
 'cache_cleared_msg': "✅ Xotira tozalandi!",
-'admin_contact_msg': "👨‍💼 **ADMIN BILAN ALOQA**\n\n📞 Telefon: +998917020099, +998943120099\n📱 Telegram: @MYBOJXONA, @mybojxona1\n💬 WhatsApp: +998917020099",
+'admin_contact_msg': "👨‍💼 **ADMIN BILAN ALOQA**\n\n📞 Telefon: +998917020099, +998943120099\n📱 Telegram: @CARAVAN TRANZIT, @caravan_tranzit1\n💬 WhatsApp: +998917020099",
 ```
 
 ### 6. Menyu tugmalari (17 kalit)
@@ -110,7 +110,7 @@ for lang in ['kg', 'tj', 'tr', 'tm', 'zh']:
 'kgd_app_msg': "📱 **Dastur orqali ko'rish:**\n\n[Dasturni yuklab olish](https://example.com/kgd)",
 'kgd_staff_car': "👥 **Xodimlar orqali ko'rish**\n\nMashina raqamini kiriting:",
 'kgd_checking': "🔍 Tekshirilmoqda... Bir oz kuting.",
-'gabarit_msg': "📜 **GABARIT RUXSATNOMA OLISH**\n\nGabarit ruxsatnoma olish uchun admin bilan bog'laning:\n\n📱 @MYBOJXONA\n📱 @mybojxona1\n\n✍️ \"GABARIT\" deb yozing",
+'gabarit_msg': "📜 **GABARIT RUXSATNOMA OLISH**\n\nGabarit ruxsatnoma olish uchun admin bilan bog'laning:\n\n📱 @CARAVAN TRANZIT\n📱 @caravan_tranzit1\n\n✍️ \"GABARIT\" deb yozing",
 'coming_soon': "🚧 **TEZ KUNDA**\n\nBu xizmat tez orada ishga tushiriladi!",
 'bonus_menu_msg': "🎁 **BOT ORQALI BONUS**\n\nTanlang:",
 'get_referral_link': "🔗 **Sizning havolangiz:**\n\n`{link}`\n\nDo'stlaringizga yuboring va bonus yig'ing!\n\n👥 Ro'yxat: **+2,000 tanga**\n💰 Xarid: **+17,500 tanga**",

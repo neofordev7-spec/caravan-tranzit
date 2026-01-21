@@ -208,7 +208,7 @@ def get_contact_info_inline_kb():
     """Admin bilan aloqa - 3 ta tugma"""
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📞 +998 91 702 00 99\n📞 +998 94 312 00 99", callback_data="contact_phone")],
-        [InlineKeyboardButton(text="📱 TELEGRAM: @MYBOJXONA @mybojxona1", url="https://t.me/MYBOJXONA")],
+        [InlineKeyboardButton(text="📱 TELEGRAM: @CARAVAN_TRANZIT @caravan_tranzit1", url="https://t.me/CARAVAN_TRANZIT")],
         [InlineKeyboardButton(text="💬 WHATSAPP: +998 91 702 00 99\n+998 94 312 00 99", url="https://chat.whatsapp.com/Ka6XhUv2ueVFZPNuHo06BP")]
     ])
 
@@ -217,8 +217,8 @@ def get_admin_contact_detailed_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📞 +998 91 702 00 99", url="tel:+998917020099")],
         [InlineKeyboardButton(text="📞 +998 94 312 00 99", url="tel:+998943120099")],
-        [InlineKeyboardButton(text="📱 Telegram: @MYBOJXONA", url="https://t.me/MYBOJXONA")],
-        [InlineKeyboardButton(text="📱 Telegram: @mybojxona1", url="https://t.me/mybojxona1")],
+        [InlineKeyboardButton(text="📱 Telegram: @CARAVAN_TRANZIT", url="https://t.me/CARAVAN_TRANZIT")],
+        [InlineKeyboardButton(text="📱 Telegram: @caravan_tranzit1", url="https://t.me/caravan_tranzit1")],
         [InlineKeyboardButton(text="💬 WhatsApp Group", url="https://chat.whatsapp.com/Ka6XhUv2ueVFZPNuHo06BP")]
     ])
 
@@ -265,8 +265,8 @@ def get_admin_contact_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📞 +998 91 702 00 99", url="tel:+998917020099")],
         [InlineKeyboardButton(text="📞 +998 94 312 00 99", url="tel:+998943120099")],
-        [InlineKeyboardButton(text="📱 Telegram: @MYBOJXONA", url="https://t.me/MYBOJXONA")],
-        [InlineKeyboardButton(text="📱 Telegram: @mybojxona1", url="https://t.me/mybojxona1")],
+        [InlineKeyboardButton(text="📱 Telegram: @CARAVAN_TRANZIT", url="https://t.me/CARAVAN_TRANZIT")],
+        [InlineKeyboardButton(text="📱 Telegram: @caravan_tranzit1", url="https://t.me/caravan_tranzit1")],
         [InlineKeyboardButton(text="💬 WhatsApp", url="https://wa.me/998917020099")]
     ])
 
@@ -329,12 +329,12 @@ def get_bonus_menu_kb(lang='uz'):
 def get_social_media_kb():
     """Social Media havolalar"""
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📢 TELEGRAM KANAL", url="https://t.me/mybojxona_channel")],
-        [InlineKeyboardButton(text="💬 TELEGRAM GRUPPA", url="https://t.me/mybojxona_chat")],
+        [InlineKeyboardButton(text="📢 TELEGRAM KANAL", url="https://t.me/caravan_tranzit_channel")],
+        [InlineKeyboardButton(text="💬 TELEGRAM GRUPPA", url="https://t.me/caravan_tranzit_chat")],
         [InlineKeyboardButton(text="💬 WHATSAPP", url="https://chat.whatsapp.com/Ka6XhUv2ueVFZPNuHo06BP")],
-        [InlineKeyboardButton(text="📺 YOUTUBE", url="https://youtube.com/@mybojxona")],
-        [InlineKeyboardButton(text="📸 INSTAGRAM", url="https://instagram.com/mybojxona")],
-        [InlineKeyboardButton(text="🤖 TELEGRAM BOT", url="https://t.me/mybojxona_bot")]
+        [InlineKeyboardButton(text="📺 YOUTUBE", url="https://youtube.com/@caravan_tranzit")],
+        [InlineKeyboardButton(text="📸 INSTAGRAM", url="https://instagram.com/caravan_tranzit")],
+        [InlineKeyboardButton(text="🤖 TELEGRAM BOT", url="https://t.me/caravan_tranzit_bot")]
     ])
 
 # =========================================================

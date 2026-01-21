@@ -73,7 +73,7 @@ def check_missing_keys_per_lang():
 
 if __name__ == '__main__':
     print("="*60)
-    print("MYBOJXONA Translation Completion Report")
+    print("CARAVAN TRANZIT Translation Completion Report")
     print("="*60)
 
     uz_keys = get_uz_keys()

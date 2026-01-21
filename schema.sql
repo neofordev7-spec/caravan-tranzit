@@ -1,5 +1,5 @@
 -- =============================================
--- MYBOJXONA DATABASE SCHEMA
+-- CARAVAN TRANZIT DATABASE SCHEMA
 -- Customs Logistics Ecosystem
 -- PostgreSQL 14+
 -- =============================================
