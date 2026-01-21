@@ -17,27 +17,23 @@
         </div>
     </header>
 
-    <!-- Progress Indicator (hidden on home page) -->
+    <!-- Progress Indicator (hidden on home page) - Yo'nalish bosqichi olib tashlandi -->
     <div class="progress-container" id="progressContainer" style="display: none;">
         <div class="progress-steps">
             <div class="step active" data-step="1">
                 <div class="step-circle">1</div>
-                <div class="step-label">Yo'nalish</div>
+                <div class="step-label">Chegara</div>
             </div>
             <div class="step" data-step="2">
                 <div class="step-circle">2</div>
-                <div class="step-label">Chegara</div>
+                <div class="step-label">Manzil</div>
             </div>
             <div class="step" data-step="3">
                 <div class="step-circle">3</div>
-                <div class="step-label">Manzil</div>
+                <div class="step-label">Mashina</div>
             </div>
             <div class="step" data-step="4">
                 <div class="step-circle">4</div>
-                <div class="step-label">Mashina</div>
-            </div>
-            <div class="step" data-step="5">
-                <div class="step-circle">5</div>
                 <div class="step-label">Hujjatlar</div>
             </div>
         </div>
@@ -94,37 +90,7 @@
             </div>
         </div>
 
-        <!-- Step 1: Direction Selection -->
-        <div class="screen" id="directionScreen">
-            <div class="screen-header">
-                <h2>Yo'nalishni tanlang</h2>
-                <p>Qaysi yo'nalishda harakatlanasiz?</p>
-            </div>
-
-            <div class="direction-cards">
-                <button class="direction-card" onclick="selectDirection('IMPORT')">
-                    <div class="direction-icon">🚛</div>
-                    <h3>IMPORT</h3>
-                    <p>Xorijdan O'zbekistonga</p>
-                </button>
-
-                <button class="direction-card" onclick="selectDirection('EKSPORT')">
-                    <div class="direction-icon">📦</div>
-                    <h3>EKSPORT</h3>
-                    <p>O'zbekistondan xorijga</p>
-                </button>
-
-                <button class="direction-card" onclick="selectDirection('TRANZIT')">
-                    <div class="direction-icon">🔄</div>
-                    <h3>TRANZIT</h3>
-                    <p>O'zbekiston orqali tranzit</p>
-                </button>
-            </div>
-
-            <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
-        </div>
-
-        <!-- Step 2: Border Post Selection -->
+        <!-- Step 1: Border Post Selection (yo'nalish tanlash olib tashlandi) -->
         <div class="screen" id="borderPostScreen">
             <div class="screen-header">
                 <h2>Chegara postini tanlang</h2>
@@ -142,7 +108,7 @@
             <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
         </div>
 
-        <!-- Step 3: Destination Post Selection -->
+        <!-- Step 2: Destination Post Selection -->
         <div class="screen" id="destPostScreen">
             <div class="screen-header">
                 <h2>Manzil postini tanlang</h2>
@@ -160,7 +126,7 @@
             <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
         </div>
 
-        <!-- Step 4: Vehicle Number -->
+        <!-- Step 3: Vehicle Number -->
         <div class="screen" id="vehicleScreen">
             <div class="screen-header">
                 <h2>Mashina raqamini kiriting</h2>
@@ -187,7 +153,7 @@
             <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
         </div>
 
-        <!-- Step 5: Document Upload -->
+        <!-- Step 4: Document Upload -->
         <div class="screen" id="documentsScreen">
             <div class="screen-header">
                 <h2>Hujjatlarni yuklang</h2>

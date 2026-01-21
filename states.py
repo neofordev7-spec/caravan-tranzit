@@ -7,7 +7,6 @@ class Registration(StatesGroup):
     lang = State()          # Til tanlash
     agreement = State()     # Rozilik berish
     phone = State()         # Telefon raqam yuborish
-    direction = State()     # Yo'nalish tanlash (IMPORT/EKSPORT/TRANZIT)
 
 # ==========================================================
 # 2. EPI KOD AT DEKLARATSIYA

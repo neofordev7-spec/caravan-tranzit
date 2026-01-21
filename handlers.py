@@ -90,7 +90,7 @@ async def phone_received(message: Message, state: FSMContext):
     ph = message.contact.phone_number if message.contact else message.text
 
     try:
-        # Add user to database
+        # Add user to database (direction default: IMPORT)
         await db.add_user(message.from_user.id, message.from_user.full_name, ph, lang, 'IMPORT', referrer_id)
 
         # Handle referral bonus
@@ -112,36 +112,11 @@ async def phone_received(message: Message, state: FSMContext):
     except Exception as e:
         print(f"❌ Add user error: {e}")
 
-    # Ask for direction
-    t = await get_text(state, 'ask_direction')
-    await message.answer(t, reply_markup=kb.get_direction_kb(lang))
-    await state.set_state(Registration.direction)
-
-@router.message(Registration.direction)
-async def direction_selected(message: Message, state: FSMContext):
-    """Direction selected (IMPORT/EKSPORT/TRANZIT)"""
-    direction = message.text.replace("🚛", "").replace("📦", "").replace("🔄", "").strip()
-    await state.update_data(direction=direction)
-
-    # Update user direction in database
-    try:
-        user = await db.get_user(message.from_user.id)
-        if user:
-            await db.add_user(
-                message.from_user.id,
-                message.from_user.full_name,
-                user['phone_number'],
-                user['language'],
-                direction
-            )
-    except Exception as e:
-        print(f"❌ Update direction error: {e}")
-
-    lang = await get_user_lang(state)
+    # Go directly to main menu (skip direction selection)
     t = await get_text(state, 'registered')
     await message.answer(t, reply_markup=kb.get_main_menu(lang))
     await state.clear()
-    await state.update_data(lang=lang, direction=direction)
+    await state.update_data(lang=lang)
 
 # ==========================================================
 # 2. MAIN MENU HANDLERS (17 XIZMAT)
@@ -378,26 +353,10 @@ async def epi_border_post_selected(message: Message, state: FSMContext):
 
     await state.update_data(border_post=message.text)
 
-    # For now, skip agent selection (will implement later)
-    # Ask for destination post based on direction
-    data = await state.get_data()
-    direction = data.get('direction', 'IMPORT')
-
-    if direction == 'IMPORT':
-        # IMPORT: manzil TIF postlaridan
-        t = await get_text(state, 'select_dest_post')
-        await message.answer(t, reply_markup=kb.get_dest_posts_kb())
-        await state.set_state(EPIKodFlow.select_dest_post)
-    elif direction == 'TRANZIT':
-        # TRANZIT: manzil chegara postlaridan
-        t = await get_text(state, 'select_dest_post')
-        await message.answer(t, reply_markup=kb.get_dest_border_posts_kb())
-        await state.set_state(EPIKodFlow.select_dest_post)
-    else:
-        # EKSPORT - no destination post
-        t = await get_text(state, 'enter_car_number')
-        await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
-        await state.set_state(EPIKodFlow.enter_car_number)
+    # Yo'nalish tanlash olib tashlandi - to'g'ridan-to'g'ri TIF postlarini ko'rsatamiz
+    t = await get_text(state, 'select_dest_post')
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await state.set_state(EPIKodFlow.select_dest_post)
 
 @router.message(EPIKodFlow.select_dest_post)
 async def epi_dest_post_selected(message: Message, state: FSMContext):
@@ -501,24 +460,10 @@ async def mb_border_post_selected(message: Message, state: FSMContext):
 
     await state.update_data(border_post=message.text)
 
-    data = await state.get_data()
-    direction = data.get('direction', 'IMPORT')
-
-    if direction == 'IMPORT':
-        # IMPORT: manzil TIF postlaridan
-        t = await get_text(state, 'select_dest_post')
-        await message.answer(t, reply_markup=kb.get_dest_posts_kb())
-        await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
-    elif direction == 'TRANZIT':
-        # TRANZIT: manzil chegara postlaridan
-        t = await get_text(state, 'select_dest_post')
-        await message.answer(t, reply_markup=kb.get_dest_border_posts_kb())
-        await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
-    else:
-        # EKSPORT - no destination post
-        t = await get_text(state, 'enter_car_number')
-        await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
-        await state.set_state(MBDeklaratsiyaFlow.enter_car_number)
+    # Yo'nalish tanlash olib tashlandi - to'g'ridan-to'g'ri TIF postlarini ko'rsatamiz
+    t = await get_text(state, 'select_dest_post')
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
 
 @router.message(MBDeklaratsiyaFlow.select_dest_post)
 async def mb_dest_post_selected(message: Message, state: FSMContext):

@@ -136,13 +136,6 @@ def get_phone_kb(lang):
     elif lang == 'en': t = "📱 Share Contact"
     return ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=t, request_contact=True)]], resize_keyboard=True)
 
-def get_direction_kb(lang):
-    """Yo'nalish tanlash (IMPORT/EKSPORT/TRANZIT)"""
-    return ReplyKeyboardMarkup(keyboard=[
-        [KeyboardButton(text="🚛 IMPORT"), KeyboardButton(text="📦 EKSPORT")],
-        [KeyboardButton(text="🔄 TRANZIT")]
-    ], resize_keyboard=True)
-
 # =========================================================
 # 3. ASOSIY MENYU (17 TA XIZMAT)
 # =========================================================

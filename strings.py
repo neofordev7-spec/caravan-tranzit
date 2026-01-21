@@ -63,9 +63,6 @@ TEXTS = {
         'step_1': "1-qadam: Raqam", 'step_2': "2-qadam: Hujjatlar", 'step_3': "3-qadam: Post", 'step_4': "4-qadam: Manzil", 'step_5': "Yakunlash",
 
         # ===== YANGI QISMLAR =====
-        # Yo'nalish
-        'ask_direction': "🚛 **Siz qaysi yo'nalishda harakatlanasiz?**\n\nYo'nalishni tanlang:",
-        'direction_selected': "✅ Yo'nalish tanlandi: **{direction}**",
 
         # Asosiy menyu (17 ta xizmat)
         'menu_epi': 'EPI KOD AT DEKLARATSIYA',
