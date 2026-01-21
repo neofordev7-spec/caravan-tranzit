@@ -90,7 +90,7 @@ async def phone_received(message: Message, state: FSMContext):
     ph = message.contact.phone_number if message.contact else message.text
 
     try:
-        # Add user to database
+        # Add user to database (direction default: IMPORT)
         await db.add_user(message.from_user.id, message.from_user.full_name, ph, lang, 'IMPORT', referrer_id)
 
         # Handle referral bonus
@@ -112,36 +112,11 @@ async def phone_received(message: Message, state: FSMContext):
     except Exception as e:
         print(f"❌ Add user error: {e}")
 
-    # Ask for direction
-    t = await get_text(state, 'ask_direction')
-    await message.answer(t, reply_markup=kb.get_direction_kb(lang))
-    await state.set_state(Registration.direction)
-
-@router.message(Registration.direction)
-async def direction_selected(message: Message, state: FSMContext):
-    """Direction selected (IMPORT/EKSPORT/TRANZIT)"""
-    direction = message.text.replace("🚛", "").replace("📦", "").replace("🔄", "").strip()
-    await state.update_data(direction=direction)
-
-    # Update user direction in database
-    try:
-        user = await db.get_user(message.from_user.id)
-        if user:
-            await db.add_user(
-                message.from_user.id,
-                message.from_user.full_name,
-                user['phone_number'],
-                user['language'],
-                direction
-            )
-    except Exception as e:
-        print(f"❌ Update direction error: {e}")
-
-    lang = await get_user_lang(state)
+    # Go directly to main menu (skip direction selection)
     t = await get_text(state, 'registered')
     await message.answer(t, reply_markup=kb.get_main_menu(lang))
     await state.clear()
-    await state.update_data(lang=lang, direction=direction)
+    await state.update_data(lang=lang)
 
 # ==========================================================
 # 2. MAIN MENU HANDLERS (17 XIZMAT)
@@ -219,8 +194,8 @@ async def contact_info_option_chosen(message: Message, state: FSMContext):
             "• +998 91 702 00 99\n"
             "• +998 94 312 00 99\n\n"
             "💬 **Telegram:**\n"
-            "• @MYBOJXONA\n"
-            "• @mybojxona1\n\n"
+            "• @CARAVAN_TRANZIT\n"
+            "• @caravan_tranzit1\n\n"
             "📲 **WhatsApp:**\n"
             "• +998 91 702 00 99\n"
             "• +998 94 312 00 99\n"
@@ -292,11 +267,9 @@ async def settings_menu(message: Message, state: FSMContext):
 
 @router.message(F.text.contains("NARXLAR KATALOGI"))
 async def show_prices(message: Message, state: FSMContext):
-    """Show prices catalog with user balance"""
-    lang = await get_user_lang(state)
-    balance = await db.get_user_balance(message.from_user.id)
-    t = await get_text(state, 'prices_catalog', balance=balance)
-    await message.answer(t, parse_mode="Markdown")
+    """Show prices catalog"""
+    t = await get_text(state, 'prices_catalog')
+    await message.answer(t, parse_mode="HTML")
 
 @router.message(F.text.contains("DASTURNI YUKLAB OLING"))
 async def app_download(message: Message, state: FSMContext):
@@ -376,28 +349,39 @@ async def epi_border_post_selected(message: Message, state: FSMContext):
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         return
 
+    # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
+    if "ANIQ EMAS" in message.text:
+        await message.answer(
+            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
+            reply_markup=kb.get_viloyatlar_kb(),
+            parse_mode="Markdown"
+        )
+        await state.set_state(EPIKodFlow.select_viloyat_border)
+        return
+
     await state.update_data(border_post=message.text)
 
-    # For now, skip agent selection (will implement later)
-    # Ask for destination post based on direction
-    data = await state.get_data()
-    direction = data.get('direction', 'IMPORT')
+    # To'g'ridan-to'g'ri TIF postlarini ko'rsatamiz
+    t = await get_text(state, 'select_dest_post')
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await state.set_state(EPIKodFlow.select_dest_post)
 
-    if direction == 'IMPORT':
-        # IMPORT: manzil TIF postlaridan
-        t = await get_text(state, 'select_dest_post')
-        await message.answer(t, reply_markup=kb.get_dest_posts_kb())
-        await state.set_state(EPIKodFlow.select_dest_post)
-    elif direction == 'TRANZIT':
-        # TRANZIT: manzil chegara postlaridan
-        t = await get_text(state, 'select_dest_post')
-        await message.answer(t, reply_markup=kb.get_dest_border_posts_kb())
-        await state.set_state(EPIKodFlow.select_dest_post)
-    else:
-        # EKSPORT - no destination post
-        t = await get_text(state, 'enter_car_number')
-        await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
-        await state.set_state(EPIKodFlow.enter_car_number)
+@router.message(EPIKodFlow.select_viloyat_border)
+async def epi_viloyat_border_selected(message: Message, state: FSMContext):
+    """EPI: Viloyat selected for border post (ANIQ EMAS)"""
+    if "Ortga" in message.text or "Back" in message.text:
+        t = await get_text(state, 'epi_start')
+        await message.answer(t, reply_markup=kb.get_posts_kb())
+        await state.set_state(EPIKodFlow.select_border_post)
+        return
+
+    # Viloyat nomini saqlash
+    await state.update_data(border_post=f"ANIQ EMAS ({message.text})")
+
+    # Manzil postini tanlashga o'tish
+    t = await get_text(state, 'select_dest_post')
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await state.set_state(EPIKodFlow.select_dest_post)
 
 @router.message(EPIKodFlow.select_dest_post)
 async def epi_dest_post_selected(message: Message, state: FSMContext):
@@ -408,7 +392,33 @@ async def epi_dest_post_selected(message: Message, state: FSMContext):
         await state.set_state(EPIKodFlow.select_border_post)
         return
 
+    # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
+    if "ANIQ EMAS" in message.text:
+        await message.answer(
+            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
+            reply_markup=kb.get_viloyatlar_kb(),
+            parse_mode="Markdown"
+        )
+        await state.set_state(EPIKodFlow.select_viloyat_dest)
+        return
+
     await state.update_data(dest_post=message.text)
+
+    t = await get_text(state, 'enter_car_number')
+    await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
+    await state.set_state(EPIKodFlow.enter_car_number)
+
+@router.message(EPIKodFlow.select_viloyat_dest)
+async def epi_viloyat_dest_selected(message: Message, state: FSMContext):
+    """EPI: Viloyat selected for destination post (ANIQ EMAS)"""
+    if "Ortga" in message.text or "Back" in message.text:
+        t = await get_text(state, 'select_dest_post')
+        await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+        await state.set_state(EPIKodFlow.select_dest_post)
+        return
+
+    # Viloyat nomini saqlash
+    await state.update_data(dest_post=f"ANIQ EMAS ({message.text})")
 
     t = await get_text(state, 'enter_car_number')
     await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
@@ -499,26 +509,39 @@ async def mb_border_post_selected(message: Message, state: FSMContext):
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         return
 
+    # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
+    if "ANIQ EMAS" in message.text:
+        await message.answer(
+            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
+            reply_markup=kb.get_viloyatlar_kb(),
+            parse_mode="Markdown"
+        )
+        await state.set_state(MBDeklaratsiyaFlow.select_viloyat_border)
+        return
+
     await state.update_data(border_post=message.text)
 
-    data = await state.get_data()
-    direction = data.get('direction', 'IMPORT')
+    # To'g'ridan-to'g'ri TIF postlarini ko'rsatamiz
+    t = await get_text(state, 'select_dest_post')
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
 
-    if direction == 'IMPORT':
-        # IMPORT: manzil TIF postlaridan
-        t = await get_text(state, 'select_dest_post')
-        await message.answer(t, reply_markup=kb.get_dest_posts_kb())
-        await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
-    elif direction == 'TRANZIT':
-        # TRANZIT: manzil chegara postlaridan
-        t = await get_text(state, 'select_dest_post')
-        await message.answer(t, reply_markup=kb.get_dest_border_posts_kb())
-        await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
-    else:
-        # EKSPORT - no destination post
-        t = await get_text(state, 'enter_car_number')
-        await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
-        await state.set_state(MBDeklaratsiyaFlow.enter_car_number)
+@router.message(MBDeklaratsiyaFlow.select_viloyat_border)
+async def mb_viloyat_border_selected(message: Message, state: FSMContext):
+    """MB: Viloyat selected for border post (ANIQ EMAS)"""
+    if "Ortga" in message.text or "Back" in message.text:
+        t = await get_text(state, 'mb_start')
+        await message.answer(t, reply_markup=kb.get_posts_kb())
+        await state.set_state(MBDeklaratsiyaFlow.select_border_post)
+        return
+
+    # Viloyat nomini saqlash
+    await state.update_data(border_post=f"ANIQ EMAS ({message.text})")
+
+    # Manzil postini tanlashga o'tish
+    t = await get_text(state, 'select_dest_post')
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
 
 @router.message(MBDeklaratsiyaFlow.select_dest_post)
 async def mb_dest_post_selected(message: Message, state: FSMContext):
@@ -529,7 +552,33 @@ async def mb_dest_post_selected(message: Message, state: FSMContext):
         await state.set_state(MBDeklaratsiyaFlow.select_border_post)
         return
 
+    # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
+    if "ANIQ EMAS" in message.text:
+        await message.answer(
+            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
+            reply_markup=kb.get_viloyatlar_kb(),
+            parse_mode="Markdown"
+        )
+        await state.set_state(MBDeklaratsiyaFlow.select_viloyat_dest)
+        return
+
     await state.update_data(dest_post=message.text)
+
+    t = await get_text(state, 'enter_car_number')
+    await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
+    await state.set_state(MBDeklaratsiyaFlow.enter_car_number)
+
+@router.message(MBDeklaratsiyaFlow.select_viloyat_dest)
+async def mb_viloyat_dest_selected(message: Message, state: FSMContext):
+    """MB: Viloyat selected for destination post (ANIQ EMAS)"""
+    if "Ortga" in message.text or "Back" in message.text:
+        t = await get_text(state, 'select_dest_post')
+        await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+        await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
+        return
+
+    # Viloyat nomini saqlash
+    await state.update_data(dest_post=f"ANIQ EMAS ({message.text})")
 
     t = await get_text(state, 'enter_car_number')
     await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))

@@ -204,7 +204,7 @@ async def send_telegram_invoice(bot: Bot, user_id: int, app_code: str, amount: D
             currency="UZS",
             prices=prices,
             start_parameter=f"pay_{app_code}",
-            photo_url="https://via.placeholder.com/400x200.png?text=MYBOJXONA",
+            photo_url="https://via.placeholder.com/400x200.png?text=CARAVAN+TRANZIT",
             photo_size=400,
             photo_width=400,
             photo_height=200,

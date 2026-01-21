@@ -63,9 +63,6 @@ TEXTS = {
         'step_1': "1-qadam: Raqam", 'step_2': "2-qadam: Hujjatlar", 'step_3': "3-qadam: Post", 'step_4': "4-qadam: Manzil", 'step_5': "Yakunlash",
 
         # ===== YANGI QISMLAR =====
-        # Yo'nalish
-        'ask_direction': "🚛 **Siz qaysi yo'nalishda harakatlanasiz?**\n\nYo'nalishni tanlang:",
-        'direction_selected': "✅ Yo'nalish tanlandi: **{direction}**",
 
         # Asosiy menyu (17 ta xizmat)
         'menu_epi': 'EPI KOD AT DEKLARATSIYA',
@@ -90,16 +87,16 @@ TEXTS = {
         'mb_start': "📋 **MB DEKLARATSIYA**\n\nChegara bojxona postini tanlang:",
         'select_agent': "👨‍💼 **Agent tanlash**\n\nQuyidagi agentlardan birini tanlang:",
         'enter_car_number': "🚛 **Mashina raqamini kiriting:**\n\n(Misol: 01A777AA)",
-        'docs_epi': "📸 **Hujjatlarni yuklang:**\n\n📄 Pasport\n📄 Tex-pasport\n📦 CMR\n📦 Invoice\n📜 Boshqa hujjatlar\n\n✅ Barcha rasmlarni yuklangandan so'ng **'Yuklab bo'ldim'** tugmasini bosing.",
+        'docs_epi': "📸 **Hujjatlarni yuklang:**\n\n📄 Pasport\n📄 Tex-pasport\n📦 CMR ; Invoice ; Packing list\n📜 Boshqa hujjatlar (Gabarit ruxsatnoma; Karantin ruxsatnoma; Fitosanitariya sertifikati; Sanitariya; Veterinariya)\n\n✅ Barcha rasmlarni yuklangandan so'ng **'Yuklab bo'ldim'** tugmasini bosing.",
         'docs_mb': "📸 **Hujjatlarni yuklang:**\n\n📄 Pasport\n📄 Tex-pasport\n\n✅ Barcha rasmlarni yuklangandan so'ng **'Yuklab bo'ldim'** tugmasini bosing.",
         'waiting_admin': "⏳ **Arizangiz adminlarga yuborildi!**\n\n🆔 Ariza kodi: `{code}`\n\nAdmin javobini kuting...",
         'price_set': "✅ **Ariza tasdiqlandi!**\n\n💰 Narx: **{price} so'm**\n\nTo'lov turini tanlang:",
 
         # Ishonch telefonlari
-        'contacts_msg': "📞 **ISHONCH TELEFONLARI**\n\n📱 +998 91 702 00 99\n📱 +998 94 312 00 99\n\n📱 Telegram: @MYBOJXONA, @mybojxona1\n\n💬 WhatsApp: +998 91 702 00 99",
+        'contacts_msg': "📞 **ISHONCH TELEFONLARI**\n\n📱 +998 91 702 00 99\n📱 +998 94 312 00 99\n\n📱 Telegram: @CARAVAN_TRANZIT, @caravan_tranzit1\n\n💬 WhatsApp: +998 91 702 00 99",
 
         # Narxlar katalogi
-        'prices_catalog': "📣 **MYBOJXONA: EPI-KOD xizmatlari narxlari**\n\nHurmatli mijozlar, EPI-KOD xizmatlari uchun belgilangan narxlar bilan tanishing:\n\n📦 **1-2 partiya:** 35 000 so'm\n📦 **3 partiya:** 45 000 so'm\n📦 **4 partiya:** 60 000 so'm\n📦 **5 partiya:** 75 000 so'm\n📦 **6 partiya:** 105 000 so'm\n📦 **7 partiya:** 126 000 so'm\n📦 **8 partiya:** 144 000 so'm\n\n🔄 **Boshqa holatlarda:** Har bir partiya uchun **20 000 so'mdan** hisoblanadi (X*20000).\n\n📞 **Ishonch telefonlari:**\n▪️ +998 94 312 00 99\n▪️ +998 91 702 00 99\n\n💎 **Sizning tangalaringiz hisobi:** {balance} ta tanga",
+        'prices_catalog': "<b>🚛 CARAVAN TRANZIT — EPI-KOD XIZMATI</b>\n\nEPI-kod xizmatlari uchun tasdiqlangan narxlar ro'yxati:\n\n➖➖➖➖➖➖➖➖➖➖➖\n<b>📦 Kichik partiyalar:</b>\n▪️ <b>1-2 partiya:</b> 35 000 so'm\n▪️ <b>3 partiya:</b> 45 000 so'm\n\n<b>📈 Katta partiyalar:</b>\n▪️ <b>4 partiya:</b> 60 000 so'm\n▪️ <b>5 partiya:</b> 75 000 so'm\n▪️ <b>6 partiya:</b> 105 000 so'm\n▪️ <b>7 partiya:</b> 126 000 so'm\n▪️ <b>8 partiya:</b> 144 000 so'm\n▪️ <b>9 partiya:</b> 180 000 so'm\n➖➖➖➖➖➖➖➖➖➖➖\n\n<i>💡 To'lovlar milliy valyutada (UZS) qabul qilinadi.</i>\n\n<b>📞 Bog'lanish uchun:</b>\n+998 94 312 00 99\n+998 91 702 00 99\n\n🏢 <i>Caravan Broker MCHJ</i>",
 
         # Arizalarim
         'apps_menu': "🎫 **ARIZALARIM**\n\nTanlang:",
@@ -115,7 +112,7 @@ TEXTS = {
         'change_lang_msg': "🌐 **Tilni o'zgartirish**\n\nTilni tanlang:",
         'clear_cache_msg': "🗑 **Xotirani tozalash**\n\nBarcha saqlangan hujjatlaringiz o'chiriladi. Davom etasizmi?",
         'cache_cleared_msg': "✅ Xotira tozalandi!",
-        'admin_contact_msg': "👨‍💼 **ADMIN BILAN ALOQA**\n\n📞 Telefon: +998917020099, +998943120099\n📱 Telegram: @MYBOJXONA, @mybojxona1\n💬 WhatsApp: +998917020099",
+        'admin_contact_msg': "👨‍💼 **ADMIN BILAN ALOQA**\n\n📞 Telefon: +998917020099, +998943120099\n📱 Telegram: @CARAVAN_TRANZIT, @caravan_tranzit1\n💬 WhatsApp: +998917020099",
 
         # Narxlar katalogi
         'prices_msg': "💰 **NARXLAR KATALOGI**\n\nBarcha narxlarni ko'rish uchun quyidagi havolaga o'ting:\n\n🔗 https://taplink.at/en/profile/17507824/pages/",
@@ -133,7 +130,7 @@ TEXTS = {
         'kgd_checking': "🔍 Tekshirilmoqda... Bir oz kuting.",
 
         # Gabarit ruxsatnoma
-        'gabarit_msg': "📜 **GABARIT RUXSATNOMA OLISH**\n\nGabarit ruxsatnoma olish uchun admin bilan bog'laning:\n\n📱 @MYBOJXONA\n📱 @mybojxona1\n\n✍️ \"GABARIT\" deb yozing",
+        'gabarit_msg': "📜 **GABARIT RUXSATNOMA OLISH**\n\nGabarit ruxsatnoma olish uchun admin bilan bog'laning:\n\n📱 @CARAVAN_TRANZIT\n📱 @caravan_tranzit1\n\n✍️ \"GABARIT\" deb yozing",
 
         # Placeholder xizmatlar
         'coming_soon': "🚧 **TEZ KUNDA**\n\nBu xizmat tez orada ishga tushiriladi!",

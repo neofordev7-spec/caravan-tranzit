@@ -1,4 +1,4 @@
-# MYBOJXONA Bot - O'zgarishlar tarixi
+# CARAVAN TRANZIT Bot - O'zgarishlar tarixi
 
 ## 2026-01-12 - Katta yangilanish
 
@@ -31,7 +31,7 @@
    - "Bekor qilish" tugmasi asosiy menyuga qaytaradi
 
 6. **Social Media havolalari**
-   - Telegram gruppa: https://t.me/mybojxona_chat
+   - Telegram gruppa: https://t.me/caravan_tranzit_chat
 
 ### 🚀 Yangi funksiyalar
 

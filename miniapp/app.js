@@ -1,5 +1,5 @@
 /**
- * MYBOJXONA Mini App JavaScript
+ * CARAVAN TRANZIT Mini App JavaScript
  * Telegram Web App Integration
  */
 
@@ -10,7 +10,7 @@ const tg = window.Telegram.WebApp;
 const appState = {
     currentStep: 0,
     serviceType: null, // 'EPI' or 'MB'
-    direction: null, // 'IMPORT', 'EKSPORT', 'TRANZIT'
+    direction: 'IMPORT', // Default direction (yo'nalish tanlash olib tashlandi)
     borderPost: null,
     destPost: null,
     vehicleNumber: null,
@@ -68,26 +68,17 @@ function initTelegramApp() {
     console.log('Telegram Web App initialized');
 }
 
-// Start application flow
+// Start application flow (yo'nalish tanlash olib tashlandi - to'g'ridan-to'g'ri chegara postiga o'tadi)
 function startFlow(serviceType) {
     appState.serviceType = serviceType;
+    appState.direction = 'IMPORT'; // Default direction
     appState.currentStep = 1;
     appState.maxStep = Math.max(appState.maxStep, 1);
-
-    showScreen('directionScreen');
-    updateProgress();
-    tg.BackButton.show();
-}
-
-// Select direction
-function selectDirection(direction) {
-    appState.direction = direction;
-    appState.currentStep = 2;
-    appState.maxStep = Math.max(appState.maxStep, 2);
 
     loadBorderPosts();
     showScreen('borderPostScreen');
     updateProgress();
+    tg.BackButton.show();
 }
 
 // Load border posts
@@ -114,20 +105,12 @@ function selectBorderPost(post) {
     });
     event.target.classList.add('selected');
 
-    // Auto-proceed after short delay
+    // Auto-proceed after short delay - to'g'ridan-to'g'ri manzil postiga
     setTimeout(() => {
-        if (appState.direction === 'EKSPORT') {
-            // EKSPORT: skip destination, go to vehicle
-            appState.currentStep = 4;
-            appState.maxStep = Math.max(appState.maxStep, 4);
-            showScreen('vehicleScreen');
-        } else {
-            // IMPORT/TRANZIT: show destination posts
-            appState.currentStep = 3;
-            appState.maxStep = Math.max(appState.maxStep, 3);
-            loadDestPosts();
-            showScreen('destPostScreen');
-        }
+        appState.currentStep = 2;
+        appState.maxStep = Math.max(appState.maxStep, 2);
+        loadDestPosts();
+        showScreen('destPostScreen');
         updateProgress();
     }, 300);
 }
@@ -137,7 +120,8 @@ function loadDestPosts() {
     const container = document.getElementById('destPostsList');
     container.innerHTML = '';
 
-    const posts = appState.direction === 'IMPORT' ? TIF_POSTS : BORDER_POSTS;
+    // Default to TIF_POSTS (yo'nalish tanlash olib tashlandi)
+    const posts = TIF_POSTS;
 
     posts.forEach(post => {
         const item = document.createElement('div');
@@ -160,8 +144,8 @@ function selectDestPost(post) {
 
     // Auto-proceed
     setTimeout(() => {
-        appState.currentStep = 4;
-        appState.maxStep = Math.max(appState.maxStep, 4);
+        appState.currentStep = 3;
+        appState.maxStep = Math.max(appState.maxStep, 3);
         showScreen('vehicleScreen');
         updateProgress();
     }, 300);
@@ -193,8 +177,8 @@ function submitVehicle() {
     }
 
     appState.vehicleNumber = value;
-    appState.currentStep = 5;
-    appState.maxStep = Math.max(appState.maxStep, 5);
+    appState.currentStep = 4;
+    appState.maxStep = Math.max(appState.maxStep, 4);
 
     loadDocumentChecklist();
     showScreen('documentsScreen');
@@ -378,7 +362,8 @@ function goBack() {
 
     appState.currentStep--;
 
-    const screens = ['homeScreen', 'directionScreen', 'borderPostScreen', 'destPostScreen', 'vehicleScreen', 'documentsScreen'];
+    // Yo'nalish tanlash olib tashlandi - directionScreen yo'q
+    const screens = ['homeScreen', 'borderPostScreen', 'destPostScreen', 'vehicleScreen', 'documentsScreen'];
     const targetScreen = screens[appState.currentStep];
 
     if (targetScreen) {
@@ -428,8 +413,8 @@ function updateProgress() {
             }
         });
 
-        // Update progress bar
-        const percentage = ((appState.currentStep - 1) / 4) * 100;
+        // Update progress bar (4 ta step: border post, dest post, vehicle, docs)
+        const percentage = ((appState.currentStep - 1) / 3) * 100;
         progressFill.style.width = `${percentage}%`;
     } else {
         hideProgress();
@@ -513,5 +498,5 @@ function setupDragDrop() {
 document.addEventListener('DOMContentLoaded', () => {
     initTelegramApp();
     setupDragDrop();
-    console.log('MYBOJXONA Mini App loaded');
+    console.log('CARAVAN TRANZIT Mini App loaded');
 });

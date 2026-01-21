@@ -7,15 +7,16 @@ class Registration(StatesGroup):
     lang = State()          # Til tanlash
     agreement = State()     # Rozilik berish
     phone = State()         # Telefon raqam yuborish
-    direction = State()     # Yo'nalish tanlash (IMPORT/EKSPORT/TRANZIT)
 
 # ==========================================================
 # 2. EPI KOD AT DEKLARATSIYA
 # ==========================================================
 class EPIKodFlow(StatesGroup):
     select_border_post = State()    # Chegara bojxona postini tanlash
+    select_viloyat_border = State() # Viloyat tanlash (ANIQ EMAS bosilganda - chegara posti uchun)
     select_agent = State()           # Agent tanlash
     select_dest_post = State()       # Manzil bojxona postini tanlash (IMPORT/TRANZIT uchun)
+    select_viloyat_dest = State()    # Viloyat tanlash (ANIQ EMAS bosilganda - manzil uchun)
     enter_car_number = State()       # Mashina raqamini kiritish
     collect_docs = State()           # Hujjatlarni yig'ish
     waiting_payment = State()        # To'lov kutish
@@ -25,8 +26,10 @@ class EPIKodFlow(StatesGroup):
 # ==========================================================
 class MBDeklaratsiyaFlow(StatesGroup):
     select_border_post = State()    # Chegara bojxona postini tanlash
+    select_viloyat_border = State() # Viloyat tanlash (ANIQ EMAS bosilganda - chegara posti uchun)
     select_agent = State()           # Agent tanlash
     select_dest_post = State()       # Manzil bojxona postini tanlash (faqat IMPORT/TRANZIT)
+    select_viloyat_dest = State()    # Viloyat tanlash (ANIQ EMAS bosilganda - manzil uchun)
     enter_car_number = State()       # Mashina raqamini kiritish
     collect_docs = State()           # Hujjatlarni yig'ish
     waiting_payment = State()        # To'lov kutish

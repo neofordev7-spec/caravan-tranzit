@@ -1,11 +1,11 @@
-# MYBOJXONA Mini App
+# CARAVAN TRANZIT Mini App
 
-Telegram Mini App для сервиса таможенного оформления MYBOJXONA Caravan Broker LTD.
+Telegram Mini App для сервиса таможенного оформления CARAVAN TRANZIT Caravan Broker LTD.
 
 ## 🎨 Дизайн
 
 - **Основной цвет**: #8304F9 (фиолетовый)
-- **Логотип**: Фирменный стиль MYBOJXONA
+- **Логотип**: Фирменный стиль CARAVAN TRANZIT
 - **Адаптивный**: Мобильные и десктопные устройства
 - **Простой интерфейс**: Разработан для водителей
 
@@ -56,8 +56,8 @@ Telegram Mini App для сервиса таможенного оформлен�
 
 ```
 /newapp
-@mybojxona_bot
-MYBOJXONA
+@caravan_tranzit_bot
+CARAVAN TRANZIT
 Telegram Mini App for customs services
 https://your-domain.com/miniapp/index.html
 https://your-domain.com/miniapp/assets/logo.svg
@@ -129,7 +129,7 @@ miniapp/
 ├── style.css           # Стили (CSS с переменными)
 ├── app.js              # JavaScript логика
 ├── assets/
-│   └── logo.svg        # Логотип MYBOJXONA
+│   └── logo.svg        # Логотип CARAVAN TRANZIT
 └── README.md           # Документация
 ```
 
@@ -139,7 +139,7 @@ miniapp/
 
 1. Push в репозиторий
 2. Settings → Pages → Source: main → /miniapp
-3. URL: `https://username.github.io/MYBOJXONA/miniapp`
+3. URL: `https://username.github.io/CARAVAN TRANZIT/miniapp`
 
 ### Вариант 2: Netlify
 
@@ -223,10 +223,10 @@ def validate_telegram_webapp(init_data: str, bot_token: str) -> bool:
 
 ## 📞 Контакты
 
-- Telegram: @MYBOJXONA, @mybojxona1
+- Telegram: @CARAVAN TRANZIT, @caravan_tranzit1
 - Телефон: +998 91 702 00 99, +998 94 312 00 99
 - WhatsApp: +998 91 702 00 99
 
 ---
 
-© 2024 MYBOJXONA Caravan Broker LTD
+© 2024 CARAVAN TRANZIT Caravan Broker LTD

@@ -1,4 +1,4 @@
-# MYBOJXONA - Customs Logistics Ecosystem 🚛
+# CARAVAN TRANZIT - Customs Logistics Ecosystem 🚛
 
 A comprehensive Telegram Bot ecosystem for customs declarations at border posts, connecting Drivers, Customs Agents, and Administrators.
 
@@ -43,7 +43,7 @@ saved_docs (user_id, car_number, photos[])  -- Auto-fill cache
 ### Project Structure
 
 ```
-MYBOJXONA/
+CARAVAN_TRANZIT/
 ├── main.py                  # Bot entry point
 ├── database.py              # Database layer (AsyncPG)
 ├── handlers.py              # Main bot handlers
@@ -299,13 +299,13 @@ This project is proprietary software. All rights reserved.
 ## 🤝 Support
 
 For support and inquiries:
-- 📧 Email: support@mybojxona.uz
-- 💬 Telegram: @mybojxona_support
+- 📧 Email: support@caravantranzit.uz
+- 💬 Telegram: @caravan_tranzit_support
 - 📞 Phone: +998 XX XXX XX XX
 
 ## 🎉 Credits
 
-Built with ❤️ by the MYBOJXONA Team
+Built with ❤️ by the CARAVAN TRANZIT Team
 
 **Tech Stack**:
 - [Aiogram 3.x](https://github.com/aiogram/aiogram) - Modern Telegram Bot framework

@@ -1,5 +1,5 @@
 // ==========================================
-// MYBOJXONA Web App - Main JavaScript
+// CARAVAN TRANZIT Web App - Main JavaScript
 // ==========================================
 
 // Telegram Web App API
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeApp() {
-    console.log('MYBOJXONA Web App initialized');
+    console.log('CARAVAN TRANZIT Web App initialized');
     tg.setHeaderColor('#F5F7FA');
     tg.setBackgroundColor('#F5F7FA');
 }

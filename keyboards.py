@@ -106,6 +106,24 @@ TIF_POSTS_LIST = [
     "Elektron tijorat"
 ]
 
+# O'ZBEKISTON VILOYATLARI (14 ta hudud)
+VILOYATLAR_LIST = [
+    "Qoraqalpogʻiston Respublikasi",
+    "Andijon viloyati",
+    "Buxoro viloyati",
+    "Fargʻona viloyati",
+    "Jizzax viloyati",
+    "Xorazm viloyati",
+    "Namangan viloyati",
+    "Navoiy viloyati",
+    "Qashqadaryo viloyati",
+    "Samarqand viloyati",
+    "Sirdaryo viloyati",
+    "Surxondaryo viloyati",
+    "Toshkent viloyati",
+    "Toshkent shahri"
+]
+
 # =========================================================
 # 2. REGISTRATION KEYBOARDS
 # =========================================================
@@ -135,13 +153,6 @@ def get_phone_kb(lang):
     if lang == 'ru': t = "📱 Отправить номер"
     elif lang == 'en': t = "📱 Share Contact"
     return ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=t, request_contact=True)]], resize_keyboard=True)
-
-def get_direction_kb(lang):
-    """Yo'nalish tanlash (IMPORT/EKSPORT/TRANZIT)"""
-    return ReplyKeyboardMarkup(keyboard=[
-        [KeyboardButton(text="🚛 IMPORT"), KeyboardButton(text="📦 EKSPORT")],
-        [KeyboardButton(text="🔄 TRANZIT")]
-    ], resize_keyboard=True)
 
 # =========================================================
 # 3. ASOSIY MENYU (17 TA XIZMAT)
@@ -208,7 +219,7 @@ def get_contact_info_inline_kb():
     """Admin bilan aloqa - 3 ta tugma"""
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📞 +998 91 702 00 99\n📞 +998 94 312 00 99", callback_data="contact_phone")],
-        [InlineKeyboardButton(text="📱 TELEGRAM: @MYBOJXONA @mybojxona1", url="https://t.me/MYBOJXONA")],
+        [InlineKeyboardButton(text="📱 TELEGRAM: @CARAVAN_TRANZIT @caravan_tranzit1", url="https://t.me/CARAVAN_TRANZIT")],
         [InlineKeyboardButton(text="💬 WHATSAPP: +998 91 702 00 99\n+998 94 312 00 99", url="https://chat.whatsapp.com/Ka6XhUv2ueVFZPNuHo06BP")]
     ])
 
@@ -217,8 +228,8 @@ def get_admin_contact_detailed_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📞 +998 91 702 00 99", url="tel:+998917020099")],
         [InlineKeyboardButton(text="📞 +998 94 312 00 99", url="tel:+998943120099")],
-        [InlineKeyboardButton(text="📱 Telegram: @MYBOJXONA", url="https://t.me/MYBOJXONA")],
-        [InlineKeyboardButton(text="📱 Telegram: @mybojxona1", url="https://t.me/mybojxona1")],
+        [InlineKeyboardButton(text="📱 Telegram: @CARAVAN_TRANZIT", url="https://t.me/CARAVAN_TRANZIT")],
+        [InlineKeyboardButton(text="📱 Telegram: @caravan_tranzit1", url="https://t.me/caravan_tranzit1")],
         [InlineKeyboardButton(text="💬 WhatsApp Group", url="https://chat.whatsapp.com/Ka6XhUv2ueVFZPNuHo06BP")]
     ])
 
@@ -265,8 +276,8 @@ def get_admin_contact_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📞 +998 91 702 00 99", url="tel:+998917020099")],
         [InlineKeyboardButton(text="📞 +998 94 312 00 99", url="tel:+998943120099")],
-        [InlineKeyboardButton(text="📱 Telegram: @MYBOJXONA", url="https://t.me/MYBOJXONA")],
-        [InlineKeyboardButton(text="📱 Telegram: @mybojxona1", url="https://t.me/mybojxona1")],
+        [InlineKeyboardButton(text="📱 Telegram: @CARAVAN_TRANZIT", url="https://t.me/CARAVAN_TRANZIT")],
+        [InlineKeyboardButton(text="📱 Telegram: @caravan_tranzit1", url="https://t.me/caravan_tranzit1")],
         [InlineKeyboardButton(text="💬 WhatsApp", url="https://wa.me/998917020099")]
     ])
 
@@ -329,40 +340,54 @@ def get_bonus_menu_kb(lang='uz'):
 def get_social_media_kb():
     """Social Media havolalar"""
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📢 TELEGRAM KANAL", url="https://t.me/mybojxona_channel")],
-        [InlineKeyboardButton(text="💬 TELEGRAM GRUPPA", url="https://t.me/mybojxona_chat")],
+        [InlineKeyboardButton(text="📢 TELEGRAM KANAL", url="https://t.me/caravan_tranzit_channel")],
+        [InlineKeyboardButton(text="💬 TELEGRAM GRUPPA", url="https://t.me/caravan_tranzit_chat")],
         [InlineKeyboardButton(text="💬 WHATSAPP", url="https://chat.whatsapp.com/Ka6XhUv2ueVFZPNuHo06BP")],
-        [InlineKeyboardButton(text="📺 YOUTUBE", url="https://youtube.com/@mybojxona")],
-        [InlineKeyboardButton(text="📸 INSTAGRAM", url="https://instagram.com/mybojxona")],
-        [InlineKeyboardButton(text="🤖 TELEGRAM BOT", url="https://t.me/mybojxona_bot")]
+        [InlineKeyboardButton(text="📺 YOUTUBE", url="https://youtube.com/@caravan_tranzit")],
+        [InlineKeyboardButton(text="📸 INSTAGRAM", url="https://instagram.com/caravan_tranzit")],
+        [InlineKeyboardButton(text="🤖 TELEGRAM BOT", url="https://t.me/caravan_tranzit_bot")]
     ])
 
 # =========================================================
 # 12. DINAMIK POSTLAR (2 QATORLI)
 # =========================================================
 def get_posts_kb():
-    """Chegara postlari"""
+    """Chegara postlari - birinchi qatorda ANIQ EMAS"""
     builder = ReplyKeyboardBuilder()
+    # Birinchi qatorda ANIQ EMAS
+    builder.add(KeyboardButton(text="❓ ANIQ EMAS"))
     for post in BORDER_POSTS_LIST:
         builder.add(KeyboardButton(text=post))
     builder.add(KeyboardButton(text="⬅️ Ortga"))
-    builder.adjust(2)
+    builder.adjust(1, 2)  # Birinchi qator 1 ta, qolganlari 2 tadan
     return builder.as_markup(resize_keyboard=True)
 
 def get_dest_posts_kb():
-    """TIF (Manzil) postlari - faqat IMPORT uchun"""
+    """TIF (Manzil) postlari - birinchi qatorda ANIQ EMAS"""
     builder = ReplyKeyboardBuilder()
+    # Birinchi qatorda ANIQ EMAS
+    builder.add(KeyboardButton(text="❓ ANIQ EMAS"))
     for post in TIF_POSTS_LIST:
         builder.add(KeyboardButton(text=post))
     builder.add(KeyboardButton(text="⬅️ Ortga"))
-    builder.adjust(2)
+    builder.adjust(1, 2)  # Birinchi qator 1 ta, qolganlari 2 tadan
     return builder.as_markup(resize_keyboard=True)
 
 def get_dest_border_posts_kb():
     """Manzil chegara postlari - TRANZIT uchun"""
     builder = ReplyKeyboardBuilder()
+    builder.add(KeyboardButton(text="❓ ANIQ EMAS"))
     for post in BORDER_POSTS_LIST:
         builder.add(KeyboardButton(text=post))
+    builder.add(KeyboardButton(text="⬅️ Ortga"))
+    builder.adjust(1, 2)
+    return builder.as_markup(resize_keyboard=True)
+
+def get_viloyatlar_kb():
+    """O'zbekiston viloyatlari - ANIQ EMAS bosilganda"""
+    builder = ReplyKeyboardBuilder()
+    for viloyat in VILOYATLAR_LIST:
+        builder.add(KeyboardButton(text=viloyat))
     builder.add(KeyboardButton(text="⬅️ Ortga"))
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)
