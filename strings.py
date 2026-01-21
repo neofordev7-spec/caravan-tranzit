@@ -87,7 +87,7 @@ TEXTS = {
         'mb_start': "📋 **MB DEKLARATSIYA**\n\nChegara bojxona postini tanlang:",
         'select_agent': "👨‍💼 **Agent tanlash**\n\nQuyidagi agentlardan birini tanlang:",
         'enter_car_number': "🚛 **Mashina raqamini kiriting:**\n\n(Misol: 01A777AA)",
-        'docs_epi': "📸 **Hujjatlarni yuklang:**\n\n📄 Pasport\n📄 Tex-pasport\n📦 CMR\n📦 Invoice\n📜 Boshqa hujjatlar\n\n✅ Barcha rasmlarni yuklangandan so'ng **'Yuklab bo'ldim'** tugmasini bosing.",
+        'docs_epi': "📸 **Hujjatlarni yuklang:**\n\n📄 Pasport\n📄 Tex-pasport\n📦 CMR ; Invoice ; Packing list\n📜 Boshqa hujjatlar (Gabarit ruxsatnoma; Karantin ruxsatnoma; Fitosanitariya sertifikati; Sanitariya; Veterinariya)\n\n✅ Barcha rasmlarni yuklangandan so'ng **'Yuklab bo'ldim'** tugmasini bosing.",
         'docs_mb': "📸 **Hujjatlarni yuklang:**\n\n📄 Pasport\n📄 Tex-pasport\n\n✅ Barcha rasmlarni yuklangandan so'ng **'Yuklab bo'ldim'** tugmasini bosing.",
         'waiting_admin': "⏳ **Arizangiz adminlarga yuborildi!**\n\n🆔 Ariza kodi: `{code}`\n\nAdmin javobini kuting...",
         'price_set': "✅ **Ariza tasdiqlandi!**\n\n💰 Narx: **{price} so'm**\n\nTo'lov turini tanlang:",
