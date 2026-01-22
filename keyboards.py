@@ -409,9 +409,10 @@ def get_done_kb(lang='uz'):
 # =========================================================
 
 def get_admin_claim_kb(app_code):
-    """Admin qabul qilish tugmasi"""
+    """Admin qabul qilish va rad etish tugmalari"""
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🟢 QABUL QILISH", callback_data=f"claim_{app_code}")]
+        [InlineKeyboardButton(text="✅ QABUL QILISH", callback_data=f"claim_{app_code}")],
+        [InlineKeyboardButton(text="❌ RAD ETISH", callback_data=f"reject_{app_code}")]
     ])
 
 def get_pricing_kb(app_code):

@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 async def main():
     load_dotenv()
-    BOT_TOKEN = os.getenv("BOT_TOKEN", "8523045274:AAHZMIVwSDSK7Rht6IHtFBIIRrPHFwJbLDs")
+    BOT_TOKEN = os.getenv("BOT_TOKEN", "8464794675:AAFIkh35oucNfiug5i5i0hN_QBEgTAPW3m8")
 
     try:
         await db.connect()

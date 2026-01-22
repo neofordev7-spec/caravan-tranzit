@@ -670,13 +670,14 @@ async def send_to_admin_group(bot: Bot, message: Message, code: str, data: dict,
             route += f"\n📍 Manzil: {dest_post}"
 
         cap = (
-            f"🆕 **YANGI {app_type} ARIZA!**\n"
-            f"🆔: `{code}`\n"
-            f"🚛: {car_number}\n"
-            f"👤: [{message.from_user.full_name}](tg://user?id={message.from_user.id})\n"
-            f"📱: {user['phone_number'] if user else 'N/A'}\n"
-            f"🌍: {direction}\n"
-            f"🗣: {data.get('lang', 'uz').upper()}\n"
+            f"🆕 **YANGI {app_type} ARIZA!**\n\n"
+            f"🆔 Kod: `{code}`\n"
+            f"🚛 Mashina: `{car_number}`\n"
+            f"👤 Foydalanuvchi: [{message.from_user.full_name}](tg://user?id={message.from_user.id})\n"
+            f"🆔 Telegram ID: `{message.from_user.id}`\n"
+            f"📱 Telefon: {user['phone_number'] if user else 'N/A'}\n"
+            f"🌍 Yo'nalish: {direction}\n"
+            f"🗣 Til: {data.get('lang', 'uz').upper()}\n\n"
             f"{route}"
         )
 
@@ -953,13 +954,67 @@ async def admin_claim(call: CallbackQuery, bot: Bot):
     """Admin claims application"""
     code = call.data.split("_")[1]
     if await db.claim_application(code, call.from_user.id):
-        await call.message.edit_text(f"✅ Qabul qilindi: {call.from_user.full_name}\n🆔 `{code}`", parse_mode="Markdown")
-        try:
-            await bot.send_message(call.from_user.id, f"Arizani oldingiz: {code}", reply_markup=kb.get_pricing_kb(code))
-        except:
-            await call.answer("Botga /start bosing!", show_alert=True)
+        await call.message.edit_text(
+            f"✅ **QABUL QILINDI**\n\n"
+            f"🆔 Kod: `{code}`\n"
+            f"👤 Admin: {call.from_user.full_name}\n\n"
+            f"💰 Narx belgilang:",
+            parse_mode="Markdown",
+            reply_markup=kb.get_pricing_kb(code)
+        )
+        # Foydalanuvchiga xabar
+        app = await db.get_application_by_code(code)
+        if app:
+            try:
+                await bot.send_message(
+                    app['user_id'],
+                    f"✅ **Arizangiz qabul qilindi!**\n\n"
+                    f"🆔 Kod: `{code}`\n"
+                    f"⏳ Admin narxni belgilayapti...",
+                    parse_mode="Markdown"
+                )
+            except:
+                pass
+        await call.answer("✅ Qabul qilindi!")
     else:
-        await call.answer("Band!", show_alert=True)
+        await call.answer("❌ Bu ariza allaqachon olingan!", show_alert=True)
+
+@router.callback_query(F.data.startswith("reject_"))
+async def admin_reject(call: CallbackQuery, bot: Bot):
+    """Admin rejects application"""
+    code = call.data.split("_")[1]
+    app = await db.get_application_by_code(code)
+
+    if not app:
+        await call.answer("❌ Ariza topilmadi!", show_alert=True)
+        return
+
+    # Statusni yangilash
+    await db.update_application_status(code, 'rejected')
+
+    # Admin guruhda xabarni yangilash
+    await call.message.edit_text(
+        f"❌ **RAD ETILDI**\n\n"
+        f"🆔 Kod: `{code}`\n"
+        f"👤 Admin: {call.from_user.full_name}",
+        parse_mode="Markdown"
+    )
+
+    # Foydalanuvchiga xabar
+    try:
+        await bot.send_message(
+            app['user_id'],
+            f"❌ **Arizangiz rad etildi**\n\n"
+            f"🆔 Kod: `{code}`\n\n"
+            f"📞 Qo'shimcha ma'lumot uchun admin bilan bog'laning:\n"
+            f"• +998 91 702 00 99\n"
+            f"• @CARAVAN_TRANZIT",
+            parse_mode="Markdown"
+        )
+    except:
+        pass
+
+    await call.answer("❌ Ariza rad etildi!")
 
 @router.callback_query(F.data.startswith("setprice_"))
 async def admin_set_price(call: CallbackQuery, bot: Bot):
@@ -991,26 +1046,109 @@ async def cancel_payment(call: CallbackQuery):
 
 @router.message(F.chat.id == ADMIN_GROUP_ID)
 async def admin_group_handler(message: Message, bot: Bot):
-    """Handle admin group messages"""
+    """Handle admin group messages - deklaratsiya va javoblarni userga yuborish"""
+    txt = message.text or message.caption or ""
+
+    # 1. Reply to message bo'lsa - original xabardagi userga javob yuborish
     if message.reply_to_message:
-        orig = message.reply_to_message.text or ""
-        match = re.search(r"(?:ID|🆔):\s*`?(\d+)`?", orig)
+        orig = message.reply_to_message.text or message.reply_to_message.caption or ""
+        match = re.search(r"(?:ID|🆔|Telegram ID):\s*`?(\d+)`?", orig)
         if match:
             try:
-                await bot.send_message(int(match.group(1)), f"👮‍♂️ **Admin:**\n{message.text}", parse_mode="Markdown")
-            except:
-                pass
+                # Rasm/fayl bo'lsa uni ham yuborish
+                if message.photo:
+                    await bot.send_photo(
+                        int(match.group(1)),
+                        message.photo[-1].file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR:**\n\n{txt}" if txt else "📋 **DEKLARATSIYA TAYYOR**",
+                        parse_mode="Markdown"
+                    )
+                elif message.document:
+                    await bot.send_document(
+                        int(match.group(1)),
+                        message.document.file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR:**\n\n{txt}" if txt else "📋 **DEKLARATSIYA TAYYOR**",
+                        parse_mode="Markdown"
+                    )
+                else:
+                    await bot.send_message(
+                        int(match.group(1)),
+                        f"👮‍♂️ **Admin javob:**\n\n{txt}",
+                        parse_mode="Markdown"
+                    )
+                await message.reply("✅ Foydalanuvchiga yuborildi!")
+            except Exception as e:
+                await message.reply(f"❌ Yuborib bo'lmadi: {e}")
+            return
 
-    # Check for car number broadcast
-    txt = (message.text or "").upper()
-    car_m = re.search(r"(\d{2}[A-Z]\d{3}[A-Z]{2})|(\d{5}[A-Z]{3})", txt)
-    if car_m:
-        app = await db.get_app_by_car_number(car_m.group(0))
+    # 2. EPI kod yoki MB kod bo'yicha qidirish (EPI-12345 yoki MB-12345)
+    epi_match = re.search(r"\b(EPI|MB)-(\d{5})\b", txt.upper())
+    if epi_match:
+        app_code = f"{epi_match.group(1)}-{epi_match.group(2)}"
+        app = await db.get_application_by_code(app_code)
         if app:
             try:
-                await bot.send_message(app['user_id'], f"🔔 Admin: {message.text}")
-            except:
-                pass
+                # Rasm/fayl bo'lsa uni ham yuborish
+                if message.photo:
+                    await bot.send_photo(
+                        app['user_id'],
+                        message.photo[-1].file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🆔 Kod: `{app_code}`\n\n{txt}",
+                        parse_mode="Markdown"
+                    )
+                elif message.document:
+                    await bot.send_document(
+                        app['user_id'],
+                        message.document.file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🆔 Kod: `{app_code}`\n\n{txt}",
+                        parse_mode="Markdown"
+                    )
+                else:
+                    await bot.send_message(
+                        app['user_id'],
+                        f"📋 **DEKLARATSIYA TAYYOR!**\n\n🆔 Kod: `{app_code}`\n\n🔔 Admin xabar: {txt}",
+                        parse_mode="Markdown"
+                    )
+                await message.reply(f"✅ {app_code} - foydalanuvchiga yuborildi!")
+                # Statusni yangilash
+                await db.update_application_status(app_code, 'completed')
+            except Exception as e:
+                await message.reply(f"❌ Yuborib bo'lmadi: {e}")
+            return
+
+    # 3. Mashina raqami bo'yicha qidirish (01A777AA yoki 12345AAA)
+    car_match = re.search(r"\b(\d{2}[A-Z]\d{3}[A-Z]{2})\b|\b(\d{5}[A-Z]{3})\b", txt.upper())
+    if car_match:
+        vehicle_number = car_match.group(1) or car_match.group(2)
+        app = await db.get_app_by_car_number(vehicle_number)
+        if app:
+            try:
+                # Rasm/fayl bo'lsa uni ham yuborish
+                if message.photo:
+                    await bot.send_photo(
+                        app['user_id'],
+                        message.photo[-1].file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🚛 Mashina: `{vehicle_number}`\n\n{txt}",
+                        parse_mode="Markdown"
+                    )
+                elif message.document:
+                    await bot.send_document(
+                        app['user_id'],
+                        message.document.file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🚛 Mashina: `{vehicle_number}`\n\n{txt}",
+                        parse_mode="Markdown"
+                    )
+                else:
+                    await bot.send_message(
+                        app['user_id'],
+                        f"📋 **DEKLARATSIYA TAYYOR!**\n\n🚛 Mashina: `{vehicle_number}`\n\n🔔 Admin xabar: {txt}",
+                        parse_mode="Markdown"
+                    )
+                await message.reply(f"✅ {vehicle_number} - foydalanuvchiga yuborildi!")
+                # Statusni yangilash
+                await db.update_application_status(app['app_code'], 'completed')
+            except Exception as e:
+                await message.reply(f"❌ Yuborib bo'lmadi: {e}")
 
 # ==========================================================
 # 12. GLOBAL HANDLERS
