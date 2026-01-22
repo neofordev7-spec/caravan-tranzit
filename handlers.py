@@ -58,16 +58,43 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.answer(TEXTS['uz']['start'], reply_markup=kb.get_lang_kb())
     await state.set_state(Registration.lang)
 
-@router.callback_query(Registration.lang)
+@router.callback_query(F.data.startswith("lang_"))
 async def lang_chosen(call: CallbackQuery, state: FSMContext):
-    """Language selected"""
+    """Language selected - works from any state"""
     lang = call.data.split("_")[1]
     await state.update_data(lang=lang)
-    await call.message.delete()
 
-    t = TEXTS.get(lang, TEXTS['uz'])['agreement']
-    await call.message.answer(t, reply_markup=kb.get_agreement_kb(lang))
-    await state.set_state(Registration.agreement)
+    current_state = await state.get_state()
+
+    # Agar Registration.lang yoki SettingsFlow.change_language yoki ContactInfoFlow.change_language bo'lsa
+    if current_state == Registration.lang:
+        await call.message.delete()
+        t = TEXTS.get(lang, TEXTS['uz'])['agreement']
+        await call.message.answer(t, reply_markup=kb.get_agreement_kb(lang))
+        await state.set_state(Registration.agreement)
+    elif current_state in [SettingsFlow.change_language, ContactInfoFlow.change_language]:
+        # Til o'zgartirish (sozlamalar yoki kontakt info)
+        user = await db.get_user(call.from_user.id)
+        if user:
+            await db.add_user(
+                call.from_user.id,
+                call.from_user.full_name,
+                user['phone_number'],
+                lang,
+                user.get('direction', 'IMPORT')
+            )
+        await call.message.delete()
+        await call.message.answer("✅ Til o'zgartirildi!", reply_markup=kb.get_main_menu(lang))
+        await state.clear()
+        await state.update_data(lang=lang)
+    else:
+        # Boshqa har qanday holatda - ro'yxatdan o'tish jarayoni
+        await call.message.delete()
+        t = TEXTS.get(lang, TEXTS['uz'])['agreement']
+        await call.message.answer(t, reply_markup=kb.get_agreement_kb(lang))
+        await state.set_state(Registration.agreement)
+
+    await call.answer()
 
 @router.callback_query(Registration.agreement)
 async def agreement_accepted(call: CallbackQuery, state: FSMContext):
@@ -223,25 +250,6 @@ async def contact_info_phone_changed(message: Message, state: FSMContext):
     await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
     await state.clear()
 
-@router.callback_query(ContactInfoFlow.change_language)
-async def contact_info_lang_changed(call: CallbackQuery, state: FSMContext):
-    """Contact Info: Language changed"""
-    new_lang = call.data.split("_")[1]
-    user = await db.get_user(call.from_user.id)
-    if user:
-        await db.add_user(
-            call.from_user.id,
-            call.from_user.full_name,
-            user['phone_number'],
-            new_lang,
-            user.get('direction', 'IMPORT')
-        )
-
-    await call.message.delete()
-    await call.message.answer("✅ Til o'zgartirildi!")
-    await call.message.answer("🏠 Menu", reply_markup=kb.get_main_menu(new_lang))
-    await state.clear()
-    await state.update_data(lang=new_lang)
 
 @router.message(F.text.contains("ARIZALARIM"))
 async def my_applications(message: Message, state: FSMContext):
@@ -811,25 +819,6 @@ async def settings_phone_changed(message: Message, state: FSMContext):
     await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
     await state.clear()
 
-@router.callback_query(SettingsFlow.change_language)
-async def settings_lang_changed(call: CallbackQuery, state: FSMContext):
-    """Settings: Language changed"""
-    new_lang = call.data.split("_")[1]
-    user = await db.get_user(call.from_user.id)
-    if user:
-        await db.add_user(
-            call.from_user.id,
-            call.from_user.full_name,
-            user['phone_number'],
-            new_lang,
-            user.get('direction', 'IMPORT')
-        )
-
-    await call.message.delete()
-    await call.message.answer("✅ Til o'zgartirildi!")
-    await call.message.answer("🏠 Menu", reply_markup=kb.get_main_menu(new_lang))
-    await state.clear()
-    await state.update_data(lang=new_lang)
 
 # ==========================================================
 # 8. KGD FLOW
