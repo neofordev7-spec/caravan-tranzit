@@ -444,15 +444,19 @@ function viewApplications() {
 }
 
 function viewPrices() {
-    const pricesText = `💰 NARXLAR KATALOGI\n\n` +
+    // Narxlar katalogidan foydalanish
+    const pricesText = `💰 NARXLAR KATALOGI\n` +
+        `📋 EPI-KOD Xizmatlari\n\n` +
         `📦 1-2 partiya: 35,000 so'm\n` +
         `📦 3 partiya: 45,000 so'm\n` +
-        `📦 4 partiya: 60,000 so'm\n` +
-        `📦 5 partiya: 75,000 so'm\n` +
-        `📦 6 partiya: 105,000 so'm\n` +
-        `📦 7 partiya: 126,000 so'm\n` +
-        `📦 8 partiya: 144,000 so'm\n\n` +
-        `🔄 Boshqa: X*20,000 so'm`;
+        `📦 4 partiya: 60,000 so'm (Donasi 15,000)\n` +
+        `📦 5 partiya: 75,000 so'm (Donasi 15,000)\n` +
+        `📦 6 partiya: 105,000 so'm (Donasi 17,500)\n` +
+        `📦 7 partiya: 126,000 so'm (Donasi 18,000)\n` +
+        `📦 8 partiya: 144,000 so'm (Donasi 18,000)\n` +
+        `📦 9 partiya: 180,000 so'm (Donasi 20,000)\n\n` +
+        `📞 +998 94 312 00 99\n` +
+        `📞 +998 91 702 00 99`;
 
     tg.showAlert(pricesText);
 }
