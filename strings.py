@@ -149,6 +149,9 @@ TEXTS = {
         # Gaplashish
         'chat_msg': "💬 **GAPLASHISH**\n\nSavolingizni yozing, operator javob beradi:",
         'chat_sent': "✅ Xabaringiz yuborildi! Javobni kutib turing.",
+        'chat_continue': "✅ Xabaringiz yuborildi! Yana yozishingiz mumkin yoki chatni tugating.",
+        'chat_ended': "✅ Chat tugadi. Rahmat!",
+        'btn_end_chat': "Chatni tugatish",
 
         # Button texts
         'btn_search_app': 'ARIZA BOR',
@@ -305,6 +308,9 @@ TEXTS = {
         # Chat
         'chat_msg': "💬 **ГАПЛАШИШ**\n\nСаволингизни ёзинг, оператор жавоб беради:",
         'chat_sent': "✅ Хабарингиз юборилди! Жавобни кутиб туринг.",
+        'chat_continue': "✅ Хабарингиз юборилди! Яна ёзишингиз мумкин ёки чатни тугатинг.",
+        'chat_ended': "✅ Чат тугади. Раҳмат!",
+        'btn_end_chat': "Чатни тугатиш",
 
         # Button texts
         'btn_app_link': 'ДАСТУРНИ ЮКЛАБ ОЛИНГ ҲАВОЛА',
@@ -454,6 +460,9 @@ TEXTS = {
         # Чат
         'chat_msg': "💬 **ЧАТИТЬСЯ**\n\nНапишите вопрос, оператор ответит:",
         'chat_sent': "✅ Сообщение отправлено! Ожидайте ответа.",
+        'chat_continue': "✅ Сообщение отправлено! Можете продолжить писать или завершить чат.",
+        'chat_ended': "✅ Чат завершён. Спасибо!",
+        'btn_end_chat': "Завершить чат",
 
         # Тексты кнопок
         'btn_app_link': 'СКАЧАТЬ ПРИЛОЖЕНИЕ ССЫЛКА',
@@ -603,6 +612,9 @@ TEXTS = {
         # Chat
         'chat_msg': "💬 **CHAT**\n\nWrite your question, operator will respond:",
         'chat_sent': "✅ Message sent! Wait for response.",
+        'chat_continue': "✅ Message sent! You can continue writing or end the chat.",
+        'chat_ended': "✅ Chat ended. Thank you!",
+        'btn_end_chat': "End chat",
 
         # Button texts
         'btn_app_link': 'DOWNLOAD APP LINK',
@@ -752,6 +764,9 @@ TEXTS = {
         # Чат
         'chat_msg': "💬 **СӨЙЛЕСУ**\n\nСұрағыңызды жазыңыз, оператор жауап береді:",
         'chat_sent': "✅ Хабарыңыз жіберілді! Жауапты күтіңіз.",
+        'chat_continue': "✅ Хабарыңыз жіберілді! Жазуды жалғастыра аласыз немесе чатты аяқтаңыз.",
+        'chat_ended': "✅ Чат аяқталды. Рахмет!",
+        'btn_end_chat': "Чатты аяқтау",
 
         # Батырма мәтіндері
         'btn_app_link': 'ҚОСЫМШАНЫ ЖҮКТЕУ СІЛТЕМЕСІ',
@@ -901,6 +916,9 @@ TEXTS = {
         # Чат
         'chat_msg': "💬 **СҮЙЛӨШҮҮ**\n\nСуроонузду жазыңыз, оператор жооп берет:",
         'chat_sent': "✅ Кабарыңыз жөнөтүлдү! Жоопту күтүңүз.",
+        'chat_continue': "✅ Кабарыңыз жөнөтүлдү! Жазууну улантсаңыз болот же чатты аяктаңыз.",
+        'chat_ended': "✅ Чат аяктады. Рахмат!",
+        'btn_end_chat': "Чатты аяктоо",
 
         # Баскыч тексттери
         'btn_app_link': 'ТИРКЕМЕНИ ЖҮКТӨӨ ШИЛТЕМЕСИ',
@@ -1050,6 +1068,9 @@ TEXTS = {
         # Чат
         'chat_msg': "💬 **СӮҲБАТ**\n\nСаволи худро нависед, оператор ҷавоб медиҳад:",
         'chat_sent': "✅ Паёми шумо фиристода шуд! Ҷавобро интизор шавед.",
+        'chat_continue': "✅ Паёми шумо фиристода шуд! Метавонед идома диҳед ё чатро анҷом диҳед.",
+        'chat_ended': "✅ Чат анҷом ёфт. Ташаккур!",
+        'btn_end_chat': "Анҷом додани чат",
 
         # Матнҳои тугмаҳо
         'btn_app_link': 'ЛИНКИ БОРГИРИИ БАРНОМА',
@@ -1199,6 +1220,9 @@ TEXTS = {
         # Sohbet
         'chat_msg': "💬 **SOHBET**\n\nSorunuzu yazın, operatör yanıt verecek:",
         'chat_sent': "✅ Mesajınız gönderildi! Yanıtı bekleyin.",
+        'chat_continue': "✅ Mesajınız gönderildi! Yazmaya devam edebilir veya sohbeti bitirebilirsiniz.",
+        'chat_ended': "✅ Sohbet sona erdi. Teşekkürler!",
+        'btn_end_chat': "Sohbeti bitir",
 
         # Düğme metinleri
         'btn_app_link': 'UYGULAMA İNDİRME LİNKİ',
@@ -1348,6 +1372,9 @@ TEXTS = {
         # Gürrüňleşmek
         'chat_msg': "💬 **GÜRRÜŇLEŞMEK**\n\nSoragyňyzy ýazyň, operator jogap berer:",
         'chat_sent': "✅ Hatyňyz iberildi! Jogaba garaşyň.",
+        'chat_continue': "✅ Hatyňyz iberildi! Ýazmagy dowam edip ýa-da söhbeti gutaryp bilersiňiz.",
+        'chat_ended': "✅ Söhbet gutardy. Sag boluň!",
+        'btn_end_chat': "Söhbeti gutarmak",
 
         # Düwme tekstleri
         'btn_app_link': 'PROGRAMMANY ÝÜKLEMEK SALGISY',
@@ -1497,6 +1524,9 @@ TEXTS = {
         # 聊天
         'chat_msg': "💬 **聊天**\n\n写下您的问题，客服将回复:",
         'chat_sent': "✅ 消息已发送！等待回复。",
+        'chat_continue': "✅ 消息已发送！您可以继续写或结束聊天。",
+        'chat_ended': "✅ 聊天结束。谢谢！",
+        'btn_end_chat': "结束聊天",
 
         # 按钮文本
         'btn_app_link': '下载应用链接',

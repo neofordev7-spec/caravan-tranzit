@@ -920,11 +920,20 @@ async def bonus_option_chosen(message: Message, state: FSMContext):
 
 @router.message(ChatFlow.waiting_message)
 async def chat_message_received(message: Message, state: FSMContext, bot: Bot):
-    """Chat: Message received"""
-    if "Ortga" in message.text or "Back" in message.text or "Bekor" in message.text:
+    """Chat: Message received - davom etadigan chat"""
+    text = message.text or ""
+
+    # Agar "Chatni tugatish" yoki "Ortga" yoki "Bekor" bosilsa - chatni tugatish
+    if ("tugatish" in text.lower() or "Ortga" in text or "Back" in text or
+        "Bekor" in text or "Cancel" in text or "Отмена" in text or
+        "завершить" in text.lower() or "end chat" in text.lower() or
+        "аяқтау" in text.lower() or "аяктоо" in text.lower() or
+        "анҷом" in text.lower() or "bitir" in text.lower() or
+        "gutarmak" in text.lower() or "结束" in text):
         lang = await get_user_lang(state)
         await state.clear()
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        t = await get_text(state, 'chat_ended')
+        await message.answer(t if t else "✅ Chat tugadi. Asosiy menyu:", reply_markup=kb.get_main_menu(lang))
         return
 
     # Send to admin group
@@ -934,16 +943,18 @@ async def chat_message_received(message: Message, state: FSMContext, bot: Bot):
             f"💬 **XABAR (GAPLASHISH)**\n\n"
             f"👤: [{message.from_user.full_name}](tg://user?id={message.from_user.id})\n"
             f"🆔: `{message.from_user.id}`\n"
-            f"📝: {message.text}",
+            f"📝: {text}",
             parse_mode="Markdown"
         )
     except Exception as e:
         print(f"Error sending chat message: {e}")
 
-    t = await get_text(state, 'chat_sent')
+    # Chat davom etadi - state tozalanmaydi!
+    t = await get_text(state, 'chat_continue')
     lang = await get_user_lang(state)
-    await message.answer(t, reply_markup=kb.get_main_menu(lang))
-    await state.clear()
+    await message.answer(t if t else "✅ Xabar yuborildi! Yana yozing yoki chatni tugating.", reply_markup=kb.get_chat_kb(lang))
+    # State saqlanadi - chat davom etadi
+    await state.set_state(ChatFlow.waiting_message)
 
 # ==========================================================
 # 11. ADMIN HANDLERS

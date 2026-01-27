@@ -200,6 +200,13 @@ def get_cancel_kb(lang='uz'):
          KeyboardButton(text="❌ " + t.get('btn_cancel', 'Bekor qilish'))]
     ], resize_keyboard=True)
 
+def get_chat_kb(lang='uz'):
+    """Chat davom etish - Chatni tugatish tugmasi"""
+    t = TEXTS.get(lang, TEXTS['uz'])
+    return ReplyKeyboardMarkup(keyboard=[
+        [KeyboardButton(text="🏁 " + t.get('btn_end_chat', 'Chatni tugatish'))]
+    ], resize_keyboard=True)
+
 # =========================================================
 # 5. ISHONCH TELEFONLARI KEYBOARDS
 # =========================================================
