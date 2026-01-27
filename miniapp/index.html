@@ -3,235 +3,844 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CARAVAN TRANZIT - Caravan Broker</title>
+    <title>CARAVAN TRANZIT</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Header with Logo -->
-    <header class="app-header">
-        <div class="logo-container">
-            <img src="assets/logo.svg" alt="CARAVAN TRANZIT" class="logo">
-            <h1>CARAVAN TRANZIT</h1>
-            <p class="subtitle">Caravan Broker LTD</p>
-        </div>
-    </header>
-
-    <!-- Progress Indicator (hidden on home page) - Yo'nalish bosqichi olib tashlandi -->
-    <div class="progress-container" id="progressContainer" style="display: none;">
-        <div class="progress-steps">
-            <div class="step active" data-step="1">
-                <div class="step-circle">1</div>
-                <div class="step-label">Chegara</div>
+    <!-- ==================== SPLASH SCREEN ==================== -->
+    <div class="screen splash-screen active" id="splashScreen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <div class="truck-icon">🚛</div>
+                <h1>CARAVAN TRANZIT</h1>
+                <p class="tagline">Yuk tashish - oson!</p>
             </div>
-            <div class="step" data-step="2">
-                <div class="step-circle">2</div>
-                <div class="step-label">Manzil</div>
+            <div class="splash-loader">
+                <div class="loader-bar">
+                    <div class="loader-fill" id="splashLoader"></div>
+                </div>
+                <p class="loader-text">Yuklanmoqda...</p>
             </div>
-            <div class="step" data-step="3">
-                <div class="step-circle">3</div>
-                <div class="step-label">Mashina</div>
-            </div>
-            <div class="step" data-step="4">
-                <div class="step-circle">4</div>
-                <div class="step-label">Hujjatlar</div>
-            </div>
-        </div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
         </div>
     </div>
 
-    <!-- Main Content Container -->
-    <main class="app-main" id="appMain">
-        <!-- Home Page: Service Selection -->
-        <div class="screen active" id="homeScreen">
-            <div class="welcome-message">
-                <h2>Xush kelibsiz! 🚛</h2>
-                <p>Xizmatni tanlang:</p>
+    <!-- ==================== LANGUAGE SELECTION ==================== -->
+    <div class="screen" id="languageScreen">
+        <div class="language-container">
+            <div class="language-header">
+                <span class="lang-icon">🌐</span>
+                <h2>Tilni tanlang</h2>
+                <p>Select Language</p>
             </div>
-
-            <div class="service-cards">
-                <button class="service-card" onclick="startFlow('EPI')">
-                    <div class="card-icon">📄</div>
-                    <div class="card-content">
-                        <h3>EPI KOD AT DEKLARATSIYA</h3>
-                        <p>Import yoki tranzit yuklari uchun</p>
-                    </div>
-                    <div class="card-arrow">→</div>
+            <div class="language-grid" id="languageGrid">
+                <button class="lang-btn" data-lang="uz_lat">
+                    <span class="flag">🇺🇿</span>
+                    <span class="lang-name">O'zbek</span>
                 </button>
-
-                <button class="service-card" onclick="startFlow('MB')">
-                    <div class="card-icon">📋</div>
-                    <div class="card-content">
-                        <h3>MB DEKLARATSIYA</h3>
-                        <p>Yo'lovchi avtomobillari uchun</p>
-                    </div>
-                    <div class="card-arrow">→</div>
+                <button class="lang-btn" data-lang="uz_cyr">
+                    <span class="flag">🇺🇿</span>
+                    <span class="lang-name">Ўзбек</span>
                 </button>
-
-                <button class="service-card secondary" onclick="viewApplications()">
-                    <div class="card-icon">🎫</div>
-                    <div class="card-content">
-                        <h3>ARIZALARIM</h3>
-                        <p>Barcha yuborilgan arizalar</p>
-                    </div>
-                    <div class="card-arrow">→</div>
+                <button class="lang-btn" data-lang="ru">
+                    <span class="flag">🇷🇺</span>
+                    <span class="lang-name">Русский</span>
                 </button>
-
-                <button class="service-card secondary" onclick="viewPrices()">
-                    <div class="card-icon">💰</div>
-                    <div class="card-content">
-                        <h3>NARXLAR KATALOGI</h3>
-                        <p>Xizmatlar narxlari</p>
-                    </div>
-                    <div class="card-arrow">→</div>
+                <button class="lang-btn" data-lang="en">
+                    <span class="flag">🇺🇸</span>
+                    <span class="lang-name">English</span>
+                </button>
+                <button class="lang-btn" data-lang="kz">
+                    <span class="flag">🇰🇿</span>
+                    <span class="lang-name">Қазақша</span>
+                </button>
+                <button class="lang-btn" data-lang="kg">
+                    <span class="flag">🇰🇬</span>
+                    <span class="lang-name">Кыргызча</span>
+                </button>
+                <button class="lang-btn" data-lang="tj">
+                    <span class="flag">🇹🇯</span>
+                    <span class="lang-name">Тоҷикӣ</span>
+                </button>
+                <button class="lang-btn" data-lang="tr">
+                    <span class="flag">🇹🇷</span>
+                    <span class="lang-name">Türkçe</span>
+                </button>
+                <button class="lang-btn" data-lang="tm">
+                    <span class="flag">🇹🇲</span>
+                    <span class="lang-name">Türkmen</span>
+                </button>
+                <button class="lang-btn" data-lang="zh">
+                    <span class="flag">🇨🇳</span>
+                    <span class="lang-name">中文</span>
                 </button>
             </div>
         </div>
+    </div>
 
-        <!-- Step 1: Border Post Selection (yo'nalish tanlash olib tashlandi) -->
-        <div class="screen" id="borderPostScreen">
-            <div class="screen-header">
-                <h2>Chegara postini tanlang</h2>
-                <p>Qaysi postdan o'tasiz?</p>
+    <!-- ==================== MAIN APP CONTAINER ==================== -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- Top Header -->
+        <header class="app-header" id="appHeader">
+            <div class="header-left">
+                <button class="back-btn" id="headerBackBtn" style="display: none;">
+                    <span>←</span>
+                </button>
+                <div class="header-logo">
+                    <span class="logo-icon">🚛</span>
+                    <span class="logo-text">CARAVAN TRANZIT</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="profile-btn" id="profileBtn">👤</button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="app-main" id="appMain">
+            <!-- ==================== HOME SCREEN ==================== -->
+            <div class="screen" id="homeScreen">
+                <!-- Coins/Balance Widget -->
+                <div class="coins-widget">
+                    <div class="coins-header">
+                        <span class="coins-icon">💎</span>
+                        <span class="coins-label">Tangalar:</span>
+                        <span class="coins-value" id="coinsValue">17,500</span>
+                    </div>
+                    <div class="coins-progress">
+                        <div class="coins-bar">
+                            <div class="coins-fill" id="coinsFill" style="width: 50%"></div>
+                        </div>
+                        <p class="coins-hint">35,000 gacha = 1 BEPUL KOD</p>
+                    </div>
+                </div>
+
+                <!-- Main Services -->
+                <section class="services-section">
+                    <h3 class="section-title">📄 ASOSIY XIZMATLAR</h3>
+                    <div class="main-services">
+                        <button class="service-card main" onclick="startEPIFlow()">
+                            <span class="service-icon">📄</span>
+                            <span class="service-name">EPI KOD</span>
+                            <span class="service-desc">DEKLARATSIYA</span>
+                        </button>
+                        <button class="service-card main" onclick="startMBFlow()">
+                            <span class="service-icon">📋</span>
+                            <span class="service-name">MB</span>
+                            <span class="service-desc">DEKLARATSIYA</span>
+                        </button>
+                        <button class="service-card main" onclick="showKGDScreen()">
+                            <span class="service-icon">🚚</span>
+                            <span class="service-name">KGD</span>
+                            <span class="service-desc">E-TRANZIT</span>
+                        </button>
+                        <button class="service-card main" onclick="showApplicationsScreen()">
+                            <span class="service-icon">🎫</span>
+                            <span class="service-name">ARIZALARIM</span>
+                            <span class="service-desc"></span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Quick Services -->
+                <section class="quick-services-section">
+                    <h3 class="section-title">⚡ TEZKOR XIZMATLAR</h3>
+                    <div class="quick-services">
+                        <button class="quick-btn" onclick="showGabarScreen()">
+                            <span class="quick-icon">📜</span>
+                            <span class="quick-name">Gabarit</span>
+                        </button>
+                        <button class="quick-btn" onclick="showInsuranceScreen()">
+                            <span class="quick-icon">🛡</span>
+                            <span class="quick-name">Sug'urta</span>
+                        </button>
+                        <button class="quick-btn" onclick="showQueueScreen()">
+                            <span class="quick-icon">🎯</span>
+                            <span class="quick-name">Navbat</span>
+                        </button>
+                        <button class="quick-btn" onclick="showPricesScreen()">
+                            <span class="quick-icon">💰</span>
+                            <span class="quick-name">Narxlar</span>
+                        </button>
+                    </div>
+                </section>
             </div>
 
-            <div class="search-box">
-                <input type="text" id="borderPostSearch" placeholder="🔍 Qidirish..." onkeyup="filterPosts('border')">
-            </div>
-
-            <div class="posts-list" id="borderPostsList">
-                <!-- Posts will be loaded dynamically -->
-            </div>
-
-            <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
-        </div>
-
-        <!-- Step 2: Destination Post Selection -->
-        <div class="screen" id="destPostScreen">
-            <div class="screen-header">
-                <h2>Manzil postini tanlang</h2>
-                <p>Qayerga borasiz?</p>
-            </div>
-
-            <div class="search-box">
-                <input type="text" id="destPostSearch" placeholder="🔍 Qidirish..." onkeyup="filterPosts('dest')">
-            </div>
-
-            <div class="posts-list" id="destPostsList">
-                <!-- Posts will be loaded dynamically -->
-            </div>
-
-            <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
-        </div>
-
-        <!-- Step 3: Vehicle Number -->
-        <div class="screen" id="vehicleScreen">
-            <div class="screen-header">
-                <h2>Mashina raqamini kiriting</h2>
-                <p>Misol: 01A777AA</p>
-            </div>
-
-            <div class="input-container">
-                <input type="text"
-                       id="vehicleNumber"
-                       placeholder="01A777AA"
-                       class="vehicle-input"
-                       maxlength="8"
-                       oninput="formatVehicleNumber(this)">
-                <div class="input-hint">
-                    <span class="hint-icon">💡</span>
-                    <span>Raqamni lotin harflarda kiriting</span>
+            <!-- ==================== BORDER POST SELECTION ==================== -->
+            <div class="screen" id="borderPostScreen">
+                <div class="screen-header">
+                    <h2>🏢 Chegara postini tanlang</h2>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="borderPostSearch" placeholder="🔍 Qidirish..." oninput="filterList('borderPostsList', this.value)">
+                </div>
+                <div class="posts-list" id="borderPostsList">
+                    <!-- Posts will be loaded dynamically -->
                 </div>
             </div>
 
-            <button class="btn-primary" onclick="submitVehicle()">
-                Davom etish →
+            <!-- ==================== AGENT SELECTION ==================== -->
+            <div class="screen" id="agentScreen">
+                <div class="screen-header">
+                    <h2>👨‍💼 Agent tanlang</h2>
+                    <p>Quyidagi agentlardan birini tanlang:</p>
+                </div>
+                <div class="agents-list" id="agentsList">
+                    <div class="agent-card" onclick="selectAgent('aziz')">
+                        <div class="agent-avatar">👤</div>
+                        <div class="agent-info">
+                            <h4>Agent Aziz</h4>
+                            <div class="agent-rating">⭐⭐⭐⭐⭐ <span>(4.9)</span></div>
+                            <p class="agent-location">📍 Oybek posti</p>
+                            <p class="agent-stats">✅ 1,240 ariza bajarilgan</p>
+                        </div>
+                        <span class="agent-arrow">→</span>
+                    </div>
+                    <div class="agent-card" onclick="selectAgent('bobur')">
+                        <div class="agent-avatar">👤</div>
+                        <div class="agent-info">
+                            <h4>Agent Bobur</h4>
+                            <div class="agent-rating">⭐⭐⭐⭐⭐ <span>(4.8)</span></div>
+                            <p class="agent-location">📍 Oybek posti</p>
+                            <p class="agent-stats">✅ 890 ariza bajarilgan</p>
+                        </div>
+                        <span class="agent-arrow">→</span>
+                    </div>
+                    <div class="agent-card cash-option" onclick="selectAgent('cash')">
+                        <div class="agent-avatar">💵</div>
+                        <div class="agent-info">
+                            <h4>AGENTLAR ORQALI</h4>
+                            <p class="agent-desc">NAQD PULDA (To'lov postda)</p>
+                        </div>
+                        <span class="agent-arrow">→</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== CAR NUMBER INPUT ==================== -->
+            <div class="screen" id="vehicleScreen">
+                <div class="screen-header">
+                    <h2>🚛 Mashina raqamini kiriting</h2>
+                </div>
+                <div class="vehicle-input-container">
+                    <input type="text"
+                           id="vehicleNumber"
+                           class="vehicle-input"
+                           placeholder="01 A 777 AA"
+                           maxlength="10"
+                           oninput="formatVehicleNumber(this)">
+                    <p class="input-example">📝 Misol: 01A777AA</p>
+                </div>
+                <div class="recent-vehicles" id="recentVehicles">
+                    <div class="recent-item" onclick="useRecentVehicle('01B555BB')">
+                        <span class="recent-icon">🔄</span>
+                        <span class="recent-text">Avvalgi: <strong>01B555BB</strong></span>
+                        <span class="recent-hint">(Oxirgi ishlatilgan)</span>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="submitVehicle()">
+                    ▶ DAVOM ETISH
+                </button>
+            </div>
+
+            <!-- ==================== DOCUMENT UPLOAD ==================== -->
+            <div class="screen" id="documentsScreen">
+                <div class="screen-header">
+                    <h2>📸 Hujjatlarni yuklang</h2>
+                    <p>Quyidagi hujjatlarni rasmga oling:</p>
+                </div>
+                <div class="doc-checklist" id="docChecklist">
+                    <div class="doc-item"><span class="check">☑️</span> Pasport (oldi-orqa)</div>
+                    <div class="doc-item"><span class="check">☑️</span> Tex-pasport</div>
+                    <div class="doc-item"><span class="check">☐</span> CMR / Invoice</div>
+                    <div class="doc-item"><span class="check">☐</span> Packing list</div>
+                    <div class="doc-item"><span class="check">☐</span> Sertifikatlar</div>
+                </div>
+                <div class="upload-counter">
+                    <span>📷 YUKLANGAN:</span>
+                    <span class="counter-value" id="uploadCounter">0 ta rasm</span>
+                </div>
+                <div class="uploaded-preview" id="uploadedPreview">
+                    <!-- Uploaded images will appear here -->
+                </div>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" multiple accept="image/*" onchange="handleFileSelect(event)" style="display: none;">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        <span class="upload-icon">📷</span>
+                        <span>RASM QO'SHISH (+)</span>
+                    </button>
+                </div>
+                <button class="btn-primary" id="uploadDoneBtn" onclick="submitDocuments()" disabled>
+                    ✅ YUKLAB BO'LDIM
+                </button>
+            </div>
+
+            <!-- ==================== DESTINATION SELECTION ==================== -->
+            <div class="screen" id="destScreen">
+                <div class="screen-header">
+                    <h2>🏁 Manzil (TIF) tanlang</h2>
+                    <p>Qaysi TIF ga bormoqchisiz?</p>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="destSearch" placeholder="🔍 Qidirish..." oninput="filterList('destList', this.value)">
+                </div>
+                <div class="posts-list" id="destList">
+                    <!-- Destinations will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- ==================== APPLICATION SUMMARY ==================== -->
+            <div class="screen" id="summaryScreen">
+                <div class="screen-header">
+                    <h2>📋 Arizani tasdiqlash</h2>
+                </div>
+                <div class="summary-card">
+                    <h3>📄 ARIZA MA'LUMOTLARI</h3>
+                    <div class="summary-row">
+                        <span class="summary-label">🚛 Mashina:</span>
+                        <span class="summary-value" id="sumVehicle">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">🏛 Post:</span>
+                        <span class="summary-value" id="sumPost">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">📍 Manzil:</span>
+                        <span class="summary-value" id="sumDest">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">👨‍💼 Agent:</span>
+                        <span class="summary-value" id="sumAgent">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">📷 Rasmlar:</span>
+                        <span class="summary-value" id="sumPhotos">-</span>
+                    </div>
+                </div>
+                <div class="summary-warning">
+                    ⚠️ Ma'lumotlar to'g'riligini tekshiring!
+                </div>
+                <button class="btn-primary" onclick="submitApplication()">
+                    ✅ ARIZANI YUBORISH
+                </button>
+                <button class="btn-secondary" onclick="goBack()">
+                    ✏️ TAHRIRLASH
+                </button>
+            </div>
+
+            <!-- ==================== WAITING SCREEN ==================== -->
+            <div class="screen" id="waitingScreen">
+                <div class="waiting-content">
+                    <div class="waiting-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                    <div class="waiting-card">
+                        <h3>✅ Ariza muvaffaqiyatli yuborildi!</h3>
+                        <div class="waiting-info">
+                            <p>🆔 Kod: <strong id="waitingCode">EPI-2024-1847</strong></p>
+                            <p>📷 Rasmlar: <span id="waitingPhotos">6 ta</span></p>
+                            <p>⏰ Yuborildi: <span id="waitingTime">14:32</span></p>
+                        </div>
+                        <div class="status-badge pending">
+                            📊 Status: KUTILMOQDA
+                        </div>
+                    </div>
+                    <div class="waiting-hint">
+                        <p>⏳ Admin javobini kuting...</p>
+                        <p class="hint-small">(odatda 5-15 daqiqa)</p>
+                        <p>🔔 Bildirishnoma keladi</p>
+                    </div>
+                    <button class="btn-primary" onclick="goHome()">
+                        🏠 BOSH SAHIFAGA
+                    </button>
+                </div>
+            </div>
+
+            <!-- ==================== PAYMENT SCREEN ==================== -->
+            <div class="screen" id="paymentScreen">
+                <div class="screen-header">
+                    <h2>💰 TO'LOV</h2>
+                </div>
+                <div class="payment-card">
+                    <h3>✅ ARIZA TASDIQLANDI!</h3>
+                    <div class="payment-info">
+                        <p>🆔 Kod: <strong id="paymentCode">EPI-2024-1847</strong></p>
+                        <p>📦 Yuk hajmi: <span id="paymentParts">3 partiya</span></p>
+                    </div>
+                    <div class="payment-price">
+                        <span class="price-label">💰 NARX:</span>
+                        <span class="price-value" id="paymentPrice">45,000 SO'M</span>
+                    </div>
+                </div>
+                <h4 class="payment-methods-title">💳 To'lov usulini tanlang:</h4>
+                <div class="payment-methods">
+                    <button class="payment-btn" onclick="selectPayment('payme')">
+                        <span class="payment-icon">💳</span>
+                        <span class="payment-name">PAYME</span>
+                        <span class="payment-arrow">→</span>
+                    </button>
+                    <button class="payment-btn" onclick="selectPayment('click')">
+                        <span class="payment-icon">💳</span>
+                        <span class="payment-name">CLICK</span>
+                        <span class="payment-arrow">→</span>
+                    </button>
+                    <button class="payment-btn" onclick="selectPayment('cash')">
+                        <span class="payment-icon">💵</span>
+                        <span class="payment-name">NAQD (Postda)</span>
+                        <span class="payment-arrow">→</span>
+                    </button>
+                    <button class="payment-btn coins" onclick="selectPayment('coins')">
+                        <span class="payment-icon">💎</span>
+                        <span class="payment-name">TANGA (17,500)</span>
+                        <span class="payment-arrow">→</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ==================== MY APPLICATIONS ==================== -->
+            <div class="screen" id="applicationsScreen">
+                <div class="screen-header">
+                    <h2>🎫 ARIZALARIM</h2>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="appSearch" placeholder="🔍 Ariza qidirish (Mashina yoki kod...)">
+                </div>
+                <div class="apps-section">
+                    <h4 class="apps-title">📊 Faol arizalar (2)</h4>
+                    <div class="apps-list" id="activeAppsList">
+                        <div class="app-card active" onclick="showAppDetail('EPI-2024-1847')">
+                            <div class="app-icon">📄</div>
+                            <div class="app-info">
+                                <h4>EPI-2024-1847</h4>
+                                <p>🚛 01A777AA</p>
+                            </div>
+                            <div class="app-status">
+                                <span class="status-badge waiting">⏳ KUTILMOQDA</span>
+                                <span class="app-time">⏰ 2 soat oldin</span>
+                            </div>
+                            <span class="app-arrow">→</span>
+                        </div>
+                        <div class="app-card active" onclick="showAppDetail('MB-2024-892')">
+                            <div class="app-icon">📋</div>
+                            <div class="app-info">
+                                <h4>MB-2024-892</h4>
+                                <p>🚛 01B555BB</p>
+                            </div>
+                            <div class="app-status">
+                                <span class="status-badge payment">💰 TO'LOV KUTILMOQDA</span>
+                                <span class="app-time">⏰ 1 kun oldin</span>
+                            </div>
+                            <span class="app-arrow">→</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="apps-section">
+                    <h4 class="apps-title">📜 Tarix (23)</h4>
+                    <div class="apps-list" id="historyAppsList">
+                        <div class="app-card" onclick="showAppDetail('EPI-2024-1801')">
+                            <div class="app-icon">📄</div>
+                            <div class="app-info">
+                                <h4>EPI-2024-1801</h4>
+                            </div>
+                            <div class="app-status">
+                                <span class="status-badge completed">✅ YAKUNLANGAN</span>
+                                <span class="app-time">⏰ 3 kun oldin</span>
+                            </div>
+                            <span class="app-arrow">→</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== APPLICATION DETAIL ==================== -->
+            <div class="screen" id="appDetailScreen">
+                <div class="screen-header">
+                    <h2 id="appDetailTitle">EPI-2024-1847</h2>
+                </div>
+                <div class="status-timeline">
+                    <h4>📊 STATUS</h4>
+                    <div class="timeline">
+                        <div class="timeline-item done">
+                            <span class="timeline-icon">✅</span>
+                            <span class="timeline-text">Yuborildi</span>
+                            <span class="timeline-time">14:32</span>
+                        </div>
+                        <div class="timeline-item done">
+                            <span class="timeline-icon">✅</span>
+                            <span class="timeline-text">Admin ko'rdi</span>
+                            <span class="timeline-time">14:45</span>
+                        </div>
+                        <div class="timeline-item done">
+                            <span class="timeline-icon">✅</span>
+                            <span class="timeline-text">Tasdiqlandi</span>
+                            <span class="timeline-time">14:50</span>
+                        </div>
+                        <div class="timeline-item current">
+                            <span class="timeline-icon">⏳</span>
+                            <span class="timeline-text">To'lov kutilmoqda</span>
+                        </div>
+                        <div class="timeline-item pending">
+                            <span class="timeline-icon">○</span>
+                            <span class="timeline-text">Yakunlangan</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-card">
+                    <h4>📋 MA'LUMOTLAR</h4>
+                    <div class="detail-row">
+                        <span>🚛 Mashina:</span>
+                        <span id="detailVehicle">01A777AA</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>🏛 Post:</span>
+                        <span id="detailPost">Oybek</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>📍 Manzil:</span>
+                        <span id="detailDest">Toshkent TIF</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>👨‍💼 Agent:</span>
+                        <span id="detailAgent">Aziz</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>💰 Narx:</span>
+                        <span id="detailPrice">45,000 so'm</span>
+                    </div>
+                </div>
+                <div class="detail-photos">
+                    <h4>📷 YUKLANGAN RASMLAR (6)</h4>
+                    <div class="photos-grid" id="detailPhotos">
+                        <div class="photo-thumb">📄</div>
+                        <div class="photo-thumb">📄</div>
+                        <div class="photo-thumb">📄</div>
+                        <div class="photo-thumb">📄</div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="showPaymentScreen()">
+                    💳 TO'LOV QILISH
+                </button>
+            </div>
+
+            <!-- ==================== CHAT SCREEN ==================== -->
+            <div class="screen" id="chatScreen">
+                <div class="screen-header chat-header">
+                    <h2>💬 GAPLASHISH</h2>
+                    <button class="close-btn" onclick="goHome()">✕</button>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message user">
+                        <div class="message-bubble">
+                            <p>Assalomu alaykum! Savolingizni yozing...</p>
+                        </div>
+                        <span class="message-time">14:32 👤</span>
+                    </div>
+                    <div class="message admin">
+                        <span class="admin-avatar">👮‍♂️</span>
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                <p>Salom! Qanday yordam bera olaman?</p>
+                            </div>
+                            <span class="message-time">14:35</span>
+                        </div>
+                    </div>
+                    <div class="message user">
+                        <div class="message-bubble">
+                            <p>EPI kod haqida savolim bor</p>
+                        </div>
+                        <span class="message-time">14:36 👤</span>
+                    </div>
+                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                        <span class="admin-avatar">👮‍♂️</span>
+                        <span class="typing-text">yozmoqda...</span>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <button class="attach-btn">📎</button>
+                    <input type="text" id="chatInput" placeholder="Xabar yozing...">
+                    <button class="send-btn" onclick="sendMessage()">📤</button>
+                </div>
+            </div>
+
+            <!-- ==================== BONUS SCREEN ==================== -->
+            <div class="screen" id="bonusScreen">
+                <div class="screen-header">
+                    <h2>🎁 BONUS TIZIMI</h2>
+                </div>
+                <div class="bonus-card main">
+                    <div class="bonus-coins">
+                        <span class="bonus-icon">💎</span>
+                        <span class="bonus-value" id="bonusCoins">17,500</span>
+                    </div>
+                    <div class="bonus-progress">
+                        <div class="bonus-bar">
+                            <div class="bonus-fill" style="width: 50%"></div>
+                        </div>
+                        <p>35,000 = 1 BEPUL KOD</p>
+                    </div>
+                </div>
+                <div class="bonus-stats">
+                    <div class="stat-card">
+                        <span class="stat-icon">👥</span>
+                        <span class="stat-value">12</span>
+                        <span class="stat-label">Taklif qilingan</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-icon">💰</span>
+                        <span class="stat-value">5</span>
+                        <span class="stat-label">Sotib olganlar</span>
+                    </div>
+                </div>
+                <div class="bonus-rules">
+                    <h4>🎁 BONUS QOIDASI</h4>
+                    <div class="rule-item">👥 Do'st ro'yxatdan o'tsa: <strong>+2,000 tanga</strong></div>
+                    <div class="rule-item">💰 Do'st xarid qilsa: <strong>+17,500 tanga</strong></div>
+                    <div class="rule-item">🎯 35,000 = <strong>1 BEPUL KOD</strong></div>
+                </div>
+                <div class="referral-link">
+                    <h4>🔗 HAVOLANI ULASHISH</h4>
+                    <div class="link-box">
+                        <span class="link-text" id="referralLink">t.me/caravan_bot?start=ref_12345678</span>
+                        <button class="copy-btn" onclick="copyReferralLink()">📋</button>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="shareReferralLink()">
+                    📤 DO'STLARGA YUBORISH
+                </button>
+            </div>
+
+            <!-- ==================== KGD E-TRANZIT ==================== -->
+            <div class="screen" id="kgdScreen">
+                <div class="screen-header">
+                    <h2>🚚 KGD E-TRANZIT KO'RISH</h2>
+                </div>
+                <p class="kgd-hint">🔍 Mashina raqamini kiriting</p>
+                <div class="kgd-input-container">
+                    <input type="text" id="kgdInput" class="kgd-input" placeholder="01 A 777 AA" maxlength="10">
+                </div>
+                <button class="btn-primary" onclick="checkKGD()">
+                    🔍 TEKSHIRISH
+                </button>
+                <div class="kgd-result" id="kgdResult" style="display: none;">
+                    <h4>━━━━━ NATIJA ━━━━━</h4>
+                    <div class="kgd-card">
+                        <div class="kgd-header">
+                            <span class="kgd-icon">🚛</span>
+                            <span class="kgd-vehicle" id="kgdVehicle">01A777AA</span>
+                        </div>
+                        <div class="kgd-info">
+                            <div class="kgd-row">
+                                <span>📍 Hozirgi joy:</span>
+                                <span id="kgdLocation">Oybek posti</span>
+                            </div>
+                            <div class="kgd-row">
+                                <span>📊 Status:</span>
+                                <span class="kgd-status" id="kgdStatus">TRANZITDA</span>
+                            </div>
+                            <div class="kgd-row">
+                                <span>🏁 Manzil:</span>
+                                <span id="kgdDestination">Toshkent TIF</span>
+                            </div>
+                            <div class="kgd-row">
+                                <span>⏰ Kiritilgan:</span>
+                                <span id="kgdEntryTime">12:00</span>
+                            </div>
+                            <div class="kgd-row">
+                                <span>⏰ Kutilgan:</span>
+                                <span id="kgdExpectedTime">18:00</span>
+                            </div>
+                        </div>
+                        <button class="btn-secondary map-btn">
+                            🗺️ Xaritada ko'rish
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== SETTINGS SCREEN ==================== -->
+            <div class="screen" id="settingsScreen">
+                <div class="screen-header">
+                    <h2>⚙️ SOZLAMALAR</h2>
+                </div>
+                <div class="settings-section">
+                    <h4>👤 PROFIL</h4>
+                    <div class="settings-item" onclick="editPhone()">
+                        <span class="setting-icon">📱</span>
+                        <span class="setting-label">Telefon</span>
+                        <span class="setting-value" id="userPhone">+998 91 123 45 67</span>
+                        <span class="setting-arrow">→</span>
+                    </div>
+                    <div class="settings-item" onclick="changeLanguage()">
+                        <span class="setting-icon">🌐</span>
+                        <span class="setting-label">Til</span>
+                        <span class="setting-value" id="currentLang">O'zbekcha</span>
+                        <span class="setting-arrow">→</span>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>🔧 TIZIM</h4>
+                    <div class="settings-item" onclick="clearCache()">
+                        <span class="setting-icon">🗑</span>
+                        <span class="setting-label">Xotirani tozalash</span>
+                        <span class="setting-arrow">→</span>
+                    </div>
+                    <div class="settings-item">
+                        <span class="setting-icon">🔔</span>
+                        <span class="setting-label">Bildirishnomalar</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="notifToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>📞 BOG'LANISH</h4>
+                    <div class="settings-item" onclick="contactAdmin()">
+                        <span class="setting-icon">👨‍💼</span>
+                        <span class="setting-label">Admin bilan aloqa</span>
+                        <span class="setting-arrow">→</span>
+                    </div>
+                    <div class="settings-item" onclick="showContactsScreen()">
+                        <span class="setting-icon">📞</span>
+                        <span class="setting-label">Ishonch telefonlari</span>
+                        <span class="setting-arrow">→</span>
+                    </div>
+                </div>
+                <p class="app-version">📱 Versiya: 2.0.0</p>
+            </div>
+
+            <!-- ==================== PRICES SCREEN ==================== -->
+            <div class="screen" id="pricesScreen">
+                <div class="screen-header">
+                    <h2>💰 NARXLAR KATALOGI</h2>
+                </div>
+                <div class="prices-section">
+                    <h4>🚛 EPI-KOD XIZMATLARI</h4>
+                    <div class="price-card">
+                        <h5>📦 KICHIK PARTIYALAR</h5>
+                        <div class="price-row">
+                            <span>1-2 partiya</span>
+                            <span class="price">35,000 ₽</span>
+                        </div>
+                        <div class="price-row">
+                            <span>3 partiya</span>
+                            <span class="price">45,000 ₽</span>
+                        </div>
+                    </div>
+                    <div class="price-card">
+                        <h5>📈 KATTA PARTIYALAR</h5>
+                        <div class="price-row">
+                            <span>4 partiya</span>
+                            <span class="price">60,000 ₽</span>
+                        </div>
+                        <div class="price-row">
+                            <span>5 partiya</span>
+                            <span class="price">75,000 ₽</span>
+                        </div>
+                        <div class="price-row">
+                            <span>6 partiya</span>
+                            <span class="price">105,000 ₽</span>
+                        </div>
+                        <div class="price-row">
+                            <span>7 partiya</span>
+                            <span class="price">126,000 ₽</span>
+                        </div>
+                        <div class="price-row">
+                            <span>8 partiya</span>
+                            <span class="price">144,000 ₽</span>
+                        </div>
+                        <div class="price-row">
+                            <span>9 partiya</span>
+                            <span class="price">180,000 ₽</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="prices-section">
+                    <h4>📋 MB DEKLARATSIYA</h4>
+                    <div class="price-card single">
+                        <div class="price-row">
+                            <span>Standart</span>
+                            <span class="price">25,000 ₽</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="prices-note">💡 To'lov UZS da qabul qilinadi</p>
+            </div>
+
+            <!-- ==================== CONTACTS SCREEN ==================== -->
+            <div class="screen" id="contactsScreen">
+                <div class="screen-header">
+                    <h2>📞 ISHONCH TELEFONLARI</h2>
+                </div>
+                <div class="contacts-logo">
+                    <span class="logo-icon large">🚛</span>
+                    <h3>CARAVAN TRANZIT</h3>
+                    <p>Biz bilan bog'laning</p>
+                </div>
+                <div class="contacts-section">
+                    <h4>📱 TELEFON</h4>
+                    <a href="tel:+998917020099" class="contact-item">
+                        <span class="contact-icon">📞</span>
+                        <span class="contact-value">+998 91 702 00 99</span>
+                        <span class="contact-action">📞 Qo'ng</span>
+                    </a>
+                    <a href="tel:+998943120099" class="contact-item">
+                        <span class="contact-icon">📞</span>
+                        <span class="contact-value">+998 94 312 00 99</span>
+                        <span class="contact-action">📞 Qo'ng</span>
+                    </a>
+                </div>
+                <div class="contacts-section">
+                    <h4>💬 TELEGRAM</h4>
+                    <a href="https://t.me/CARAVAN_TRANZIT" class="contact-item">
+                        <span class="contact-icon">💬</span>
+                        <span class="contact-value">@CARAVAN_TRANZIT</span>
+                        <span class="contact-arrow">→</span>
+                    </a>
+                    <a href="https://t.me/caravan_tranzit1" class="contact-item">
+                        <span class="contact-icon">💬</span>
+                        <span class="contact-value">@caravan_tranzit1</span>
+                        <span class="contact-arrow">→</span>
+                    </a>
+                </div>
+                <div class="contacts-section">
+                    <h4>💬 WHATSAPP</h4>
+                    <a href="https://wa.me/998917020099" class="contact-item">
+                        <span class="contact-icon">💬</span>
+                        <span class="contact-value">+998 91 702 00 99</span>
+                        <span class="contact-arrow">→</span>
+                    </a>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav" id="bottomNav">
+            <button class="nav-item active" data-screen="homeScreen" onclick="navigateTo('homeScreen')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
             </button>
-
-            <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
-        </div>
-
-        <!-- Step 4: Document Upload -->
-        <div class="screen" id="documentsScreen">
-            <div class="screen-header">
-                <h2>Hujjatlarni yuklang</h2>
-                <p id="docListTitle">Kerakli hujjatlar:</p>
-            </div>
-
-            <div class="doc-checklist" id="docChecklist">
-                <!-- Will be populated based on service type -->
-            </div>
-
-            <div class="upload-area" id="uploadArea">
-                <input type="file"
-                       id="fileInput"
-                       multiple
-                       accept="image/*,.pdf"
-                       onchange="handleFileSelect(event)"
-                       style="display: none;">
-                <button class="upload-button" onclick="document.getElementById('fileInput').click()">
-                    <span class="upload-icon">📸</span>
-                    <span>Rasm yuklash</span>
-                </button>
-                <p class="upload-hint">yoki faylni bu yerga torting</p>
-            </div>
-
-            <div class="uploaded-files" id="uploadedFiles">
-                <!-- Uploaded files will appear here -->
-            </div>
-
-            <div class="action-buttons">
-                <button class="btn-primary" onclick="submitApplication()" id="submitBtn" disabled>
-                    ✅ Yuborish
-                </button>
-                <button class="btn-back" onclick="goBack()">⬅️ Ortga</button>
-            </div>
-        </div>
-
-        <!-- Success Screen -->
-        <div class="screen" id="successScreen">
-            <div class="success-animation">
-                <div class="success-icon">✅</div>
-                <h2>Muvaffaqiyatli!</h2>
-                <p>Arizangiz yuborildi</p>
-            </div>
-
-            <div class="application-info">
-                <div class="info-row">
-                    <span class="info-label">Ariza kodi:</span>
-                    <span class="info-value" id="appCode">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Mashina:</span>
-                    <span class="info-value" id="appVehicle">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Status:</span>
-                    <span class="info-value status-pending">Kutilmoqda</span>
-                </div>
-            </div>
-
-            <div class="success-message">
-                <p>⏳ Admin javobini kuting...</p>
-                <p class="success-hint">Siz bilan tez orada bog'lanamiz</p>
-            </div>
-
-            <button class="btn-primary" onclick="backToHome()">
-                🏠 Asosiy sahifa
+            <button class="nav-item" data-screen="applicationsScreen" onclick="navigateTo('applicationsScreen')">
+                <span class="nav-icon">📄</span>
+                <span class="nav-label">Ariza</span>
             </button>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="app-footer">
-        <div class="footer-links">
-            <a href="tel:+998917020099">📞 +998 91 702 00 99</a>
-            <a href="https://t.me/caravan_tranzit">💬 Telegram</a>
-        </div>
-        <p class="footer-text">© 2024 CARAVAN TRANZIT Caravan Broker LTD</p>
-    </footer>
+            <button class="nav-item" data-screen="chatScreen" onclick="navigateTo('chatScreen')">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Chat</span>
+            </button>
+            <button class="nav-item" data-screen="bonusScreen" onclick="navigateTo('bonusScreen')">
+                <span class="nav-icon">🎁</span>
+                <span class="nav-label">Bonus</span>
+            </button>
+            <button class="nav-item" data-screen="settingsScreen" onclick="navigateTo('settingsScreen')">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Sozla</span>
+            </button>
+        </nav>
+    </div>
 
     <script src="app.js"></script>
 </body>
