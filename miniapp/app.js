@@ -1,7 +1,7 @@
 /**
  * CARAVAN TRANZIT Mini App - JavaScript
- * Version: 2.0
- * Telegram Web App Integration
+ * Version: 3.0
+ * Telegram Web App Integration with i18n
  */
 
 // ==================== TELEGRAM WEB APP ====================
@@ -11,15 +11,19 @@ const tg = window.Telegram?.WebApp;
 const AppState = {
     currentScreen: 'splashScreen',
     previousScreens: [],
-    language: localStorage.getItem('caravan_lang') || null,
+    language: localStorage.getItem('caravan_lang') || 'uz',
     serviceType: null, // 'EPI' or 'MB'
     selectedPost: null,
     selectedAgent: null,
     vehicleNumber: null,
+    vehicleType: 'truck',
     selectedDestination: null,
     uploadedFiles: [],
-    userCoins: 17500,
-    userId: null
+    userCoins: 35000,
+    userId: null,
+    userName: null,
+    userPhone: null,
+    isInitialized: false
 };
 
 // ==================== DATA ====================
@@ -79,7 +83,7 @@ const AGENTS = [
         rating: 4.8,
         priceMin: 35000,
         priceMax: 60000,
-        badge: 'Top Rated',
+        badge: 'top_rated',
         online: true,
         avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA-4mXKU91loGciYNcynW5W0szXcGke8fIG5daq5NfGfkfMdAAAjJLEzhtuoNEnKUhKoBTK97bsvZhj1QQE8L7gmbQkaovU4Y0UqOX__aUuRi-lYNP8BmP-ieznwyHxDNABqYuc0H3bshPEwKnRdxZX8Ay_0N66kLJmWGp332wNgz5BckDHwyFGh_NzVKn74hg5RRiudRCy-aYCEcRKGQkkB2lHU9ac9t02MJiNVOgbGNmkCcLSuhxQaNDm-YhJ1_4dCPCdrMPoTdY'
     },
@@ -89,7 +93,7 @@ const AGENTS = [
         rating: 4.9,
         priceMin: 40000,
         priceMax: 65000,
-        badge: 'Fast Response',
+        badge: 'fast_response',
         online: true,
         avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDA5jd_af6u8rvQ-3pYCQE4HYF9sO6t19uhZ3vqyKzsYvFDZg4_sGewLg9BecZMqQAmAM9EootOyjA9MLMyvmeNd_BAbezyLTAkT9tAvKVpva0u_PqJiCwZvvT96ybFyjrNdTXQg-VbnkJ5PPRCOtalYo4DNbmpUDKuv6vYiPGDupMlEDJ2pKNIA7XVI3JY417U53DEWMv8n5S7Zm2YGvye9944PrDqpltPV5VdGpBVbxJAXuWFUileTSuMxcxEd6kb4zrw27j5d7A'
     },
@@ -99,7 +103,7 @@ const AGENTS = [
         rating: 4.7,
         priceMin: 38000,
         priceMax: 62000,
-        badge: 'Highly Recommended',
+        badge: 'highly_recommended',
         online: true,
         avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCODBuLtQS0l9ImFObjL52sU7JrI5Kb9poisA6ywRjkhcHm_vNHHCg5HDp3rHpEE4z8pfNHbIQ-SDcNyE9zJuNj_BW7sFNqYZsbg8mtif2Bk01rm4GK7Xa2KxKtbctmNGnuVVt5uwA_FR2hKA9tfwbjsoEXVGYHWLt5P03DSpswM9wuNXDDlUv9WE7R9W8QraIGwlCUcOnuQeQikYscPvsCmrXzXQeBDm940mjqfpx8o_Esy5vZE8EHlTm8Ss3Ah0UMTQQ6UhiBa7M'
     }
@@ -129,9 +133,20 @@ function initTelegramApp() {
         tg.expand();
         tg.enableClosingConfirmation();
 
-        // Get user data
+        // Get user data from Telegram
         if (tg.initDataUnsafe?.user) {
             AppState.userId = tg.initDataUnsafe.user.id;
+            AppState.userName = tg.initDataUnsafe.user.first_name + ' ' + (tg.initDataUnsafe.user.last_name || '');
+
+            // Try to get language from Telegram
+            const tgLang = tg.initDataUnsafe.user.language_code;
+            if (tgLang && !localStorage.getItem('caravan_lang')) {
+                const langMap = { 'uz': 'uz', 'ru': 'ru', 'en': 'en', 'zh': 'zh', 'tr': 'tr', 'kk': 'kk', 'ky': 'ky', 'tg': 'tj', 'tk': 'tk' };
+                if (langMap[tgLang]) {
+                    AppState.language = langMap[tgLang];
+                    localStorage.setItem('caravan_lang', langMap[tgLang]);
+                }
+            }
         }
 
         // Set theme colors
@@ -148,10 +163,15 @@ function initTelegramApp() {
 }
 
 function initApp() {
-    // Set default language
+    // Set default language if not set
     if (!AppState.language) {
-        AppState.language = 'uz_lat';
-        localStorage.setItem('caravan_lang', 'uz_lat');
+        AppState.language = 'uz';
+        localStorage.setItem('caravan_lang', 'uz');
+    }
+
+    // Set language in i18n
+    if (typeof setLanguage === 'function') {
+        setLanguage(AppState.language);
     }
 
     // Show main app immediately - no splash, no delays
@@ -159,6 +179,14 @@ function initApp() {
 
     // Setup event listeners
     setupEventListeners();
+
+    // Update UI texts
+    updateAllUITexts();
+
+    // Load saved data
+    loadSavedData();
+
+    AppState.isInitialized = true;
 }
 
 function setupEventListeners() {
@@ -169,6 +197,92 @@ function setupEventListeners() {
     document.getElementById('profileBtn')?.addEventListener('click', () => {
         navigateTo('settingsScreen');
     });
+
+    // Listen for language changes
+    document.addEventListener('languageChanged', () => {
+        updateAllUITexts();
+    });
+}
+
+function loadSavedData() {
+    // Load recent vehicle
+    const recentVehicle = localStorage.getItem('caravan_recent_vehicle');
+    if (recentVehicle) {
+        const recentEl = document.getElementById('recentVehicles');
+        if (recentEl) {
+            recentEl.innerHTML = `
+                <div class="recent-item" onclick="useRecentVehicle('${recentVehicle}')">
+                    <span class="recent-icon">🔄</span>
+                    <span class="recent-text">${t('previous_vehicle')}: <strong>${recentVehicle}</strong></span>
+                    <span class="recent-hint">(${t('last_used')})</span>
+                </div>
+            `;
+        }
+    }
+
+    // Load user balance (would come from API in production)
+    const savedBalance = localStorage.getItem('caravan_balance');
+    if (savedBalance) {
+        AppState.userCoins = parseInt(savedBalance);
+    }
+    updateCoinsDisplay();
+}
+
+// ==================== UI TEXT UPDATES ====================
+function updateAllUITexts() {
+    // Update home screen
+    updateElement('walletLabel', t('my_coins'));
+    updateElement('walletCurrency', t('uzs_equivalent'));
+    updateElement('servicesTitle', t('services'));
+    updateElement('recentAppsTitle', t('recent_apps'));
+
+    // Update navigation
+    document.querySelectorAll('.nav-label-new').forEach((el, index) => {
+        const labels = ['nav_home', 'nav_map', '', 'nav_history', 'nav_profile'];
+        if (labels[index]) {
+            el.textContent = t(labels[index]);
+        }
+    });
+
+    // Update service cards
+    const serviceNames = document.querySelectorAll('.service-name-new');
+    const serviceKeys = ['epi_service', 'mb_service', 'kgd_service', 'my_apps', 'bonus', 'prices'];
+    serviceNames.forEach((el, index) => {
+        if (serviceKeys[index]) {
+            el.textContent = t(serviceKeys[index]);
+        }
+    });
+
+    // Update current language display
+    const langInfo = typeof getLanguageInfo === 'function' ? getLanguageInfo(AppState.language) : null;
+    if (langInfo) {
+        updateElement('currentLang', langInfo.native);
+    }
+
+    // Update settings screen
+    updateElement('phoneLabel', t('phone'));
+    updateElement('languageLabel', t('language'));
+}
+
+function updateElement(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
+
+function updateCoinsDisplay() {
+    const coinsEl = document.getElementById('coinsValue');
+    if (coinsEl) {
+        coinsEl.textContent = formatNumber(AppState.userCoins);
+    }
+
+    const bonusCoinsEl = document.getElementById('bonusCoins');
+    if (bonusCoinsEl) {
+        bonusCoinsEl.textContent = formatNumber(AppState.userCoins);
+    }
+}
+
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 // ==================== LANGUAGE ====================
@@ -176,10 +290,54 @@ function selectLanguage(lang) {
     AppState.language = lang;
     localStorage.setItem('caravan_lang', lang);
 
+    if (typeof setLanguage === 'function') {
+        setLanguage(lang);
+    }
+
     // Haptic feedback
     if (tg) tg.HapticFeedback?.impactOccurred('light');
 
-    showMainApp();
+    updateAllUITexts();
+    showLanguageModal(false);
+}
+
+function showLanguageModal(show = true) {
+    let modal = document.getElementById('languageModal');
+
+    if (show) {
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'languageModal';
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${t('language')}</h3>
+                        <button class="modal-close" onclick="showLanguageModal(false)">×</button>
+                    </div>
+                    <div class="language-list">
+                        ${getAvailableLanguages().map(lang => `
+                            <button class="language-option ${lang.code === AppState.language ? 'active' : ''}"
+                                    onclick="selectLanguage('${lang.code}')">
+                                <span class="lang-flag">${lang.flag}</span>
+                                <span class="lang-name">${lang.native}</span>
+                                ${lang.code === AppState.language ? '<span class="lang-check">✓</span>' : ''}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        modal.style.display = 'flex';
+        if (tg) tg.HapticFeedback?.impactOccurred('light');
+    } else if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function changeLanguage() {
+    showLanguageModal(true);
 }
 
 // ==================== NAVIGATION ====================
@@ -238,7 +396,7 @@ function navigateTo(screenId) {
 }
 
 function updateBottomNav(screenId) {
-    document.querySelectorAll('.nav-item').forEach(item => {
+    document.querySelectorAll('.nav-item-new').forEach(item => {
         item.classList.remove('active');
         if (item.dataset.screen === screenId) {
             item.classList.add('active');
@@ -323,7 +481,7 @@ function loadPopularPosts() {
                 <div class="popular-post-overlay">
                     <h4 class="popular-post-name">${post.name}</h4>
                     <p class="popular-post-region">${post.region}</p>
-                    <span class="popular-post-agents">${post.agents} agentlar</span>
+                    <span class="popular-post-agents">${post.agents} ${t('agents_count')}</span>
                 </div>
             </div>
         `;
@@ -455,6 +613,9 @@ function loadAgents() {
     document.getElementById('onlineAgentCount').textContent = onlineAgents.length;
 
     onlineAgents.forEach(agent => {
+        const badgeText = agent.badge === 'top_rated' ? t('top_rated') :
+                         agent.badge === 'fast_response' ? t('fast_response') : agent.badge;
+
         const card = document.createElement('div');
         card.className = 'agent-card-new';
         card.innerHTML = `
@@ -467,11 +628,11 @@ function loadAgents() {
                 <p class="agent-price">${formatPrice(agent.priceMin)} - ${formatPrice(agent.priceMax)} so'm</p>
                 <div class="agent-rating-badge">
                     <span class="star">⭐</span>
-                    <span>${agent.rating} • ${agent.badge}</span>
+                    <span>${agent.rating} • ${badgeText}</span>
                 </div>
             </div>
             <button class="agent-select-btn" onclick="event.stopPropagation(); selectAgent('${agent.id}')">
-                Select
+                ${t('select')}
             </button>
         `;
         card.onclick = () => selectAgent(agent.id);
@@ -525,9 +686,9 @@ function toggleOfflineAgents() {
 function findNearestPost() {
     if (tg) {
         tg.HapticFeedback?.impactOccurred('medium');
-        tg.showAlert('Eng yaqin post qidirilmoqda... Bu funksiya tez orada ishga tushadi!');
+        tg.showAlert(t('coming_soon'));
     } else {
-        alert('Eng yaqin post qidirilmoqda...');
+        alert(t('coming_soon'));
     }
 }
 
@@ -574,9 +735,9 @@ function submitVehicle() {
 
     if (!/^[0-9]{2}[A-Z][0-9]{3}[A-Z]{2}$/.test(value)) {
         if (tg) {
-            tg.showAlert("Iltimos, mashina raqamini to'g'ri kiriting!\n\nMisol: 01A777AA");
+            tg.showAlert(t('error_vehicle_format'));
         } else {
-            alert("Iltimos, mashina raqamini to'g'ri kiriting!\n\nMisol: 01A777AA");
+            alert(t('error_vehicle_format'));
         }
         return;
     }
@@ -642,7 +803,7 @@ function updateUploadedPreview() {
         preview.appendChild(item);
     });
 
-    counter.textContent = `${AppState.uploadedFiles.length} ta rasm`;
+    counter.textContent = `${AppState.uploadedFiles.length} ${t('photos_count')}`;
 
     // Enable/disable submit button
     const minFiles = AppState.serviceType === 'EPI' ? 2 : 2;
@@ -708,7 +869,7 @@ function updateSummary() {
     const photosEl = document.getElementById('sumPhotos');
     if (photosEl) {
         const count = AppState.uploadedFiles.length;
-        photosEl.innerHTML = `<span class="docs-icon">📎</span> ${count} Files Attached`;
+        photosEl.innerHTML = `<span class="docs-icon">📎</span> ${count} ${t('files_attached')}`;
     }
 }
 
@@ -750,7 +911,7 @@ function editSummaryField(field) {
 }
 
 function getAgentName(agentId) {
-    if (agentId === 'cash') return 'Naqd pulda (Cash Payment)';
+    if (agentId === 'cash') return t('cash_payment');
     const agent = AGENTS.find(a => a.id === agentId);
     if (agent) {
         return `${agent.name} (${formatPrice(agent.priceMin)}-${formatPrice(agent.priceMax)} so'm)`;
@@ -769,16 +930,25 @@ async function submitApplication() {
     const appCode = generateAppCode();
     const now = new Date();
 
-    // Prepare data
+    // Get agent info
+    const agent = AGENTS.find(a => a.id === AppState.selectedAgent);
+    const agentName = agent ? agent.name : (AppState.selectedAgent === 'cash' ? t('cash_payment') : '-');
+
+    // Prepare data to send to bot
     const applicationData = {
+        type: 'application',
         code: appCode,
         user_id: AppState.userId,
+        user_name: AppState.userName,
         service_type: AppState.serviceType,
         border_post: AppState.selectedPost,
         destination: AppState.selectedDestination,
         vehicle_number: AppState.vehicleNumber,
-        agent: AppState.selectedAgent,
+        vehicle_type: AppState.vehicleType,
+        agent_id: AppState.selectedAgent,
+        agent_name: agentName,
         files_count: AppState.uploadedFiles.length,
+        language: AppState.language,
         timestamp: now.toISOString()
     };
 
@@ -792,12 +962,28 @@ async function submitApplication() {
 
     // Send to Telegram bot
     if (tg) {
-        tg.sendData(JSON.stringify(applicationData));
-        tg.MainButton.hideProgress();
+        try {
+            tg.sendData(JSON.stringify(applicationData));
+            tg.MainButton.hideProgress();
+        } catch (e) {
+            console.error('Error sending data:', e);
+            tg.MainButton.hideProgress();
+        }
     }
+
+    // Save application locally for reference
+    saveApplicationLocally(applicationData);
 
     // Reset flow state
     resetFlowState();
+}
+
+function saveApplicationLocally(appData) {
+    const apps = JSON.parse(localStorage.getItem('caravan_apps') || '[]');
+    apps.unshift(appData);
+    // Keep only last 50 applications
+    if (apps.length > 50) apps.pop();
+    localStorage.setItem('caravan_apps', JSON.stringify(apps));
 }
 
 function generateAppCode() {
@@ -824,9 +1010,17 @@ function showPaymentScreen() {
 function selectPayment(method) {
     if (tg) {
         tg.HapticFeedback?.impactOccurred('medium');
-        tg.showAlert(`${method.toUpperCase()} to'lov tanlandi. Tez orada ishga tushadi!`);
+
+        // Send payment selection to bot
+        tg.sendData(JSON.stringify({
+            type: 'payment_selected',
+            method: method,
+            timestamp: new Date().toISOString()
+        }));
+
+        tg.showAlert(`${method.toUpperCase()} ${t('coming_soon')}`);
     } else {
-        alert(`${method.toUpperCase()} to'lov tanlandi.`);
+        alert(`${method.toUpperCase()} ${t('coming_soon')}`);
     }
 }
 
@@ -840,7 +1034,7 @@ function checkKGD() {
 
     if (!value) {
         if (tg) {
-            tg.showAlert('Iltimos, mashina raqamini kiriting!');
+            tg.showAlert(t('enter_vehicle'));
         }
         return;
     }
@@ -858,19 +1052,19 @@ function showPricesScreen() {
 
 function showGabarScreen() {
     if (tg) {
-        tg.showAlert('Gabarit xizmati tez orada ishga tushadi!');
+        tg.showAlert(t('coming_soon'));
     }
 }
 
 function showInsuranceScreen() {
     if (tg) {
-        tg.showAlert("Sug'urta xizmati tez orada ishga tushadi!");
+        tg.showAlert(t('coming_soon'));
     }
 }
 
 function showQueueScreen() {
     if (tg) {
-        tg.showAlert('Navbat xizmati tez orada ishga tushadi!');
+        tg.showAlert(t('coming_soon'));
     }
 }
 
@@ -880,9 +1074,9 @@ function showContactsScreen() {
 
 function showMapScreen() {
     if (tg) {
-        tg.showAlert('Xarita xizmati tez orada ishga tushadi!');
+        tg.showAlert(t('coming_soon'));
     } else {
-        alert('Xarita xizmati tez orada ishga tushadi!');
+        alert(t('coming_soon'));
     }
 }
 
@@ -981,7 +1175,7 @@ function copyReferralLink() {
     }
 
     if (tg) {
-        tg.showAlert('Havola nusxalandi!');
+        tg.showAlert(t('link_copied'));
         tg.HapticFeedback?.notificationOccurred('success');
     }
 }
@@ -998,27 +1192,18 @@ function shareReferralLink() {
 }
 
 // ==================== SETTINGS ====================
-function changeLanguage() {
-    // Show alert - language change via settings only
-    if (tg) {
-        tg.showAlert("Til: O'zbek (Latin). Tilni o'zgartirish imkoniyati tez orada qo'shiladi.");
-    } else {
-        alert("Til: O'zbek (Latin)");
-    }
-}
-
 function clearCache() {
     localStorage.clear();
 
     if (tg) {
-        tg.showAlert('Xotira tozalandi!');
+        tg.showAlert(t('cache_cleared'));
         tg.HapticFeedback?.notificationOccurred('success');
     }
 }
 
 function editPhone() {
     if (tg) {
-        tg.showAlert('Telefon raqamini o\'zgartirish uchun admin bilan bog\'laning.');
+        tg.showAlert(t('contact_admin_phone'));
     }
 }
 
@@ -1083,6 +1268,8 @@ window.sendMessage = sendMessage;
 window.copyReferralLink = copyReferralLink;
 window.shareReferralLink = shareReferralLink;
 window.changeLanguage = changeLanguage;
+window.selectLanguage = selectLanguage;
+window.showLanguageModal = showLanguageModal;
 window.clearCache = clearCache;
 window.editPhone = editPhone;
 window.contactAdmin = contactAdmin;
@@ -1098,5 +1285,6 @@ window.loadGroupedPosts = loadGroupedPosts;
 window.filterBorderPosts = filterBorderPosts;
 window.showMapScreen = showMapScreen;
 window.switchAppsTab = switchAppsTab;
+window.t = t;
 
-console.log('CARAVAN TRANZIT Mini App v2.0 loaded');
+console.log('CARAVAN TRANZIT Mini App v3.0 loaded with i18n support');
