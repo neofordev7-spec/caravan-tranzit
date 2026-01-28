@@ -561,11 +561,61 @@ function selectDestination(dest) {
 }
 
 function updateSummary() {
+    // Update service type
+    const serviceEl = document.getElementById('sumService');
+    if (serviceEl) {
+        serviceEl.textContent = AppState.serviceType === 'EPI' ? 'EPI (Electronic Pre-Arrival)' : 'MB DEKLARATSIYA';
+    }
+
+    // Update other fields
     document.getElementById('sumVehicle').textContent = AppState.vehicleNumber || '-';
     document.getElementById('sumPost').textContent = AppState.selectedPost || '-';
     document.getElementById('sumDest').textContent = AppState.selectedDestination || '-';
     document.getElementById('sumAgent').textContent = getAgentName(AppState.selectedAgent);
-    document.getElementById('sumPhotos').textContent = `${AppState.uploadedFiles.length} ta`;
+
+    // Update documents count with new format
+    const photosEl = document.getElementById('sumPhotos');
+    if (photosEl) {
+        const count = AppState.uploadedFiles.length;
+        photosEl.innerHTML = `<span class="docs-icon">📎</span> ${count} Files Attached`;
+    }
+}
+
+// Edit summary field - navigate to appropriate screen
+function editSummaryField(field) {
+    if (tg) tg.HapticFeedback?.impactOccurred('light');
+
+    switch (field) {
+        case 'service':
+            // Go back to home to select service
+            navigateTo('homeScreen');
+            break;
+        case 'post':
+            // Go to border post selection
+            loadBorderPosts();
+            navigateTo('borderPostScreen');
+            break;
+        case 'agent':
+            // Go to agent selection
+            loadAgents();
+            navigateTo('agentScreen');
+            break;
+        case 'vehicle':
+            // Go to vehicle input
+            navigateTo('vehicleScreen');
+            break;
+        case 'documents':
+            // Go to documents upload
+            navigateTo('documentsScreen');
+            break;
+        case 'destination':
+            // Go to destination selection
+            loadDestinations();
+            navigateTo('destScreen');
+            break;
+        default:
+            break;
+    }
 }
 
 function getAgentName(agentId) {
@@ -874,5 +924,6 @@ window.loadOfflineAgents = loadOfflineAgents;
 window.toggleOfflineAgents = toggleOfflineAgents;
 window.findNearestPost = findNearestPost;
 window.formatPrice = formatPrice;
+window.editSummaryField = editSummaryField;
 
 console.log('CARAVAN TRANZIT Mini App v2.0 loaded');

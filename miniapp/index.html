@@ -252,41 +252,95 @@
 
             <!-- ==================== APPLICATION SUMMARY ==================== -->
             <div class="screen" id="summaryScreen">
-                <div class="screen-header">
-                    <h2>📋 Arizani tasdiqlash</h2>
-                </div>
-                <div class="summary-card">
-                    <h3>📄 ARIZA MA'LUMOTLARI</h3>
-                    <div class="summary-row">
-                        <span class="summary-label">🚛 Mashina:</span>
-                        <span class="summary-value" id="sumVehicle">-</span>
+                <!-- Progress Bar -->
+                <div class="summary-progress">
+                    <div class="progress-header">
+                        <span class="progress-label">Final Step</span>
+                        <span class="progress-percent">100%</span>
                     </div>
-                    <div class="summary-row">
-                        <span class="summary-label">🏛 Post:</span>
-                        <span class="summary-value" id="sumPost">-</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">📍 Manzil:</span>
-                        <span class="summary-value" id="sumDest">-</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">👨‍💼 Agent:</span>
-                        <span class="summary-value" id="sumAgent">-</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">📷 Rasmlar:</span>
-                        <span class="summary-value" id="sumPhotos">-</span>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" style="width: 100%"></div>
                     </div>
                 </div>
-                <div class="summary-warning">
-                    ⚠️ Ma'lumotlar to'g'riligini tekshiring!
+
+                <!-- Section Header -->
+                <div class="summary-section-header">
+                    <h3>Review Details</h3>
+                    <p>Tap on any item to edit</p>
                 </div>
-                <button class="btn-primary" onclick="submitApplication()">
-                    ✅ ARIZANI YUBORISH
-                </button>
-                <button class="btn-secondary" onclick="goBack()">
-                    ✏️ TAHRIRLASH
-                </button>
+
+                <!-- Editable Summary Items -->
+                <div class="summary-items">
+                    <!-- Service Type -->
+                    <div class="summary-item" onclick="editSummaryField('service')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">SERVICE</span>
+                            <span class="summary-item-value" id="sumService">EPI KOD</span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+
+                    <!-- Customs Post -->
+                    <div class="summary-item" onclick="editSummaryField('post')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">CUSTOMS POST</span>
+                            <span class="summary-item-value" id="sumPost">-</span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+
+                    <!-- Agent -->
+                    <div class="summary-item" onclick="editSummaryField('agent')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">AGENT</span>
+                            <span class="summary-item-value" id="sumAgent">-</span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+
+                    <!-- Vehicle Plate -->
+                    <div class="summary-item" onclick="editSummaryField('vehicle')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">VEHICLE PLATE</span>
+                            <span class="summary-item-value" id="sumVehicle">-</span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+
+                    <!-- Documents -->
+                    <div class="summary-item" onclick="editSummaryField('documents')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">DOCUMENTS</span>
+                            <span class="summary-item-value" id="sumPhotos">
+                                <span class="docs-icon">📎</span> - Files Attached
+                            </span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+
+                    <!-- TIF Location -->
+                    <div class="summary-item" onclick="editSummaryField('destination')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">TIF LOCATION</span>
+                            <span class="summary-item-value" id="sumDest">-</span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+                </div>
+
+                <!-- Warning Callout -->
+                <div class="summary-warning-new">
+                    <span class="warning-icon">⚠️</span>
+                    <p>Please review all information carefully. Once submitted, you will not be able to change these details for this application.</p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="summary-submit-container">
+                    <button class="summary-submit-btn" onclick="submitApplication()">
+                        <span>Submit Application</span>
+                        <span class="submit-icon">📤</span>
+                    </button>
+                </div>
             </div>
 
             <!-- ==================== WAITING SCREEN ==================== -->
