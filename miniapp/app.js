@@ -87,46 +87,20 @@ function initTelegramApp() {
 }
 
 function initApp() {
-    // If opened in Telegram, skip splash and go directly to main app
-    if (tg && tg.initDataUnsafe?.user) {
-        // User is in Telegram Mini App - go directly to main app
-        // Set default language if not set
-        if (!AppState.language) {
-            AppState.language = 'uz_lat';
-            localStorage.setItem('caravan_lang', 'uz_lat');
-        }
-
-        // Hide splash immediately and show main app
-        document.getElementById('splashScreen').classList.remove('active');
-        document.getElementById('splashScreen').style.display = 'none';
-        showMainApp();
-    } else {
-        // Not in Telegram - show splash screen with animation
-        showScreen('splashScreen');
-
-        // After splash animation, check language
-        setTimeout(() => {
-            if (AppState.language) {
-                showMainApp();
-            } else {
-                showScreen('languageScreen');
-            }
-        }, 2500);
+    // Set default language
+    if (!AppState.language) {
+        AppState.language = 'uz_lat';
+        localStorage.setItem('caravan_lang', 'uz_lat');
     }
+
+    // Show main app immediately - no splash, no delays
+    showMainApp();
 
     // Setup event listeners
     setupEventListeners();
 }
 
 function setupEventListeners() {
-    // Language selection
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const lang = btn.dataset.lang;
-            selectLanguage(lang);
-        });
-    });
-
     // Header back button
     document.getElementById('headerBackBtn')?.addEventListener('click', () => goBack());
 
@@ -169,14 +143,7 @@ function showScreen(screenId) {
 }
 
 function showMainApp() {
-    // Hide splash and language screens
-    document.getElementById('splashScreen').classList.remove('active');
-    document.getElementById('languageScreen').classList.remove('active');
-
-    // Show app container
-    document.getElementById('appContainer').style.display = 'flex';
-
-    // Show home screen
+    // Show home screen immediately
     navigateTo('homeScreen');
 }
 
@@ -671,10 +638,12 @@ function shareReferralLink() {
 
 // ==================== SETTINGS ====================
 function changeLanguage() {
-    localStorage.removeItem('caravan_lang');
-    AppState.language = null;
-    showScreen('languageScreen');
-    document.getElementById('appContainer').style.display = 'none';
+    // Show alert - language change via settings only
+    if (tg) {
+        tg.showAlert("Til: O'zbek (Latin). Tilni o'zgartirish imkoniyati tez orada qo'shiladi.");
+    } else {
+        alert("Til: O'zbek (Latin)");
+    }
 }
 
 function clearCache() {

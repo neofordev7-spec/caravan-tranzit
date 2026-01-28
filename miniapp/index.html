@@ -5,84 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CARAVAN TRANZIT</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Inline critical fonts - system fonts fallback */
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; }
+    </style>
 </head>
 <body>
-    <!-- ==================== SPLASH SCREEN ==================== -->
-    <div class="screen splash-screen active" id="splashScreen">
-        <div class="splash-content">
-            <div class="splash-logo">
-                <div class="truck-icon">🚛</div>
-                <h1>CARAVAN TRANZIT</h1>
-                <p class="tagline">Yuk tashish - oson!</p>
-            </div>
-            <div class="splash-loader">
-                <div class="loader-bar">
-                    <div class="loader-fill" id="splashLoader"></div>
-                </div>
-                <p class="loader-text">Yuklanmoqda...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== LANGUAGE SELECTION ==================== -->
-    <div class="screen" id="languageScreen">
-        <div class="language-container">
-            <div class="language-header">
-                <span class="lang-icon">🌐</span>
-                <h2>Tilni tanlang</h2>
-                <p>Select Language</p>
-            </div>
-            <div class="language-grid" id="languageGrid">
-                <button class="lang-btn" data-lang="uz_lat">
-                    <span class="flag">🇺🇿</span>
-                    <span class="lang-name">O'zbek</span>
-                </button>
-                <button class="lang-btn" data-lang="uz_cyr">
-                    <span class="flag">🇺🇿</span>
-                    <span class="lang-name">Ўзбек</span>
-                </button>
-                <button class="lang-btn" data-lang="ru">
-                    <span class="flag">🇷🇺</span>
-                    <span class="lang-name">Русский</span>
-                </button>
-                <button class="lang-btn" data-lang="en">
-                    <span class="flag">🇺🇸</span>
-                    <span class="lang-name">English</span>
-                </button>
-                <button class="lang-btn" data-lang="kz">
-                    <span class="flag">🇰🇿</span>
-                    <span class="lang-name">Қазақша</span>
-                </button>
-                <button class="lang-btn" data-lang="kg">
-                    <span class="flag">🇰🇬</span>
-                    <span class="lang-name">Кыргызча</span>
-                </button>
-                <button class="lang-btn" data-lang="tj">
-                    <span class="flag">🇹🇯</span>
-                    <span class="lang-name">Тоҷикӣ</span>
-                </button>
-                <button class="lang-btn" data-lang="tr">
-                    <span class="flag">🇹🇷</span>
-                    <span class="lang-name">Türkçe</span>
-                </button>
-                <button class="lang-btn" data-lang="tm">
-                    <span class="flag">🇹🇲</span>
-                    <span class="lang-name">Türkmen</span>
-                </button>
-                <button class="lang-btn" data-lang="zh">
-                    <span class="flag">🇨🇳</span>
-                    <span class="lang-name">中文</span>
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Splash and Language screens removed - direct app launch -->
 
     <!-- ==================== MAIN APP CONTAINER ==================== -->
-    <div class="app-container" id="appContainer" style="display: none;">
+    <div class="app-container" id="appContainer">
         <!-- Top Header -->
         <header class="app-header" id="appHeader">
             <div class="header-left">
@@ -102,7 +35,7 @@
         <!-- Main Content Area -->
         <main class="app-main" id="appMain">
             <!-- ==================== HOME SCREEN ==================== -->
-            <div class="screen" id="homeScreen">
+            <div class="screen active" id="homeScreen">
                 <!-- Coins/Balance Widget -->
                 <div class="coins-widget">
                     <div class="coins-header">
