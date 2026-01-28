@@ -3061,3 +3061,268 @@ input {
     font-size: 28px;
     font-weight: 700;
 }
+
+/* ========== NEW APPLICATIONS SCREEN ========== */
+
+/* Tab Switcher */
+.apps-tab-container {
+    padding: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+}
+
+.apps-tab-wrapper {
+    display: flex;
+    height: 44px;
+    background: rgba(131, 4, 249, 0.1);
+    border-radius: var(--radius-xl);
+    padding: 4px;
+}
+
+.apps-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: rgba(131, 4, 249, 0.7);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.apps-tab.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Applications List */
+.apps-list-new {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    padding-bottom: 100px;
+}
+
+/* Application Card New */
+.app-card-new {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.app-card-new:active {
+    transform: scale(0.99);
+    border-color: var(--primary);
+}
+
+.app-card-new.completed {
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.app-card-image {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--bg-primary);
+}
+
+.app-card-image.grayscale {
+    filter: grayscale(0.5);
+}
+
+.app-card-content {
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.app-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-xs);
+}
+
+.app-status-badge {
+    padding: 4px 8px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.app-status-badge.orange {
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
+}
+
+.app-status-badge.amber {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.app-status-badge.green {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.app-card-date {
+    font-size: var(--font-size-xs);
+    color: var(--text-light);
+    margin: 0;
+}
+
+.app-card-code {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+
+.app-card-route {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+}
+
+.app-card-route .material-symbols-outlined {
+    font-size: 16px;
+    color: var(--primary);
+}
+
+.app-card-route p {
+    font-size: var(--font-size-md);
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.app-card-route.muted .material-symbols-outlined {
+    color: var(--text-light);
+}
+
+.app-card-route.muted p {
+    color: var(--text-light);
+    font-weight: 400;
+}
+
+.app-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--spacing-sm);
+    margin-top: var(--spacing-xs);
+    border-top: 1px solid var(--border-light);
+}
+
+.app-card-price {
+    display: flex;
+    flex-direction: column;
+}
+
+.price-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-light);
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.price-value {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.pay-now-btn {
+    min-width: 100px;
+    height: 40px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    padding: 0 var(--spacing-md);
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(131, 4, 249, 0.2);
+    transition: all var(--transition-fast);
+}
+
+.pay-now-btn:active {
+    transform: scale(0.95);
+    background: var(--primary-dark);
+}
+
+/* Section Divider */
+.apps-section-divider {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) 0;
+    margin-top: var(--spacing-sm);
+}
+
+.apps-section-divider p {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border-light);
+}
+
+/* Floating Add Button */
+.apps-fab-container {
+    position: fixed;
+    bottom: 90px;
+    right: var(--spacing-lg);
+    z-index: 50;
+}
+
+.apps-fab {
+    width: 56px;
+    height: 56px;
+    background: var(--primary);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(131, 4, 249, 0.4);
+    transition: all var(--transition-fast);
+}
+
+.apps-fab:active {
+    transform: scale(0.9);
+    background: var(--primary-dark);
+}
+
+.apps-fab .material-symbols-outlined {
+    font-size: 28px;
+}

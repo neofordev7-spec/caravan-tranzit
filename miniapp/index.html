@@ -483,56 +483,89 @@
 
             <!-- ==================== MY APPLICATIONS ==================== -->
             <div class="screen" id="applicationsScreen">
-                <div class="screen-header">
-                    <h2>🎫 ARIZALARIM</h2>
+                <!-- Tab Switcher -->
+                <div class="apps-tab-container">
+                    <div class="apps-tab-wrapper">
+                        <button class="apps-tab active" id="activeTab" onclick="switchAppsTab('active')">
+                            <span>Faol</span>
+                        </button>
+                        <button class="apps-tab" id="historyTab" onclick="switchAppsTab('history')">
+                            <span>Tarix</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="search-box">
-                    <input type="text" id="appSearch" placeholder="🔍 Ariza qidirish (Mashina yoki kod...)">
-                </div>
-                <div class="apps-section">
-                    <h4 class="apps-title">📊 Faol arizalar (2)</h4>
-                    <div class="apps-list" id="activeAppsList">
-                        <div class="app-card active" onclick="showAppDetail('EPI-2024-1847')">
-                            <div class="app-icon">📄</div>
-                            <div class="app-info">
-                                <h4>EPI-2024-1847</h4>
-                                <p>🚛 01A777AA</p>
+
+                <!-- Applications List -->
+                <div class="apps-list-new" id="appsListContainer">
+                    <!-- Card 1: Awaiting Payment -->
+                    <div class="app-card-new" onclick="showAppDetail('EPI-2024-1847')">
+                        <div class="app-card-image" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAfwc5mBwWKnKwTsHCtSBUmbc_73uD3FB6vzmxcHkCbknWvHKAEo0cjxqfGuTUWW7XW-1ak3vri3IhVx7n_i8YdC-qFdk316k7cnduRsCKgCpHAEKIfvwv9DObcTaqH8heXRQEhP5ITPnaVmoPhImh-3LkwCOTN1GBzLBrQd0fTwucmoEdQuUE86FtFCMri5njwUU8sbZWsud5Z7e2eFpjJsubtgENbbBdIs5D6uWUwstY2_Y8V3ONDYfxBLoJ0yLK5nJOGPfPJIq0');"></div>
+                        <div class="app-card-content">
+                            <div class="app-card-header">
+                                <span class="app-status-badge orange">To'lov kutilmoqda</span>
+                                <p class="app-card-date">May 24, 14:20</p>
                             </div>
-                            <div class="app-status">
-                                <span class="status-badge waiting">⏳ KUTILMOQDA</span>
-                                <span class="app-time">⏰ 2 soat oldin</span>
+                            <p class="app-card-code">#EPI-2024-1847</p>
+                            <div class="app-card-route">
+                                <span class="material-symbols-outlined">local_shipping</span>
+                                <p>Yallama → Toshkent TIF</p>
                             </div>
-                            <span class="app-arrow">→</span>
+                            <div class="app-card-footer">
+                                <div class="app-card-price">
+                                    <p class="price-label">Narxi</p>
+                                    <p class="price-value">45,000 UZS</p>
+                                </div>
+                                <button class="pay-now-btn" onclick="event.stopPropagation(); showPaymentScreen()">
+                                    <span>To'lash</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="app-card active" onclick="showAppDetail('MB-2024-892')">
-                            <div class="app-icon">📋</div>
-                            <div class="app-info">
-                                <h4>MB-2024-892</h4>
-                                <p>🚛 01B555BB</p>
+                    </div>
+
+                    <!-- Card 2: Awaiting Price -->
+                    <div class="app-card-new" onclick="showAppDetail('MB-2024-892')">
+                        <div class="app-card-image" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAaZArvuhLlW4tTElpFDQBVKWINVn2Xa8JzwyQVSJVykTR5iONs74ENf5KCOhDcWaU51jS2beCQy9dMRq2-Yi9ZGJrbXeMN174lbFVzajssfVJ7paVFhZzIJOTKubygnVfJcydQJ1aZH_XeqegktPw9Rr2IOPyWREY5Ip_s_c5zl-rD8FQSr95Zu1WXZbUufl3EZaQdu1TEvTaNxNg-JDe5988pFJNPNCiSsiyDn0LIOSObddcliZ5JGbvOB_c8piBNarU6r_D2s70');"></div>
+                        <div class="app-card-content">
+                            <div class="app-card-header">
+                                <span class="app-status-badge amber">Narx kutilmoqda</span>
+                                <p class="app-card-date">May 24, 09:15</p>
                             </div>
-                            <div class="app-status">
-                                <span class="status-badge payment">💰 TO'LOV KUTILMOQDA</span>
-                                <span class="app-time">⏰ 1 kun oldin</span>
+                            <p class="app-card-code">#MB-2024-892</p>
+                            <div class="app-card-route">
+                                <span class="material-symbols-outlined">local_shipping</span>
+                                <p>Olot → Buxoro TIF</p>
                             </div>
-                            <span class="app-arrow">→</span>
+                        </div>
+                    </div>
+
+                    <!-- History Section Divider -->
+                    <div class="apps-section-divider" id="historyDivider">
+                        <p>Yakunlangan arizalar</p>
+                        <div class="divider-line"></div>
+                    </div>
+
+                    <!-- Card 3: Completed -->
+                    <div class="app-card-new completed" onclick="showAppDetail('EPI-2024-1801')">
+                        <div class="app-card-image grayscale" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCLKaqONmsjsGSwdDGu1Pq_XQaHm9h0NcrD0rK7FLouwX_0i66_2bcEvDFBqcE6IcpCu5q7UqgBrGXwTyE3zmW71TR1HF4XacLD2A45vgV5wib-Wp_3hYFLkzSWqg7XYO-2y20KuC0sRSfa3FkXcK9qTfRAJ-xdvRpIxJeJUiYSYKc6Is85_FB7-TwdKQZw5_VwwsbhdFu4SZMYdWdOv-FozKJTpRsWPlZ43S-yLr_233QyQ22bczzK2MS-U5JlgR-e2z31M3obV8U');"></div>
+                        <div class="app-card-content">
+                            <div class="app-card-header">
+                                <span class="app-status-badge green">Yakunlangan</span>
+                                <p class="app-card-date">May 22, 18:45</p>
+                            </div>
+                            <p class="app-card-code">#EPI-2024-1801</p>
+                            <div class="app-card-route muted">
+                                <span class="material-symbols-outlined">local_shipping</span>
+                                <p>Do'stlik → Andijon TIF</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="apps-section">
-                    <h4 class="apps-title">📜 Tarix (23)</h4>
-                    <div class="apps-list" id="historyAppsList">
-                        <div class="app-card" onclick="showAppDetail('EPI-2024-1801')">
-                            <div class="app-icon">📄</div>
-                            <div class="app-info">
-                                <h4>EPI-2024-1801</h4>
-                            </div>
-                            <div class="app-status">
-                                <span class="status-badge completed">✅ YAKUNLANGAN</span>
-                                <span class="app-time">⏰ 3 kun oldin</span>
-                            </div>
-                            <span class="app-arrow">→</span>
-                        </div>
-                    </div>
+
+                <!-- Floating Add Button -->
+                <div class="apps-fab-container">
+                    <button class="apps-fab" onclick="startEPIFlow()">
+                        <span class="material-symbols-outlined">add</span>
+                    </button>
                 </div>
             </div>
 

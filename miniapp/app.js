@@ -886,6 +886,35 @@ function showMapScreen() {
     }
 }
 
+// Switch applications tab (Active / History)
+function switchAppsTab(tab) {
+    const activeTab = document.getElementById('activeTab');
+    const historyTab = document.getElementById('historyTab');
+    const activeCards = document.querySelectorAll('.app-card-new:not(.completed)');
+    const completedCards = document.querySelectorAll('.app-card-new.completed');
+    const historyDivider = document.getElementById('historyDivider');
+
+    if (tab === 'active') {
+        activeTab.classList.add('active');
+        historyTab.classList.remove('active');
+
+        // Show active cards, hide completed
+        activeCards.forEach(card => card.style.display = 'block');
+        completedCards.forEach(card => card.style.display = 'none');
+        if (historyDivider) historyDivider.style.display = 'none';
+    } else {
+        historyTab.classList.add('active');
+        activeTab.classList.remove('active');
+
+        // Hide active cards, show completed
+        activeCards.forEach(card => card.style.display = 'none');
+        completedCards.forEach(card => card.style.display = 'block');
+        if (historyDivider) historyDivider.style.display = 'none';
+    }
+
+    if (tg) tg.HapticFeedback?.impactOccurred('light');
+}
+
 // ==================== CHAT ====================
 function sendMessage() {
     const input = document.getElementById('chatInput');
@@ -1068,5 +1097,6 @@ window.loadPopularPosts = loadPopularPosts;
 window.loadGroupedPosts = loadGroupedPosts;
 window.filterBorderPosts = filterBorderPosts;
 window.showMapScreen = showMapScreen;
+window.switchAppsTab = switchAppsTab;
 
 console.log('CARAVAN TRANZIT Mini App v2.0 loaded');
