@@ -51,9 +51,48 @@ const TIF_POSTS = [
 ];
 
 const AGENTS = [
-    { id: 'aziz', name: 'Agent Aziz', rating: 4.9, location: 'Oybek posti', completed: 1240 },
-    { id: 'bobur', name: 'Agent Bobur', rating: 4.8, location: 'Oybek posti', completed: 890 },
-    { id: 'sardor', name: 'Agent Sardor', rating: 4.7, location: 'Yallama posti', completed: 650 }
+    {
+        id: 'ali',
+        name: 'Ali Valiyev',
+        rating: 4.8,
+        priceMin: 35000,
+        priceMax: 60000,
+        badge: 'Top Rated',
+        online: true,
+        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA-4mXKU91loGciYNcynW5W0szXcGke8fIG5daq5NfGfkfMdAAAjJLEzhtuoNEnKUhKoBTK97bsvZhj1QQE8L7gmbQkaovU4Y0UqOX__aUuRi-lYNP8BmP-ieznwyHxDNABqYuc0H3bshPEwKnRdxZX8Ay_0N66kLJmWGp332wNgz5BckDHwyFGh_NzVKn74hg5RRiudRCy-aYCEcRKGQkkB2lHU9ac9t02MJiNVOgbGNmkCcLSuhxQaNDm-YhJ1_4dCPCdrMPoTdY'
+    },
+    {
+        id: 'sanjar',
+        name: 'Sanjar Islomov',
+        rating: 4.9,
+        priceMin: 40000,
+        priceMax: 65000,
+        badge: 'Fast Response',
+        online: true,
+        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDA5jd_af6u8rvQ-3pYCQE4HYF9sO6t19uhZ3vqyKzsYvFDZg4_sGewLg9BecZMqQAmAM9EootOyjA9MLMyvmeNd_BAbezyLTAkT9tAvKVpva0u_PqJiCwZvvT96ybFyjrNdTXQg-VbnkJ5PPRCOtalYo4DNbmpUDKuv6vYiPGDupMlEDJ2pKNIA7XVI3JY417U53DEWMv8n5S7Zm2YGvye9944PrDqpltPV5VdGpBVbxJAXuWFUileTSuMxcxEd6kb4zrw27j5d7A'
+    },
+    {
+        id: 'nigora',
+        name: 'Nigora Saidova',
+        rating: 4.7,
+        priceMin: 38000,
+        priceMax: 62000,
+        badge: 'Highly Recommended',
+        online: true,
+        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCODBuLtQS0l9ImFObjL52sU7JrI5Kb9poisA6ywRjkhcHm_vNHHCg5HDp3rHpEE4z8pfNHbIQ-SDcNyE9zJuNj_BW7sFNqYZsbg8mtif2Bk01rm4GK7Xa2KxKtbctmNGnuVVt5uwA_FR2hKA9tfwbjsoEXVGYHWLt5P03DSpswM9wuNXDDlUv9WE7R9W8QraIGwlCUcOnuQeQikYscPvsCmrXzXQeBDm940mjqfpx8o_Esy5vZE8EHlTm8Ss3Ah0UMTQQ6UhiBa7M'
+    }
+];
+
+// Offline agents data
+const OFFLINE_AGENTS = [
+    { id: 'karim', name: 'Karim Rahimov', rating: 4.5 },
+    { id: 'aziza', name: 'Aziza Karimova', rating: 4.6 },
+    { id: 'bobur', name: 'Bobur Xolmatov', rating: 4.4 },
+    { id: 'dilnoza', name: 'Dilnoza Tosheva', rating: 4.3 },
+    { id: 'jamshid', name: 'Jamshid Aliev', rating: 4.5 },
+    { id: 'shoxrux', name: 'Shoxrux Ergashev', rating: 4.2 },
+    { id: 'madina', name: 'Madina Yusupova', rating: 4.6 },
+    { id: 'rustam', name: 'Rustam Nazarov', rating: 4.4 }
 ];
 
 // ==================== INITIALIZATION ====================
@@ -261,8 +300,109 @@ function selectBorderPost(post) {
 
     if (tg) tg.HapticFeedback?.impactOccurred('medium');
 
+    // Update agent screen header with post name
+    const postNameEl = document.getElementById('agentPostName');
+    if (postNameEl) {
+        postNameEl.textContent = post + ' posti';
+    }
+
+    // Load agents for this post
+    loadAgents();
+
     // Go to agent selection
     navigateTo('agentScreen');
+}
+
+// Load online agents dynamically
+function loadAgents() {
+    const container = document.getElementById('agentsList');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const onlineAgents = AGENTS.filter(a => a.online);
+    document.getElementById('onlineAgentCount').textContent = onlineAgents.length;
+
+    onlineAgents.forEach(agent => {
+        const card = document.createElement('div');
+        card.className = 'agent-card-new';
+        card.innerHTML = `
+            <div class="agent-avatar-wrapper">
+                <div class="agent-avatar-img" style="background-image: url('${agent.avatar}')"></div>
+                <div class="agent-online-indicator"></div>
+            </div>
+            <div class="agent-info-new">
+                <h4 class="agent-name">${agent.name}</h4>
+                <p class="agent-price">${formatPrice(agent.priceMin)} - ${formatPrice(agent.priceMax)} so'm</p>
+                <div class="agent-rating-badge">
+                    <span class="star">⭐</span>
+                    <span>${agent.rating} • ${agent.badge}</span>
+                </div>
+            </div>
+            <button class="agent-select-btn" onclick="event.stopPropagation(); selectAgent('${agent.id}')">
+                Select
+            </button>
+        `;
+        card.onclick = () => selectAgent(agent.id);
+        container.appendChild(card);
+    });
+
+    // Load offline agents count
+    document.getElementById('offlineAgentCount').textContent = OFFLINE_AGENTS.length;
+    loadOfflineAgents();
+}
+
+// Load offline agents list
+function loadOfflineAgents() {
+    const container = document.getElementById('offlineAgentsList');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    OFFLINE_AGENTS.forEach(agent => {
+        const item = document.createElement('div');
+        item.className = 'offline-agent-item';
+        item.innerHTML = `
+            <div class="offline-agent-avatar">👤</div>
+            <div class="offline-agent-info">
+                <span class="offline-agent-name">${agent.name}</span>
+                <span class="offline-agent-rating">⭐ ${agent.rating}</span>
+            </div>
+            <span class="offline-status">Offline</span>
+        `;
+        container.appendChild(item);
+    });
+}
+
+// Toggle offline agents section
+function toggleOfflineAgents() {
+    const list = document.getElementById('offlineAgentsList');
+    const arrow = document.getElementById('offlineArrow');
+
+    if (list.style.display === 'none') {
+        list.style.display = 'block';
+        arrow.textContent = '▲';
+    } else {
+        list.style.display = 'none';
+        arrow.textContent = '▼';
+    }
+
+    if (tg) tg.HapticFeedback?.impactOccurred('light');
+}
+
+// Find nearest post function
+function findNearestPost() {
+    if (tg) {
+        tg.HapticFeedback?.impactOccurred('medium');
+        tg.showAlert('Eng yaqin post qidirilmoqda... Bu funksiya tez orada ishga tushadi!');
+    } else {
+        alert('Eng yaqin post qidirilmoqda...');
+    }
+}
+
+// Format price with thousands separator
+function formatPrice(price) {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 function selectAgent(agentId) {
@@ -429,9 +569,12 @@ function updateSummary() {
 }
 
 function getAgentName(agentId) {
-    if (agentId === 'cash') return 'Naqd pulda';
+    if (agentId === 'cash') return 'Naqd pulda (Cash Payment)';
     const agent = AGENTS.find(a => a.id === agentId);
-    return agent ? agent.name : '-';
+    if (agent) {
+        return `${agent.name} (${formatPrice(agent.priceMin)}-${formatPrice(agent.priceMax)} so'm)`;
+    }
+    return '-';
 }
 
 // ==================== SUBMIT APPLICATION ====================
@@ -726,5 +869,10 @@ window.clearCache = clearCache;
 window.editPhone = editPhone;
 window.contactAdmin = contactAdmin;
 window.filterList = filterList;
+window.loadAgents = loadAgents;
+window.loadOfflineAgents = loadOfflineAgents;
+window.toggleOfflineAgents = toggleOfflineAgents;
+window.findNearestPost = findNearestPost;
+window.formatPrice = formatPrice;
 
 console.log('CARAVAN TRANZIT Mini App v2.0 loaded');

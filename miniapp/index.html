@@ -117,39 +117,64 @@
 
             <!-- ==================== AGENT SELECTION ==================== -->
             <div class="screen" id="agentScreen">
-                <div class="screen-header">
-                    <h2>👨‍💼 Agent tanlang</h2>
-                    <p>Quyidagi agentlardan birini tanlang:</p>
+                <!-- Post name header -->
+                <div class="agent-post-header">
+                    <h2 id="agentPostName">Agent tanlang</h2>
                 </div>
+
+                <!-- Cash Payment Card (Primary Option) -->
+                <div class="cash-payment-card" onclick="selectAgent('cash')">
+                    <div class="cash-card-content">
+                        <div class="cash-card-info">
+                            <div class="cash-card-title">
+                                <span class="cash-icon">💵</span>
+                                <span>Cash Payment</span>
+                            </div>
+                            <p class="cash-card-desc">Pay directly at the post terminal without an agent</p>
+                        </div>
+                        <button class="cash-select-btn">
+                            Select Option →
+                        </button>
+                    </div>
+                    <div class="cash-card-icon">
+                        <span>🚛</span>
+                    </div>
+                </div>
+
+                <!-- Online Agents Section -->
+                <div class="agents-section-header">
+                    <h3>Online Agents</h3>
+                    <span class="online-badge">
+                        <span class="online-dot"></span>
+                        <span id="onlineAgentCount">3</span> Available
+                    </span>
+                </div>
+
+                <!-- Online Agents List -->
                 <div class="agents-list" id="agentsList">
-                    <div class="agent-card" onclick="selectAgent('aziz')">
-                        <div class="agent-avatar">👤</div>
-                        <div class="agent-info">
-                            <h4>Agent Aziz</h4>
-                            <div class="agent-rating">⭐⭐⭐⭐⭐ <span>(4.9)</span></div>
-                            <p class="agent-location">📍 Oybek posti</p>
-                            <p class="agent-stats">✅ 1,240 ariza bajarilgan</p>
+                    <!-- Agents will be loaded dynamically -->
+                </div>
+
+                <!-- Offline Agents Section (Collapsed) -->
+                <div class="offline-agents-section" id="offlineAgentsSection" onclick="toggleOfflineAgents()">
+                    <div class="offline-header">
+                        <div class="offline-icon">👤</div>
+                        <div class="offline-info">
+                            <h4>Offline Agents</h4>
+                            <p><span id="offlineAgentCount">8</span> agents currently unavailable</p>
                         </div>
-                        <span class="agent-arrow">→</span>
+                        <span class="offline-arrow" id="offlineArrow">▼</span>
                     </div>
-                    <div class="agent-card" onclick="selectAgent('bobur')">
-                        <div class="agent-avatar">👤</div>
-                        <div class="agent-info">
-                            <h4>Agent Bobur</h4>
-                            <div class="agent-rating">⭐⭐⭐⭐⭐ <span>(4.8)</span></div>
-                            <p class="agent-location">📍 Oybek posti</p>
-                            <p class="agent-stats">✅ 890 ariza bajarilgan</p>
-                        </div>
-                        <span class="agent-arrow">→</span>
+                    <div class="offline-agents-list" id="offlineAgentsList" style="display: none;">
+                        <!-- Offline agents will be loaded dynamically -->
                     </div>
-                    <div class="agent-card cash-option" onclick="selectAgent('cash')">
-                        <div class="agent-avatar">💵</div>
-                        <div class="agent-info">
-                            <h4>AGENTLAR ORQALI</h4>
-                            <p class="agent-desc">NAQD PULDA (To'lov postda)</p>
-                        </div>
-                        <span class="agent-arrow">→</span>
-                    </div>
+                </div>
+
+                <!-- Bottom Action Button -->
+                <div class="agent-bottom-action">
+                    <button class="find-nearest-btn" onclick="findNearestPost()">
+                        📍 Find Nearest Post
+                    </button>
                 </div>
             </div>
 
