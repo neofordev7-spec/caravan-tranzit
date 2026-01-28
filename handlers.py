@@ -1185,3 +1185,36 @@ async def global_cancel_button(message: Message, state: FSMContext):
     await state.clear()
     await state.update_data(lang=lang)
     await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+
+# ==========================================================
+# 13. CATCH-ALL HANDLERS (prevent "Update is not handled" logs)
+# ==========================================================
+
+@router.callback_query()
+async def unhandled_callback_query(call: CallbackQuery):
+    """Catch-all handler for unhandled callback queries"""
+    # Just answer to prevent timeout and suppress logs
+    await call.answer()
+
+@router.message()
+async def unhandled_message(message: Message, state: FSMContext):
+    """Catch-all handler for unhandled messages - redirect to main menu"""
+    # Skip messages from admin group that are not commands
+    if message.chat.id == ADMIN_GROUP_ID:
+        return
+
+    # Get user language and show main menu
+    try:
+        user = await db.get_user(message.from_user.id)
+        lang = user['language'] if user else 'uz'
+        await state.update_data(lang=lang)
+        await message.answer(
+            "🏠 Asosiy menyu:\n\nQuyidagi tugmalardan birini tanlang:",
+            reply_markup=kb.get_main_menu(lang)
+        )
+    except:
+        # Fallback to default language
+        await message.answer(
+            "🏠 Asosiy menyu:\n\nQuyidagi tugmalardan birini tanlang:",
+            reply_markup=kb.get_main_menu('uz')
+        )
