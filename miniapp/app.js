@@ -87,17 +87,32 @@ function initTelegramApp() {
 }
 
 function initApp() {
-    // Show splash screen and animate
-    showScreen('splashScreen');
-
-    // After splash animation, check language
-    setTimeout(() => {
-        if (AppState.language) {
-            showMainApp();
-        } else {
-            showScreen('languageScreen');
+    // If opened in Telegram, skip splash and go directly to main app
+    if (tg && tg.initDataUnsafe?.user) {
+        // User is in Telegram Mini App - go directly to main app
+        // Set default language if not set
+        if (!AppState.language) {
+            AppState.language = 'uz_lat';
+            localStorage.setItem('caravan_lang', 'uz_lat');
         }
-    }, 2500);
+
+        // Hide splash immediately and show main app
+        document.getElementById('splashScreen').classList.remove('active');
+        document.getElementById('splashScreen').style.display = 'none';
+        showMainApp();
+    } else {
+        // Not in Telegram - show splash screen with animation
+        showScreen('splashScreen');
+
+        // After splash animation, check language
+        setTimeout(() => {
+            if (AppState.language) {
+                showMainApp();
+            } else {
+                showScreen('languageScreen');
+            }
+        }, 2500);
+    }
 
     // Setup event listeners
     setupEventListeners();

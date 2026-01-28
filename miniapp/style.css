@@ -5,10 +5,10 @@
 
 /* ========== CSS VARIABLES ========== */
 :root {
-    /* Brand Colors */
-    --primary: #1E88E5;
-    --primary-dark: #1565C0;
-    --primary-light: #42A5F5;
+    /* Brand Colors - Purple Theme */
+    --primary: #8304F9;
+    --primary-dark: #6503C7;
+    --primary-light: #9E3FFF;
     --secondary: #FF9800;
     --secondary-dark: #F57C00;
 
@@ -34,7 +34,7 @@
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-    --shadow-primary: 0 4px 14px rgba(30, 136, 229, 0.3);
+    --shadow-primary: 0 4px 14px rgba(131, 4, 249, 0.3);
 
     /* Spacing */
     --spacing-xs: 4px;
@@ -592,7 +592,7 @@ input {
 
 .post-item:hover {
     border-color: var(--primary);
-    background: #E3F2FD;
+    background: #F3E5F5;
 }
 
 .post-item:active {
@@ -710,7 +710,7 @@ input {
 
 .vehicle-input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(30, 136, 229, 0.1);
+    box-shadow: 0 0 0 4px rgba(131, 4, 249, 0.1);
 }
 
 .vehicle-input.valid {
@@ -857,7 +857,7 @@ input {
 }
 
 .upload-btn:hover {
-    background: #E3F2FD;
+    background: #F3E5F5;
 }
 
 .upload-btn .upload-icon {
@@ -967,7 +967,7 @@ input {
 }
 
 .status-badge.waiting {
-    background: #E3F2FD;
+    background: #F3E5F5;
     color: var(--primary);
 }
 
