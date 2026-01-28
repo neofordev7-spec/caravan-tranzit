@@ -6,9 +6,14 @@
     <title>CARAVAN TRANZIT</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <style>
-        /* Inline critical fonts - system fonts fallback */
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; }
+        /* Inline critical fonts */
+        body { font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
     </style>
 </head>
 <body>
@@ -36,68 +41,113 @@
         <main class="app-main" id="appMain">
             <!-- ==================== HOME SCREEN ==================== -->
             <div class="screen active" id="homeScreen">
-                <!-- Coins/Balance Widget -->
-                <div class="coins-widget">
-                    <div class="coins-header">
-                        <span class="coins-icon">💎</span>
-                        <span class="coins-label">Tangalar:</span>
-                        <span class="coins-value" id="coinsValue">17,500</span>
-                    </div>
-                    <div class="coins-progress">
-                        <div class="coins-bar">
-                            <div class="coins-fill" id="coinsFill" style="width: 50%"></div>
+                <!-- Wallet Card -->
+                <div class="wallet-card">
+                    <div class="wallet-content">
+                        <div class="wallet-info">
+                            <p class="wallet-label">Tangalarim</p>
+                            <div class="wallet-balance">
+                                <h2 class="wallet-value" id="coinsValue">35,000</h2>
+                                <span class="wallet-currency">UZS equivalent</span>
+                            </div>
                         </div>
-                        <p class="coins-hint">35,000 gacha = 1 BEPUL KOD</p>
+                        <button class="wallet-add-btn" onclick="navigateTo('bonusScreen')">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
                     </div>
+                    <div class="wallet-glow"></div>
                 </div>
 
-                <!-- Main Services -->
-                <section class="services-section">
-                    <h3 class="section-title">📄 ASOSIY XIZMATLAR</h3>
-                    <div class="main-services">
-                        <button class="service-card main" onclick="startEPIFlow()">
-                            <span class="service-icon">📄</span>
-                            <span class="service-name">EPI KOD</span>
-                            <span class="service-desc">DEKLARATSIYA</span>
+                <!-- Service Grid -->
+                <section class="services-section-new">
+                    <h3 class="section-title-home">Xizmatlar</h3>
+                    <div class="services-grid">
+                        <!-- EPI Card -->
+                        <button class="service-card-new" onclick="startEPIFlow()">
+                            <div class="service-icon-wrapper purple">
+                                <span class="material-symbols-outlined">assignment</span>
+                            </div>
+                            <span class="service-name-new">EPI</span>
                         </button>
-                        <button class="service-card main" onclick="startMBFlow()">
-                            <span class="service-icon">📋</span>
-                            <span class="service-name">MB</span>
-                            <span class="service-desc">DEKLARATSIYA</span>
+                        <!-- MB Card -->
+                        <button class="service-card-new" onclick="startMBFlow()">
+                            <div class="service-icon-wrapper indigo">
+                                <span class="material-symbols-outlined">shield</span>
+                            </div>
+                            <span class="service-name-new">MB</span>
                         </button>
-                        <button class="service-card main" onclick="showKGDScreen()">
-                            <span class="service-icon">🚚</span>
-                            <span class="service-name">KGD</span>
-                            <span class="service-desc">E-TRANZIT</span>
+                        <!-- KGD Card -->
+                        <button class="service-card-new" onclick="showKGDScreen()">
+                            <div class="service-icon-wrapper blue">
+                                <span class="material-symbols-outlined">language</span>
+                            </div>
+                            <span class="service-name-new">KGD</span>
                         </button>
-                        <button class="service-card main" onclick="showApplicationsScreen()">
-                            <span class="service-icon">🎫</span>
-                            <span class="service-name">ARIZALARIM</span>
-                            <span class="service-desc"></span>
+                        <!-- Arizalarim Card -->
+                        <button class="service-card-new" onclick="showApplicationsScreen()">
+                            <div class="service-icon-wrapper emerald">
+                                <span class="material-symbols-outlined">content_paste</span>
+                            </div>
+                            <span class="service-name-new">Arizalarim</span>
+                        </button>
+                        <!-- Bonus Card -->
+                        <button class="service-card-new" onclick="navigateTo('bonusScreen')">
+                            <div class="service-icon-wrapper amber">
+                                <span class="material-symbols-outlined">redeem</span>
+                            </div>
+                            <span class="service-name-new">Bonus</span>
+                        </button>
+                        <!-- Narxlar Card -->
+                        <button class="service-card-new" onclick="showPricesScreen()">
+                            <div class="service-icon-wrapper rose">
+                                <span class="material-symbols-outlined">payments</span>
+                            </div>
+                            <span class="service-name-new">Narxlar</span>
                         </button>
                     </div>
                 </section>
 
-                <!-- Quick Services -->
-                <section class="quick-services-section">
-                    <h3 class="section-title">⚡ TEZKOR XIZMATLAR</h3>
-                    <div class="quick-services">
-                        <button class="quick-btn" onclick="showGabarScreen()">
-                            <span class="quick-icon">📜</span>
-                            <span class="quick-name">Gabarit</span>
-                        </button>
-                        <button class="quick-btn" onclick="showInsuranceScreen()">
-                            <span class="quick-icon">🛡</span>
-                            <span class="quick-name">Sug'urta</span>
-                        </button>
-                        <button class="quick-btn" onclick="showQueueScreen()">
-                            <span class="quick-icon">🎯</span>
-                            <span class="quick-name">Navbat</span>
-                        </button>
-                        <button class="quick-btn" onclick="showPricesScreen()">
-                            <span class="quick-icon">💰</span>
-                            <span class="quick-name">Narxlar</span>
-                        </button>
+                <!-- Recent Applications Section -->
+                <section class="recent-apps-section">
+                    <div class="recent-apps-header">
+                        <h3 class="section-title-home">Oxirgi arizalar</h3>
+                        <button class="view-all-btn" onclick="showApplicationsScreen()">Barchasi</button>
+                    </div>
+
+                    <!-- Pending Application Card -->
+                    <div class="recent-app-card" onclick="showAppDetail('EPI-2024-1847')">
+                        <div class="recent-app-top">
+                            <div class="recent-app-icon-wrap orange">
+                                <span class="material-symbols-outlined">pending_actions</span>
+                            </div>
+                            <div class="recent-app-info">
+                                <h4 class="recent-app-code">EPI-2024-1847</h4>
+                                <p class="recent-app-type">Elektron deklaratsiya</p>
+                            </div>
+                            <span class="recent-app-status orange">Kutilmoqda</span>
+                        </div>
+                        <div class="recent-app-details">
+                            <div class="recent-app-detail">
+                                <p class="detail-label">Avtomobil</p>
+                                <p class="detail-value">
+                                    <span class="material-symbols-outlined">minor_crash</span>
+                                    01 A 777 AA
+                                </p>
+                            </div>
+                            <div class="recent-app-detail">
+                                <p class="detail-label">Manzil</p>
+                                <p class="detail-value">
+                                    <span class="material-symbols-outlined">location_on</span>
+                                    Yallama
+                                </p>
+                            </div>
+                        </div>
+                        <div class="recent-app-footer">
+                            <p class="recent-app-time">Bugun, 14:30</p>
+                            <button class="recent-app-detail-btn">
+                                Batafsil <span class="material-symbols-outlined">arrow_forward</span>
+                            </button>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -849,26 +899,28 @@
         </main>
 
         <!-- Bottom Navigation -->
-        <nav class="bottom-nav" id="bottomNav">
-            <button class="nav-item active" data-screen="homeScreen" onclick="navigateTo('homeScreen')">
-                <span class="nav-icon">🏠</span>
-                <span class="nav-label">Home</span>
+        <nav class="bottom-nav-new" id="bottomNav">
+            <button class="nav-item-new active" data-screen="homeScreen" onclick="navigateTo('homeScreen')">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+                <span class="nav-label-new">Asosiy</span>
             </button>
-            <button class="nav-item" data-screen="applicationsScreen" onclick="navigateTo('applicationsScreen')">
-                <span class="nav-icon">📄</span>
-                <span class="nav-label">Ariza</span>
+            <button class="nav-item-new" data-screen="mapScreen" onclick="showMapScreen()">
+                <span class="material-symbols-outlined">explore</span>
+                <span class="nav-label-new">Xarita</span>
             </button>
-            <button class="nav-item" data-screen="chatScreen" onclick="navigateTo('chatScreen')">
-                <span class="nav-icon">💬</span>
-                <span class="nav-label">Chat</span>
+            <!-- Center FAB Button -->
+            <div class="nav-fab-container">
+                <button class="nav-fab" onclick="startEPIFlow()">
+                    <span class="material-symbols-outlined">add</span>
+                </button>
+            </div>
+            <button class="nav-item-new" data-screen="applicationsScreen" onclick="showApplicationsScreen()">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span class="nav-label-new">Tarix</span>
             </button>
-            <button class="nav-item" data-screen="bonusScreen" onclick="navigateTo('bonusScreen')">
-                <span class="nav-icon">🎁</span>
-                <span class="nav-label">Bonus</span>
-            </button>
-            <button class="nav-item" data-screen="settingsScreen" onclick="navigateTo('settingsScreen')">
-                <span class="nav-icon">⚙️</span>
-                <span class="nav-label">Sozla</span>
+            <button class="nav-item-new" data-screen="settingsScreen" onclick="navigateTo('settingsScreen')">
+                <span class="material-symbols-outlined">person</span>
+                <span class="nav-label-new">Profil</span>
             </button>
         </nav>
     </div>

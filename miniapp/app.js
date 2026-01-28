@@ -878,6 +878,14 @@ function showContactsScreen() {
     navigateTo('contactsScreen');
 }
 
+function showMapScreen() {
+    if (tg) {
+        tg.showAlert('Xarita xizmati tez orada ishga tushadi!');
+    } else {
+        alert('Xarita xizmati tez orada ishga tushadi!');
+    }
+}
+
 // ==================== CHAT ====================
 function sendMessage() {
     const input = document.getElementById('chatInput');
@@ -1059,5 +1067,6 @@ window.editSummaryField = editSummaryField;
 window.loadPopularPosts = loadPopularPosts;
 window.loadGroupedPosts = loadGroupedPosts;
 window.filterBorderPosts = filterBorderPosts;
+window.showMapScreen = showMapScreen;
 
 console.log('CARAVAN TRANZIT Mini App v2.0 loaded');
