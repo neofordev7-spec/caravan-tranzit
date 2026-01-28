@@ -59,10 +59,10 @@
     --font-size-xl: 22px;
     --font-size-xxl: 28px;
 
-    /* Transitions */
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.25s ease;
-    --transition-slow: 0.4s ease;
+    /* Transitions - optimized for performance */
+    --transition-fast: 0.1s ease;
+    --transition-normal: 0.15s ease;
+    --transition-slow: 0.2s ease;
 }
 
 /* ========== RESET & BASE ========== */
@@ -109,125 +109,20 @@ input {
 /* ========== SCREEN BASE ========== */
 .screen {
     display: none;
-    animation: fadeIn var(--transition-normal);
 }
 
 .screen.active {
     display: block;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideInRight {
-    from { opacity: 0; transform: translateX(30px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slideInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-/* ========== SPLASH SCREEN ========== */
+/* ========== SPLASH SCREEN (hidden) ========== */
 .splash-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
+    display: none !important;
 }
 
-.splash-content {
-    text-align: center;
-    color: white;
-    padding: var(--spacing-lg);
-}
-
-.splash-logo {
-    margin-bottom: var(--spacing-xl);
-}
-
-.splash-logo .truck-icon {
-    font-size: 80px;
-    animation: bounce 1s ease infinite;
-    display: block;
-    margin-bottom: var(--spacing-md);
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-.splash-logo h1 {
-    font-size: var(--font-size-xxl);
-    font-weight: 800;
-    letter-spacing: 1px;
-    margin-bottom: var(--spacing-xs);
-}
-
-.splash-logo .tagline {
-    font-size: var(--font-size-md);
-    opacity: 0.9;
-}
-
-.splash-loader {
-    max-width: 200px;
-    margin: 0 auto;
-}
-
-.loader-bar {
-    height: 6px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: var(--radius-full);
-    overflow: hidden;
-    margin-bottom: var(--spacing-sm);
-}
-
-.loader-fill {
-    height: 100%;
-    background: white;
-    border-radius: var(--radius-full);
-    width: 0%;
-    animation: loading 2s ease forwards;
-}
-
-@keyframes loading {
-    0% { width: 0%; }
-    100% { width: 100%; }
-}
-
-.loader-text {
-    font-size: var(--font-size-sm);
-    opacity: 0.8;
-}
-
-/* ========== LANGUAGE SELECTION ========== */
+/* ========== LANGUAGE SELECTION (hidden by default) ========== */
 #languageScreen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--spacing-lg);
-    background: linear-gradient(180deg, var(--bg-primary) 0%, white 100%);
+    display: none !important;
 }
 
 .language-container {
@@ -275,14 +170,9 @@ input {
     transition: all var(--transition-fast);
 }
 
-.lang-btn:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
 .lang-btn:active {
-    transform: scale(0.98);
+    border-color: var(--primary);
+    background: #F3E5F5;
 }
 
 .lang-btn .flag {
@@ -297,7 +187,7 @@ input {
 
 /* ========== APP CONTAINER ========== */
 .app-container {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     min-height: 100vh;
 }
@@ -335,7 +225,7 @@ input {
     transition: background var(--transition-fast);
 }
 
-.back-btn:hover {
+.back-btn:active {
     background: rgba(255, 255, 255, 0.3);
 }
 
@@ -366,7 +256,7 @@ input {
     transition: background var(--transition-fast);
 }
 
-.profile-btn:hover {
+.profile-btn:active {
     background: rgba(255, 255, 255, 0.3);
 }
 
@@ -469,14 +359,9 @@ input {
     transition: all var(--transition-fast);
 }
 
-.service-card:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
 .service-card:active {
-    transform: scale(0.98);
+    border-color: var(--primary);
+    background: #F3E5F5;
 }
 
 .service-card .service-icon {
@@ -514,13 +399,8 @@ input {
     transition: all var(--transition-fast);
 }
 
-.quick-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
 .quick-btn:active {
-    transform: scale(0.98);
+    background: #F3E5F5;
 }
 
 .quick-btn .quick-icon {
@@ -590,13 +470,9 @@ input {
     transition: all var(--transition-fast);
 }
 
-.post-item:hover {
+.post-item:active {
     border-color: var(--primary);
     background: #F3E5F5;
-}
-
-.post-item:active {
-    transform: scale(0.99);
 }
 
 .post-item .post-icon {
@@ -633,9 +509,9 @@ input {
     transition: all var(--transition-fast);
 }
 
-.agent-card:hover {
+.agent-card:active {
     border-color: var(--primary);
-    box-shadow: var(--shadow-md);
+    background: #F3E5F5;
 }
 
 .agent-card .agent-avatar {
@@ -743,8 +619,9 @@ input {
     transition: all var(--transition-fast);
 }
 
-.recent-item:hover {
+.recent-item:active {
     border-color: var(--primary);
+    background: #F3E5F5;
 }
 
 .recent-icon {
@@ -856,7 +733,7 @@ input {
     transition: all var(--transition-fast);
 }
 
-.upload-btn:hover {
+.upload-btn:active {
     background: #F3E5F5;
 }
 
@@ -1050,8 +927,9 @@ input {
     transition: all var(--transition-fast);
 }
 
-.payment-btn:hover {
+.payment-btn:active {
     border-color: var(--primary);
+    background: #F3E5F5;
 }
 
 .payment-btn .payment-icon {
@@ -1107,8 +985,9 @@ input {
     transition: all var(--transition-fast);
 }
 
-.app-card:hover {
+.app-card:active {
     border-color: var(--primary);
+    background: #F3E5F5;
 }
 
 .app-card.active {
@@ -1370,7 +1249,7 @@ input {
     transition: background var(--transition-fast);
 }
 
-.attach-btn:hover {
+.attach-btn:active {
     background: var(--bg-primary);
 }
 
@@ -1378,7 +1257,7 @@ input {
     background: var(--primary);
 }
 
-.send-btn:hover {
+.send-btn:active {
     background: var(--primary-dark);
 }
 
@@ -1638,7 +1517,7 @@ input {
     transition: background var(--transition-fast);
 }
 
-.settings-item:hover {
+.settings-item:active {
     background: var(--bg-primary);
 }
 
@@ -1802,7 +1681,7 @@ input {
     transition: background var(--transition-fast);
 }
 
-.contact-item:hover {
+.contact-item:active {
     background: var(--bg-primary);
 }
 
@@ -1882,12 +1761,8 @@ input {
     margin-bottom: var(--spacing-sm);
 }
 
-.btn-primary:hover {
-    background: var(--primary-dark);
-}
-
 .btn-primary:active {
-    transform: scale(0.98);
+    background: var(--primary-dark);
 }
 
 .btn-primary:disabled {
@@ -1909,13 +1784,9 @@ input {
     transition: all var(--transition-fast);
 }
 
-.btn-secondary:hover {
+.btn-secondary:active {
     border-color: var(--primary);
     color: var(--primary);
-}
-
-.btn-secondary:active {
-    transform: scale(0.98);
 }
 
 /* ========== RESPONSIVE ========== */
