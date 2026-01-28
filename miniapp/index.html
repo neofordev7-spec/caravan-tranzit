@@ -6,9 +6,14 @@
     <title>CARAVAN TRANZIT</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <style>
-        /* Inline critical fonts - system fonts fallback */
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; }
+        /* Inline critical fonts */
+        body { font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
     </style>
 </head>
 <body>
@@ -36,120 +41,209 @@
         <main class="app-main" id="appMain">
             <!-- ==================== HOME SCREEN ==================== -->
             <div class="screen active" id="homeScreen">
-                <!-- Coins/Balance Widget -->
-                <div class="coins-widget">
-                    <div class="coins-header">
-                        <span class="coins-icon">💎</span>
-                        <span class="coins-label">Tangalar:</span>
-                        <span class="coins-value" id="coinsValue">17,500</span>
-                    </div>
-                    <div class="coins-progress">
-                        <div class="coins-bar">
-                            <div class="coins-fill" id="coinsFill" style="width: 50%"></div>
+                <!-- Wallet Card -->
+                <div class="wallet-card">
+                    <div class="wallet-content">
+                        <div class="wallet-info">
+                            <p class="wallet-label">Tangalarim</p>
+                            <div class="wallet-balance">
+                                <h2 class="wallet-value" id="coinsValue">35,000</h2>
+                                <span class="wallet-currency">UZS equivalent</span>
+                            </div>
                         </div>
-                        <p class="coins-hint">35,000 gacha = 1 BEPUL KOD</p>
+                        <button class="wallet-add-btn" onclick="navigateTo('bonusScreen')">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
                     </div>
+                    <div class="wallet-glow"></div>
                 </div>
 
-                <!-- Main Services -->
-                <section class="services-section">
-                    <h3 class="section-title">📄 ASOSIY XIZMATLAR</h3>
-                    <div class="main-services">
-                        <button class="service-card main" onclick="startEPIFlow()">
-                            <span class="service-icon">📄</span>
-                            <span class="service-name">EPI KOD</span>
-                            <span class="service-desc">DEKLARATSIYA</span>
+                <!-- Service Grid -->
+                <section class="services-section-new">
+                    <h3 class="section-title-home">Xizmatlar</h3>
+                    <div class="services-grid">
+                        <!-- EPI Card -->
+                        <button class="service-card-new" onclick="startEPIFlow()">
+                            <div class="service-icon-wrapper purple">
+                                <span class="material-symbols-outlined">assignment</span>
+                            </div>
+                            <span class="service-name-new">EPI</span>
                         </button>
-                        <button class="service-card main" onclick="startMBFlow()">
-                            <span class="service-icon">📋</span>
-                            <span class="service-name">MB</span>
-                            <span class="service-desc">DEKLARATSIYA</span>
+                        <!-- MB Card -->
+                        <button class="service-card-new" onclick="startMBFlow()">
+                            <div class="service-icon-wrapper indigo">
+                                <span class="material-symbols-outlined">shield</span>
+                            </div>
+                            <span class="service-name-new">MB</span>
                         </button>
-                        <button class="service-card main" onclick="showKGDScreen()">
-                            <span class="service-icon">🚚</span>
-                            <span class="service-name">KGD</span>
-                            <span class="service-desc">E-TRANZIT</span>
+                        <!-- KGD Card -->
+                        <button class="service-card-new" onclick="showKGDScreen()">
+                            <div class="service-icon-wrapper blue">
+                                <span class="material-symbols-outlined">language</span>
+                            </div>
+                            <span class="service-name-new">KGD</span>
                         </button>
-                        <button class="service-card main" onclick="showApplicationsScreen()">
-                            <span class="service-icon">🎫</span>
-                            <span class="service-name">ARIZALARIM</span>
-                            <span class="service-desc"></span>
+                        <!-- Arizalarim Card -->
+                        <button class="service-card-new" onclick="showApplicationsScreen()">
+                            <div class="service-icon-wrapper emerald">
+                                <span class="material-symbols-outlined">content_paste</span>
+                            </div>
+                            <span class="service-name-new">Arizalarim</span>
+                        </button>
+                        <!-- Bonus Card -->
+                        <button class="service-card-new" onclick="navigateTo('bonusScreen')">
+                            <div class="service-icon-wrapper amber">
+                                <span class="material-symbols-outlined">redeem</span>
+                            </div>
+                            <span class="service-name-new">Bonus</span>
+                        </button>
+                        <!-- Narxlar Card -->
+                        <button class="service-card-new" onclick="showPricesScreen()">
+                            <div class="service-icon-wrapper rose">
+                                <span class="material-symbols-outlined">payments</span>
+                            </div>
+                            <span class="service-name-new">Narxlar</span>
                         </button>
                     </div>
                 </section>
 
-                <!-- Quick Services -->
-                <section class="quick-services-section">
-                    <h3 class="section-title">⚡ TEZKOR XIZMATLAR</h3>
-                    <div class="quick-services">
-                        <button class="quick-btn" onclick="showGabarScreen()">
-                            <span class="quick-icon">📜</span>
-                            <span class="quick-name">Gabarit</span>
-                        </button>
-                        <button class="quick-btn" onclick="showInsuranceScreen()">
-                            <span class="quick-icon">🛡</span>
-                            <span class="quick-name">Sug'urta</span>
-                        </button>
-                        <button class="quick-btn" onclick="showQueueScreen()">
-                            <span class="quick-icon">🎯</span>
-                            <span class="quick-name">Navbat</span>
-                        </button>
-                        <button class="quick-btn" onclick="showPricesScreen()">
-                            <span class="quick-icon">💰</span>
-                            <span class="quick-name">Narxlar</span>
-                        </button>
+                <!-- Recent Applications Section -->
+                <section class="recent-apps-section">
+                    <div class="recent-apps-header">
+                        <h3 class="section-title-home">Oxirgi arizalar</h3>
+                        <button class="view-all-btn" onclick="showApplicationsScreen()">Barchasi</button>
+                    </div>
+
+                    <!-- Pending Application Card -->
+                    <div class="recent-app-card" onclick="showAppDetail('EPI-2024-1847')">
+                        <div class="recent-app-top">
+                            <div class="recent-app-icon-wrap orange">
+                                <span class="material-symbols-outlined">pending_actions</span>
+                            </div>
+                            <div class="recent-app-info">
+                                <h4 class="recent-app-code">EPI-2024-1847</h4>
+                                <p class="recent-app-type">Elektron deklaratsiya</p>
+                            </div>
+                            <span class="recent-app-status orange">Kutilmoqda</span>
+                        </div>
+                        <div class="recent-app-details">
+                            <div class="recent-app-detail">
+                                <p class="detail-label">Avtomobil</p>
+                                <p class="detail-value">
+                                    <span class="material-symbols-outlined">minor_crash</span>
+                                    01 A 777 AA
+                                </p>
+                            </div>
+                            <div class="recent-app-detail">
+                                <p class="detail-label">Manzil</p>
+                                <p class="detail-value">
+                                    <span class="material-symbols-outlined">location_on</span>
+                                    Yallama
+                                </p>
+                            </div>
+                        </div>
+                        <div class="recent-app-footer">
+                            <p class="recent-app-time">Bugun, 14:30</p>
+                            <button class="recent-app-detail-btn">
+                                Batafsil <span class="material-symbols-outlined">arrow_forward</span>
+                            </button>
+                        </div>
                     </div>
                 </section>
             </div>
 
             <!-- ==================== BORDER POST SELECTION ==================== -->
             <div class="screen" id="borderPostScreen">
-                <div class="screen-header">
-                    <h2>🏢 Chegara postini tanlang</h2>
+                <!-- Header -->
+                <div class="border-post-header">
+                    <h2>Chegara Postini Tanlang</h2>
                 </div>
-                <div class="search-box">
-                    <input type="text" id="borderPostSearch" placeholder="🔍 Qidirish..." oninput="filterList('borderPostsList', this.value)">
+
+                <!-- Search Box -->
+                <div class="search-box-new">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="borderPostSearch" placeholder="Postni qidirish..." oninput="filterBorderPosts(this.value)">
                 </div>
-                <div class="posts-list" id="borderPostsList">
-                    <!-- Posts will be loaded dynamically -->
+
+                <!-- Popular Posts Section -->
+                <div class="popular-posts-section">
+                    <h3 class="section-title-new">Mashhur Postlar</h3>
+                    <div class="popular-posts-scroll">
+                        <div class="popular-posts-container" id="popularPostsContainer">
+                            <!-- Popular posts will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Posts Section (Alphabetically Grouped) -->
+                <div class="all-posts-section">
+                    <h3 class="section-title-new">Barcha Postlar</h3>
+                    <div class="posts-list-grouped" id="borderPostsList">
+                        <!-- Posts will be loaded dynamically -->
+                    </div>
                 </div>
             </div>
 
             <!-- ==================== AGENT SELECTION ==================== -->
             <div class="screen" id="agentScreen">
-                <div class="screen-header">
-                    <h2>👨‍💼 Agent tanlang</h2>
-                    <p>Quyidagi agentlardan birini tanlang:</p>
+                <!-- Post name header -->
+                <div class="agent-post-header">
+                    <h2 id="agentPostName">Agent tanlang</h2>
                 </div>
+
+                <!-- Cash Payment Card (Primary Option) -->
+                <div class="cash-payment-card" onclick="selectAgent('cash')">
+                    <div class="cash-card-content">
+                        <div class="cash-card-info">
+                            <div class="cash-card-title">
+                                <span class="cash-icon">💵</span>
+                                <span>Cash Payment</span>
+                            </div>
+                            <p class="cash-card-desc">Pay directly at the post terminal without an agent</p>
+                        </div>
+                        <button class="cash-select-btn">
+                            Select Option →
+                        </button>
+                    </div>
+                    <div class="cash-card-icon">
+                        <span>🚛</span>
+                    </div>
+                </div>
+
+                <!-- Online Agents Section -->
+                <div class="agents-section-header">
+                    <h3>Online Agents</h3>
+                    <span class="online-badge">
+                        <span class="online-dot"></span>
+                        <span id="onlineAgentCount">3</span> Available
+                    </span>
+                </div>
+
+                <!-- Online Agents List -->
                 <div class="agents-list" id="agentsList">
-                    <div class="agent-card" onclick="selectAgent('aziz')">
-                        <div class="agent-avatar">👤</div>
-                        <div class="agent-info">
-                            <h4>Agent Aziz</h4>
-                            <div class="agent-rating">⭐⭐⭐⭐⭐ <span>(4.9)</span></div>
-                            <p class="agent-location">📍 Oybek posti</p>
-                            <p class="agent-stats">✅ 1,240 ariza bajarilgan</p>
+                    <!-- Agents will be loaded dynamically -->
+                </div>
+
+                <!-- Offline Agents Section (Collapsed) -->
+                <div class="offline-agents-section" id="offlineAgentsSection" onclick="toggleOfflineAgents()">
+                    <div class="offline-header">
+                        <div class="offline-icon">👤</div>
+                        <div class="offline-info">
+                            <h4>Offline Agents</h4>
+                            <p><span id="offlineAgentCount">8</span> agents currently unavailable</p>
                         </div>
-                        <span class="agent-arrow">→</span>
+                        <span class="offline-arrow" id="offlineArrow">▼</span>
                     </div>
-                    <div class="agent-card" onclick="selectAgent('bobur')">
-                        <div class="agent-avatar">👤</div>
-                        <div class="agent-info">
-                            <h4>Agent Bobur</h4>
-                            <div class="agent-rating">⭐⭐⭐⭐⭐ <span>(4.8)</span></div>
-                            <p class="agent-location">📍 Oybek posti</p>
-                            <p class="agent-stats">✅ 890 ariza bajarilgan</p>
-                        </div>
-                        <span class="agent-arrow">→</span>
+                    <div class="offline-agents-list" id="offlineAgentsList" style="display: none;">
+                        <!-- Offline agents will be loaded dynamically -->
                     </div>
-                    <div class="agent-card cash-option" onclick="selectAgent('cash')">
-                        <div class="agent-avatar">💵</div>
-                        <div class="agent-info">
-                            <h4>AGENTLAR ORQALI</h4>
-                            <p class="agent-desc">NAQD PULDA (To'lov postda)</p>
-                        </div>
-                        <span class="agent-arrow">→</span>
-                    </div>
+                </div>
+
+                <!-- Bottom Action Button -->
+                <div class="agent-bottom-action">
+                    <button class="find-nearest-btn" onclick="findNearestPost()">
+                        📍 Find Nearest Post
+                    </button>
                 </div>
             </div>
 
@@ -227,41 +321,95 @@
 
             <!-- ==================== APPLICATION SUMMARY ==================== -->
             <div class="screen" id="summaryScreen">
-                <div class="screen-header">
-                    <h2>📋 Arizani tasdiqlash</h2>
-                </div>
-                <div class="summary-card">
-                    <h3>📄 ARIZA MA'LUMOTLARI</h3>
-                    <div class="summary-row">
-                        <span class="summary-label">🚛 Mashina:</span>
-                        <span class="summary-value" id="sumVehicle">-</span>
+                <!-- Progress Bar -->
+                <div class="summary-progress">
+                    <div class="progress-header">
+                        <span class="progress-label">Final Step</span>
+                        <span class="progress-percent">100%</span>
                     </div>
-                    <div class="summary-row">
-                        <span class="summary-label">🏛 Post:</span>
-                        <span class="summary-value" id="sumPost">-</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">📍 Manzil:</span>
-                        <span class="summary-value" id="sumDest">-</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">👨‍💼 Agent:</span>
-                        <span class="summary-value" id="sumAgent">-</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">📷 Rasmlar:</span>
-                        <span class="summary-value" id="sumPhotos">-</span>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" style="width: 100%"></div>
                     </div>
                 </div>
-                <div class="summary-warning">
-                    ⚠️ Ma'lumotlar to'g'riligini tekshiring!
+
+                <!-- Section Header -->
+                <div class="summary-section-header">
+                    <h3>Review Details</h3>
+                    <p>Tap on any item to edit</p>
                 </div>
-                <button class="btn-primary" onclick="submitApplication()">
-                    ✅ ARIZANI YUBORISH
-                </button>
-                <button class="btn-secondary" onclick="goBack()">
-                    ✏️ TAHRIRLASH
-                </button>
+
+                <!-- Editable Summary Items -->
+                <div class="summary-items">
+                    <!-- Service Type -->
+                    <div class="summary-item" onclick="editSummaryField('service')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">SERVICE</span>
+                            <span class="summary-item-value" id="sumService">EPI KOD</span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+
+                    <!-- Customs Post -->
+                    <div class="summary-item" onclick="editSummaryField('post')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">CUSTOMS POST</span>
+                            <span class="summary-item-value" id="sumPost">-</span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+
+                    <!-- Agent -->
+                    <div class="summary-item" onclick="editSummaryField('agent')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">AGENT</span>
+                            <span class="summary-item-value" id="sumAgent">-</span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+
+                    <!-- Vehicle Plate -->
+                    <div class="summary-item" onclick="editSummaryField('vehicle')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">VEHICLE PLATE</span>
+                            <span class="summary-item-value" id="sumVehicle">-</span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+
+                    <!-- Documents -->
+                    <div class="summary-item" onclick="editSummaryField('documents')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">DOCUMENTS</span>
+                            <span class="summary-item-value" id="sumPhotos">
+                                <span class="docs-icon">📎</span> - Files Attached
+                            </span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+
+                    <!-- TIF Location -->
+                    <div class="summary-item" onclick="editSummaryField('destination')">
+                        <div class="summary-item-content">
+                            <span class="summary-item-label">TIF LOCATION</span>
+                            <span class="summary-item-value" id="sumDest">-</span>
+                        </div>
+                        <span class="summary-item-arrow">→</span>
+                    </div>
+                </div>
+
+                <!-- Warning Callout -->
+                <div class="summary-warning-new">
+                    <span class="warning-icon">⚠️</span>
+                    <p>Please review all information carefully. Once submitted, you will not be able to change these details for this application.</p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="summary-submit-container">
+                    <button class="summary-submit-btn" onclick="submitApplication()">
+                        <span>Submit Application</span>
+                        <span class="submit-icon">📤</span>
+                    </button>
+                </div>
             </div>
 
             <!-- ==================== WAITING SCREEN ==================== -->
@@ -335,56 +483,89 @@
 
             <!-- ==================== MY APPLICATIONS ==================== -->
             <div class="screen" id="applicationsScreen">
-                <div class="screen-header">
-                    <h2>🎫 ARIZALARIM</h2>
+                <!-- Tab Switcher -->
+                <div class="apps-tab-container">
+                    <div class="apps-tab-wrapper">
+                        <button class="apps-tab active" id="activeTab" onclick="switchAppsTab('active')">
+                            <span>Faol</span>
+                        </button>
+                        <button class="apps-tab" id="historyTab" onclick="switchAppsTab('history')">
+                            <span>Tarix</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="search-box">
-                    <input type="text" id="appSearch" placeholder="🔍 Ariza qidirish (Mashina yoki kod...)">
-                </div>
-                <div class="apps-section">
-                    <h4 class="apps-title">📊 Faol arizalar (2)</h4>
-                    <div class="apps-list" id="activeAppsList">
-                        <div class="app-card active" onclick="showAppDetail('EPI-2024-1847')">
-                            <div class="app-icon">📄</div>
-                            <div class="app-info">
-                                <h4>EPI-2024-1847</h4>
-                                <p>🚛 01A777AA</p>
+
+                <!-- Applications List -->
+                <div class="apps-list-new" id="appsListContainer">
+                    <!-- Card 1: Awaiting Payment -->
+                    <div class="app-card-new" onclick="showAppDetail('EPI-2024-1847')">
+                        <div class="app-card-image" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAfwc5mBwWKnKwTsHCtSBUmbc_73uD3FB6vzmxcHkCbknWvHKAEo0cjxqfGuTUWW7XW-1ak3vri3IhVx7n_i8YdC-qFdk316k7cnduRsCKgCpHAEKIfvwv9DObcTaqH8heXRQEhP5ITPnaVmoPhImh-3LkwCOTN1GBzLBrQd0fTwucmoEdQuUE86FtFCMri5njwUU8sbZWsud5Z7e2eFpjJsubtgENbbBdIs5D6uWUwstY2_Y8V3ONDYfxBLoJ0yLK5nJOGPfPJIq0');"></div>
+                        <div class="app-card-content">
+                            <div class="app-card-header">
+                                <span class="app-status-badge orange">To'lov kutilmoqda</span>
+                                <p class="app-card-date">May 24, 14:20</p>
                             </div>
-                            <div class="app-status">
-                                <span class="status-badge waiting">⏳ KUTILMOQDA</span>
-                                <span class="app-time">⏰ 2 soat oldin</span>
+                            <p class="app-card-code">#EPI-2024-1847</p>
+                            <div class="app-card-route">
+                                <span class="material-symbols-outlined">local_shipping</span>
+                                <p>Yallama → Toshkent TIF</p>
                             </div>
-                            <span class="app-arrow">→</span>
+                            <div class="app-card-footer">
+                                <div class="app-card-price">
+                                    <p class="price-label">Narxi</p>
+                                    <p class="price-value">45,000 UZS</p>
+                                </div>
+                                <button class="pay-now-btn" onclick="event.stopPropagation(); showPaymentScreen()">
+                                    <span>To'lash</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="app-card active" onclick="showAppDetail('MB-2024-892')">
-                            <div class="app-icon">📋</div>
-                            <div class="app-info">
-                                <h4>MB-2024-892</h4>
-                                <p>🚛 01B555BB</p>
+                    </div>
+
+                    <!-- Card 2: Awaiting Price -->
+                    <div class="app-card-new" onclick="showAppDetail('MB-2024-892')">
+                        <div class="app-card-image" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAaZArvuhLlW4tTElpFDQBVKWINVn2Xa8JzwyQVSJVykTR5iONs74ENf5KCOhDcWaU51jS2beCQy9dMRq2-Yi9ZGJrbXeMN174lbFVzajssfVJ7paVFhZzIJOTKubygnVfJcydQJ1aZH_XeqegktPw9Rr2IOPyWREY5Ip_s_c5zl-rD8FQSr95Zu1WXZbUufl3EZaQdu1TEvTaNxNg-JDe5988pFJNPNCiSsiyDn0LIOSObddcliZ5JGbvOB_c8piBNarU6r_D2s70');"></div>
+                        <div class="app-card-content">
+                            <div class="app-card-header">
+                                <span class="app-status-badge amber">Narx kutilmoqda</span>
+                                <p class="app-card-date">May 24, 09:15</p>
                             </div>
-                            <div class="app-status">
-                                <span class="status-badge payment">💰 TO'LOV KUTILMOQDA</span>
-                                <span class="app-time">⏰ 1 kun oldin</span>
+                            <p class="app-card-code">#MB-2024-892</p>
+                            <div class="app-card-route">
+                                <span class="material-symbols-outlined">local_shipping</span>
+                                <p>Olot → Buxoro TIF</p>
                             </div>
-                            <span class="app-arrow">→</span>
+                        </div>
+                    </div>
+
+                    <!-- History Section Divider -->
+                    <div class="apps-section-divider" id="historyDivider">
+                        <p>Yakunlangan arizalar</p>
+                        <div class="divider-line"></div>
+                    </div>
+
+                    <!-- Card 3: Completed -->
+                    <div class="app-card-new completed" onclick="showAppDetail('EPI-2024-1801')">
+                        <div class="app-card-image grayscale" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCLKaqONmsjsGSwdDGu1Pq_XQaHm9h0NcrD0rK7FLouwX_0i66_2bcEvDFBqcE6IcpCu5q7UqgBrGXwTyE3zmW71TR1HF4XacLD2A45vgV5wib-Wp_3hYFLkzSWqg7XYO-2y20KuC0sRSfa3FkXcK9qTfRAJ-xdvRpIxJeJUiYSYKc6Is85_FB7-TwdKQZw5_VwwsbhdFu4SZMYdWdOv-FozKJTpRsWPlZ43S-yLr_233QyQ22bczzK2MS-U5JlgR-e2z31M3obV8U');"></div>
+                        <div class="app-card-content">
+                            <div class="app-card-header">
+                                <span class="app-status-badge green">Yakunlangan</span>
+                                <p class="app-card-date">May 22, 18:45</p>
+                            </div>
+                            <p class="app-card-code">#EPI-2024-1801</p>
+                            <div class="app-card-route muted">
+                                <span class="material-symbols-outlined">local_shipping</span>
+                                <p>Do'stlik → Andijon TIF</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="apps-section">
-                    <h4 class="apps-title">📜 Tarix (23)</h4>
-                    <div class="apps-list" id="historyAppsList">
-                        <div class="app-card" onclick="showAppDetail('EPI-2024-1801')">
-                            <div class="app-icon">📄</div>
-                            <div class="app-info">
-                                <h4>EPI-2024-1801</h4>
-                            </div>
-                            <div class="app-status">
-                                <span class="status-badge completed">✅ YAKUNLANGAN</span>
-                                <span class="app-time">⏰ 3 kun oldin</span>
-                            </div>
-                            <span class="app-arrow">→</span>
-                        </div>
-                    </div>
+
+                <!-- Floating Add Button -->
+                <div class="apps-fab-container">
+                    <button class="apps-fab" onclick="startEPIFlow()">
+                        <span class="material-symbols-outlined">add</span>
+                    </button>
                 </div>
             </div>
 
@@ -751,26 +932,28 @@
         </main>
 
         <!-- Bottom Navigation -->
-        <nav class="bottom-nav" id="bottomNav">
-            <button class="nav-item active" data-screen="homeScreen" onclick="navigateTo('homeScreen')">
-                <span class="nav-icon">🏠</span>
-                <span class="nav-label">Home</span>
+        <nav class="bottom-nav-new" id="bottomNav">
+            <button class="nav-item-new active" data-screen="homeScreen" onclick="navigateTo('homeScreen')">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+                <span class="nav-label-new">Asosiy</span>
             </button>
-            <button class="nav-item" data-screen="applicationsScreen" onclick="navigateTo('applicationsScreen')">
-                <span class="nav-icon">📄</span>
-                <span class="nav-label">Ariza</span>
+            <button class="nav-item-new" data-screen="mapScreen" onclick="showMapScreen()">
+                <span class="material-symbols-outlined">explore</span>
+                <span class="nav-label-new">Xarita</span>
             </button>
-            <button class="nav-item" data-screen="chatScreen" onclick="navigateTo('chatScreen')">
-                <span class="nav-icon">💬</span>
-                <span class="nav-label">Chat</span>
+            <!-- Center FAB Button -->
+            <div class="nav-fab-container">
+                <button class="nav-fab" onclick="startEPIFlow()">
+                    <span class="material-symbols-outlined">add</span>
+                </button>
+            </div>
+            <button class="nav-item-new" data-screen="applicationsScreen" onclick="showApplicationsScreen()">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span class="nav-label-new">Tarix</span>
             </button>
-            <button class="nav-item" data-screen="bonusScreen" onclick="navigateTo('bonusScreen')">
-                <span class="nav-icon">🎁</span>
-                <span class="nav-label">Bonus</span>
-            </button>
-            <button class="nav-item" data-screen="settingsScreen" onclick="navigateTo('settingsScreen')">
-                <span class="nav-icon">⚙️</span>
-                <span class="nav-label">Sozla</span>
+            <button class="nav-item-new" data-screen="settingsScreen" onclick="navigateTo('settingsScreen')">
+                <span class="material-symbols-outlined">person</span>
+                <span class="nav-label-new">Profil</span>
             </button>
         </nav>
     </div>

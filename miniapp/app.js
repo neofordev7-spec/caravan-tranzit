@@ -50,10 +50,71 @@ const TIF_POSTS = [
     "Olmaliq", "Yangiyol", "Nazarbek", "Keles", "Elektron tijorat"
 ];
 
+// Popular border posts with images
+const POPULAR_POSTS = [
+    {
+        name: 'Yallama',
+        region: 'Toshkent viloyati',
+        agents: 12,
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCp-W_rYtGPEKTrMRFwSk8wy_LwJcJnUPbUaNOBTN-evLT2Y81LFIl-tI4HVLGSm3VWsOQQnNg6SIL2c9FNxCMTOg9TqMSVw75VawA8GXVFV_R4A7xSbf8LJsBMQNKzwEqXMzKd5s8M2ECU9IbN0EzzOy_YN-jWRuOCjRwrxqJQ6yOQTj14YEZSfJnP-cQtS6h_XW-iRCN7C1u4OhP_g6JZG_q8eMj_i0hl84F8mXG3sJ1Ct5qIBEGDlOZnqb90sRKBQfAQDFFmTuI'
+    },
+    {
+        name: 'Olot',
+        region: 'Buxoro viloyati',
+        agents: 8,
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCwdYoL14nKWM5EBcjHLPy-o4_4xKV0yEyLQ-6_TQ0D49AqFOy1MK0q0bexXpRpAdUOCBq_S3aKOKLhC5-O9l8SKg0kC0JY4mA0Kv1TWj5LF8NWY5RM7mZQzQJ3TqDEDLlLQOI9qjJk4xZ-SNZK9uJZOiRyJQ1oU8LdG0WBWxf_W3cPQ7pAa1rlF1ygS6c2aN5RYH3wBjL8KpX3NdC2aJ6UJ5gf1OI6dM3o0wPDrIb8dNT7Fq1gZMl_NKqQ6sXDK8Lj3w5BNvVOvM'
+    },
+    {
+        name: "Do'stlik",
+        region: 'Andijon viloyati',
+        agents: 15,
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDpkSuZdZd0HXkEhxMqX8gEMZUJJRvkZqL7R_SBxN3QqQ2qlF-H8oO-p3rZYVsXg3rQfGwLB5x-P7rEZqMBKN2DfPYu0OkUq3Z7jMZ9qQF3KqMWxZPLR4f8ZjQc7PYPWv5kXQdJ9r0YNmLvJnLQw3sPXrZ8fN6HqG1KlZdnQqYx3pQgZYJx0pXQvLm8K7zRN8sPfLqWkM0gJQp6KxYPZrM9N_Z7qQkWh5p0Lw1RNO3WLJp6XG8KvQpZJ5gWM3dPHvKf8LQR7NZYjQ'
+    }
+];
+
 const AGENTS = [
-    { id: 'aziz', name: 'Agent Aziz', rating: 4.9, location: 'Oybek posti', completed: 1240 },
-    { id: 'bobur', name: 'Agent Bobur', rating: 4.8, location: 'Oybek posti', completed: 890 },
-    { id: 'sardor', name: 'Agent Sardor', rating: 4.7, location: 'Yallama posti', completed: 650 }
+    {
+        id: 'ali',
+        name: 'Ali Valiyev',
+        rating: 4.8,
+        priceMin: 35000,
+        priceMax: 60000,
+        badge: 'Top Rated',
+        online: true,
+        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA-4mXKU91loGciYNcynW5W0szXcGke8fIG5daq5NfGfkfMdAAAjJLEzhtuoNEnKUhKoBTK97bsvZhj1QQE8L7gmbQkaovU4Y0UqOX__aUuRi-lYNP8BmP-ieznwyHxDNABqYuc0H3bshPEwKnRdxZX8Ay_0N66kLJmWGp332wNgz5BckDHwyFGh_NzVKn74hg5RRiudRCy-aYCEcRKGQkkB2lHU9ac9t02MJiNVOgbGNmkCcLSuhxQaNDm-YhJ1_4dCPCdrMPoTdY'
+    },
+    {
+        id: 'sanjar',
+        name: 'Sanjar Islomov',
+        rating: 4.9,
+        priceMin: 40000,
+        priceMax: 65000,
+        badge: 'Fast Response',
+        online: true,
+        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDA5jd_af6u8rvQ-3pYCQE4HYF9sO6t19uhZ3vqyKzsYvFDZg4_sGewLg9BecZMqQAmAM9EootOyjA9MLMyvmeNd_BAbezyLTAkT9tAvKVpva0u_PqJiCwZvvT96ybFyjrNdTXQg-VbnkJ5PPRCOtalYo4DNbmpUDKuv6vYiPGDupMlEDJ2pKNIA7XVI3JY417U53DEWMv8n5S7Zm2YGvye9944PrDqpltPV5VdGpBVbxJAXuWFUileTSuMxcxEd6kb4zrw27j5d7A'
+    },
+    {
+        id: 'nigora',
+        name: 'Nigora Saidova',
+        rating: 4.7,
+        priceMin: 38000,
+        priceMax: 62000,
+        badge: 'Highly Recommended',
+        online: true,
+        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCODBuLtQS0l9ImFObjL52sU7JrI5Kb9poisA6ywRjkhcHm_vNHHCg5HDp3rHpEE4z8pfNHbIQ-SDcNyE9zJuNj_BW7sFNqYZsbg8mtif2Bk01rm4GK7Xa2KxKtbctmNGnuVVt5uwA_FR2hKA9tfwbjsoEXVGYHWLt5P03DSpswM9wuNXDDlUv9WE7R9W8QraIGwlCUcOnuQeQikYscPvsCmrXzXQeBDm940mjqfpx8o_Esy5vZE8EHlTm8Ss3Ah0UMTQQ6UhiBa7M'
+    }
+];
+
+// Offline agents data
+const OFFLINE_AGENTS = [
+    { id: 'karim', name: 'Karim Rahimov', rating: 4.5 },
+    { id: 'aziza', name: 'Aziza Karimova', rating: 4.6 },
+    { id: 'bobur', name: 'Bobur Xolmatov', rating: 4.4 },
+    { id: 'dilnoza', name: 'Dilnoza Tosheva', rating: 4.3 },
+    { id: 'jamshid', name: 'Jamshid Aliev', rating: 4.5 },
+    { id: 'shoxrux', name: 'Shoxrux Ergashev', rating: 4.2 },
+    { id: 'madina', name: 'Madina Yusupova', rating: 4.6 },
+    { id: 'rustam', name: 'Rustam Nazarov', rating: 4.4 }
 ];
 
 // ==================== INITIALIZATION ====================
@@ -240,20 +301,129 @@ function startMBFlow() {
 }
 
 function loadBorderPosts() {
-    const container = document.getElementById('borderPostsList');
+    // Load popular posts
+    loadPopularPosts();
+
+    // Load alphabetically grouped posts
+    loadGroupedPosts();
+}
+
+// Load popular posts carousel
+function loadPopularPosts() {
+    const container = document.getElementById('popularPostsContainer');
+    if (!container) return;
+
     container.innerHTML = '';
 
-    BORDER_POSTS.forEach(post => {
-        const item = document.createElement('div');
-        item.className = 'post-item';
-        item.innerHTML = `
-            <span class="post-icon">🏛</span>
-            <span class="post-name">${post}</span>
-            <span class="post-arrow">→</span>
+    POPULAR_POSTS.forEach(post => {
+        const card = document.createElement('div');
+        card.className = 'popular-post-card';
+        card.innerHTML = `
+            <div class="popular-post-image" style="background-image: url('${post.image}')">
+                <div class="popular-post-overlay">
+                    <h4 class="popular-post-name">${post.name}</h4>
+                    <p class="popular-post-region">${post.region}</p>
+                    <span class="popular-post-agents">${post.agents} agentlar</span>
+                </div>
+            </div>
         `;
-        item.onclick = () => selectBorderPost(post);
-        container.appendChild(item);
+        card.onclick = () => selectBorderPost(post.name);
+        container.appendChild(card);
     });
+}
+
+// Load posts grouped alphabetically
+function loadGroupedPosts() {
+    const container = document.getElementById('borderPostsList');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    // Sort posts alphabetically
+    const sortedPosts = [...BORDER_POSTS].sort((a, b) => a.localeCompare(b, 'uz'));
+
+    // Group by first letter
+    const groups = {};
+    sortedPosts.forEach(post => {
+        const firstLetter = post.charAt(0).toUpperCase();
+        if (!groups[firstLetter]) {
+            groups[firstLetter] = [];
+        }
+        groups[firstLetter].push(post);
+    });
+
+    // Render grouped posts
+    Object.keys(groups).sort().forEach(letter => {
+        // Letter header
+        const letterHeader = document.createElement('div');
+        letterHeader.className = 'post-letter-header';
+        letterHeader.textContent = letter;
+        container.appendChild(letterHeader);
+
+        // Posts in this group
+        groups[letter].forEach(post => {
+            const item = document.createElement('div');
+            item.className = 'post-item-grouped';
+            item.innerHTML = `
+                <div class="post-item-info">
+                    <span class="post-item-name">${post}</span>
+                </div>
+                <span class="post-item-arrow">›</span>
+            `;
+            item.onclick = () => selectBorderPost(post);
+            container.appendChild(item);
+        });
+    });
+}
+
+// Search/filter border posts
+function filterBorderPosts(query) {
+    const lowerQuery = query.toLowerCase().trim();
+
+    // Filter popular posts
+    const popularContainer = document.getElementById('popularPostsContainer');
+    if (popularContainer) {
+        const popularCards = popularContainer.querySelectorAll('.popular-post-card');
+        popularCards.forEach(card => {
+            const name = card.querySelector('.popular-post-name')?.textContent.toLowerCase() || '';
+            card.style.display = name.includes(lowerQuery) || !lowerQuery ? 'block' : 'none';
+        });
+
+        // Hide popular section title if all cards are hidden
+        const popularSection = document.querySelector('.popular-posts-section');
+        if (popularSection) {
+            const visibleCards = popularContainer.querySelectorAll('.popular-post-card[style*="display: block"], .popular-post-card:not([style*="display"])');
+            popularSection.style.display = lowerQuery && visibleCards.length === 0 ? 'none' : 'block';
+        }
+    }
+
+    // Filter grouped posts
+    const listContainer = document.getElementById('borderPostsList');
+    if (listContainer) {
+        const items = listContainer.querySelectorAll('.post-item-grouped');
+        const letterHeaders = listContainer.querySelectorAll('.post-letter-header');
+
+        // Track which letters have visible items
+        const visibleLetters = new Set();
+
+        items.forEach(item => {
+            const name = item.querySelector('.post-item-name')?.textContent.toLowerCase() || '';
+            const isVisible = name.includes(lowerQuery) || !lowerQuery;
+            item.style.display = isVisible ? 'flex' : 'none';
+
+            if (isVisible) {
+                // Find the letter for this item
+                const letter = name.charAt(0).toUpperCase();
+                visibleLetters.add(letter);
+            }
+        });
+
+        // Show/hide letter headers
+        letterHeaders.forEach(header => {
+            const letter = header.textContent;
+            header.style.display = visibleLetters.has(letter) || !lowerQuery ? 'block' : 'none';
+        });
+    }
 }
 
 function selectBorderPost(post) {
@@ -261,8 +431,109 @@ function selectBorderPost(post) {
 
     if (tg) tg.HapticFeedback?.impactOccurred('medium');
 
+    // Update agent screen header with post name
+    const postNameEl = document.getElementById('agentPostName');
+    if (postNameEl) {
+        postNameEl.textContent = post + ' posti';
+    }
+
+    // Load agents for this post
+    loadAgents();
+
     // Go to agent selection
     navigateTo('agentScreen');
+}
+
+// Load online agents dynamically
+function loadAgents() {
+    const container = document.getElementById('agentsList');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const onlineAgents = AGENTS.filter(a => a.online);
+    document.getElementById('onlineAgentCount').textContent = onlineAgents.length;
+
+    onlineAgents.forEach(agent => {
+        const card = document.createElement('div');
+        card.className = 'agent-card-new';
+        card.innerHTML = `
+            <div class="agent-avatar-wrapper">
+                <div class="agent-avatar-img" style="background-image: url('${agent.avatar}')"></div>
+                <div class="agent-online-indicator"></div>
+            </div>
+            <div class="agent-info-new">
+                <h4 class="agent-name">${agent.name}</h4>
+                <p class="agent-price">${formatPrice(agent.priceMin)} - ${formatPrice(agent.priceMax)} so'm</p>
+                <div class="agent-rating-badge">
+                    <span class="star">⭐</span>
+                    <span>${agent.rating} • ${agent.badge}</span>
+                </div>
+            </div>
+            <button class="agent-select-btn" onclick="event.stopPropagation(); selectAgent('${agent.id}')">
+                Select
+            </button>
+        `;
+        card.onclick = () => selectAgent(agent.id);
+        container.appendChild(card);
+    });
+
+    // Load offline agents count
+    document.getElementById('offlineAgentCount').textContent = OFFLINE_AGENTS.length;
+    loadOfflineAgents();
+}
+
+// Load offline agents list
+function loadOfflineAgents() {
+    const container = document.getElementById('offlineAgentsList');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    OFFLINE_AGENTS.forEach(agent => {
+        const item = document.createElement('div');
+        item.className = 'offline-agent-item';
+        item.innerHTML = `
+            <div class="offline-agent-avatar">👤</div>
+            <div class="offline-agent-info">
+                <span class="offline-agent-name">${agent.name}</span>
+                <span class="offline-agent-rating">⭐ ${agent.rating}</span>
+            </div>
+            <span class="offline-status">Offline</span>
+        `;
+        container.appendChild(item);
+    });
+}
+
+// Toggle offline agents section
+function toggleOfflineAgents() {
+    const list = document.getElementById('offlineAgentsList');
+    const arrow = document.getElementById('offlineArrow');
+
+    if (list.style.display === 'none') {
+        list.style.display = 'block';
+        arrow.textContent = '▲';
+    } else {
+        list.style.display = 'none';
+        arrow.textContent = '▼';
+    }
+
+    if (tg) tg.HapticFeedback?.impactOccurred('light');
+}
+
+// Find nearest post function
+function findNearestPost() {
+    if (tg) {
+        tg.HapticFeedback?.impactOccurred('medium');
+        tg.showAlert('Eng yaqin post qidirilmoqda... Bu funksiya tez orada ishga tushadi!');
+    } else {
+        alert('Eng yaqin post qidirilmoqda...');
+    }
+}
+
+// Format price with thousands separator
+function formatPrice(price) {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 function selectAgent(agentId) {
@@ -421,17 +692,70 @@ function selectDestination(dest) {
 }
 
 function updateSummary() {
+    // Update service type
+    const serviceEl = document.getElementById('sumService');
+    if (serviceEl) {
+        serviceEl.textContent = AppState.serviceType === 'EPI' ? 'EPI (Electronic Pre-Arrival)' : 'MB DEKLARATSIYA';
+    }
+
+    // Update other fields
     document.getElementById('sumVehicle').textContent = AppState.vehicleNumber || '-';
     document.getElementById('sumPost').textContent = AppState.selectedPost || '-';
     document.getElementById('sumDest').textContent = AppState.selectedDestination || '-';
     document.getElementById('sumAgent').textContent = getAgentName(AppState.selectedAgent);
-    document.getElementById('sumPhotos').textContent = `${AppState.uploadedFiles.length} ta`;
+
+    // Update documents count with new format
+    const photosEl = document.getElementById('sumPhotos');
+    if (photosEl) {
+        const count = AppState.uploadedFiles.length;
+        photosEl.innerHTML = `<span class="docs-icon">📎</span> ${count} Files Attached`;
+    }
+}
+
+// Edit summary field - navigate to appropriate screen
+function editSummaryField(field) {
+    if (tg) tg.HapticFeedback?.impactOccurred('light');
+
+    switch (field) {
+        case 'service':
+            // Go back to home to select service
+            navigateTo('homeScreen');
+            break;
+        case 'post':
+            // Go to border post selection
+            loadBorderPosts();
+            navigateTo('borderPostScreen');
+            break;
+        case 'agent':
+            // Go to agent selection
+            loadAgents();
+            navigateTo('agentScreen');
+            break;
+        case 'vehicle':
+            // Go to vehicle input
+            navigateTo('vehicleScreen');
+            break;
+        case 'documents':
+            // Go to documents upload
+            navigateTo('documentsScreen');
+            break;
+        case 'destination':
+            // Go to destination selection
+            loadDestinations();
+            navigateTo('destScreen');
+            break;
+        default:
+            break;
+    }
 }
 
 function getAgentName(agentId) {
-    if (agentId === 'cash') return 'Naqd pulda';
+    if (agentId === 'cash') return 'Naqd pulda (Cash Payment)';
     const agent = AGENTS.find(a => a.id === agentId);
-    return agent ? agent.name : '-';
+    if (agent) {
+        return `${agent.name} (${formatPrice(agent.priceMin)}-${formatPrice(agent.priceMax)} so'm)`;
+    }
+    return '-';
 }
 
 // ==================== SUBMIT APPLICATION ====================
@@ -552,6 +876,43 @@ function showQueueScreen() {
 
 function showContactsScreen() {
     navigateTo('contactsScreen');
+}
+
+function showMapScreen() {
+    if (tg) {
+        tg.showAlert('Xarita xizmati tez orada ishga tushadi!');
+    } else {
+        alert('Xarita xizmati tez orada ishga tushadi!');
+    }
+}
+
+// Switch applications tab (Active / History)
+function switchAppsTab(tab) {
+    const activeTab = document.getElementById('activeTab');
+    const historyTab = document.getElementById('historyTab');
+    const activeCards = document.querySelectorAll('.app-card-new:not(.completed)');
+    const completedCards = document.querySelectorAll('.app-card-new.completed');
+    const historyDivider = document.getElementById('historyDivider');
+
+    if (tab === 'active') {
+        activeTab.classList.add('active');
+        historyTab.classList.remove('active');
+
+        // Show active cards, hide completed
+        activeCards.forEach(card => card.style.display = 'block');
+        completedCards.forEach(card => card.style.display = 'none');
+        if (historyDivider) historyDivider.style.display = 'none';
+    } else {
+        historyTab.classList.add('active');
+        activeTab.classList.remove('active');
+
+        // Hide active cards, show completed
+        activeCards.forEach(card => card.style.display = 'none');
+        completedCards.forEach(card => card.style.display = 'block');
+        if (historyDivider) historyDivider.style.display = 'none';
+    }
+
+    if (tg) tg.HapticFeedback?.impactOccurred('light');
 }
 
 // ==================== CHAT ====================
@@ -726,5 +1087,16 @@ window.clearCache = clearCache;
 window.editPhone = editPhone;
 window.contactAdmin = contactAdmin;
 window.filterList = filterList;
+window.loadAgents = loadAgents;
+window.loadOfflineAgents = loadOfflineAgents;
+window.toggleOfflineAgents = toggleOfflineAgents;
+window.findNearestPost = findNearestPost;
+window.formatPrice = formatPrice;
+window.editSummaryField = editSummaryField;
+window.loadPopularPosts = loadPopularPosts;
+window.loadGroupedPosts = loadGroupedPosts;
+window.filterBorderPosts = filterBorderPosts;
+window.showMapScreen = showMapScreen;
+window.switchAppsTab = switchAppsTab;
 
 console.log('CARAVAN TRANZIT Mini App v2.0 loaded');
