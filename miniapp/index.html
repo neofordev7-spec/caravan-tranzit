@@ -104,14 +104,33 @@
 
             <!-- ==================== BORDER POST SELECTION ==================== -->
             <div class="screen" id="borderPostScreen">
-                <div class="screen-header">
-                    <h2>🏢 Chegara postini tanlang</h2>
+                <!-- Header -->
+                <div class="border-post-header">
+                    <h2>Chegara Postini Tanlang</h2>
                 </div>
-                <div class="search-box">
-                    <input type="text" id="borderPostSearch" placeholder="🔍 Qidirish..." oninput="filterList('borderPostsList', this.value)">
+
+                <!-- Search Box -->
+                <div class="search-box-new">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="borderPostSearch" placeholder="Postni qidirish..." oninput="filterBorderPosts(this.value)">
                 </div>
-                <div class="posts-list" id="borderPostsList">
-                    <!-- Posts will be loaded dynamically -->
+
+                <!-- Popular Posts Section -->
+                <div class="popular-posts-section">
+                    <h3 class="section-title-new">Mashhur Postlar</h3>
+                    <div class="popular-posts-scroll">
+                        <div class="popular-posts-container" id="popularPostsContainer">
+                            <!-- Popular posts will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Posts Section (Alphabetically Grouped) -->
+                <div class="all-posts-section">
+                    <h3 class="section-title-new">Barcha Postlar</h3>
+                    <div class="posts-list-grouped" id="borderPostsList">
+                        <!-- Posts will be loaded dynamically -->
+                    </div>
                 </div>
             </div>
 

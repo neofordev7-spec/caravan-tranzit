@@ -50,6 +50,28 @@ const TIF_POSTS = [
     "Olmaliq", "Yangiyol", "Nazarbek", "Keles", "Elektron tijorat"
 ];
 
+// Popular border posts with images
+const POPULAR_POSTS = [
+    {
+        name: 'Yallama',
+        region: 'Toshkent viloyati',
+        agents: 12,
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCp-W_rYtGPEKTrMRFwSk8wy_LwJcJnUPbUaNOBTN-evLT2Y81LFIl-tI4HVLGSm3VWsOQQnNg6SIL2c9FNxCMTOg9TqMSVw75VawA8GXVFV_R4A7xSbf8LJsBMQNKzwEqXMzKd5s8M2ECU9IbN0EzzOy_YN-jWRuOCjRwrxqJQ6yOQTj14YEZSfJnP-cQtS6h_XW-iRCN7C1u4OhP_g6JZG_q8eMj_i0hl84F8mXG3sJ1Ct5qIBEGDlOZnqb90sRKBQfAQDFFmTuI'
+    },
+    {
+        name: 'Olot',
+        region: 'Buxoro viloyati',
+        agents: 8,
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCwdYoL14nKWM5EBcjHLPy-o4_4xKV0yEyLQ-6_TQ0D49AqFOy1MK0q0bexXpRpAdUOCBq_S3aKOKLhC5-O9l8SKg0kC0JY4mA0Kv1TWj5LF8NWY5RM7mZQzQJ3TqDEDLlLQOI9qjJk4xZ-SNZK9uJZOiRyJQ1oU8LdG0WBWxf_W3cPQ7pAa1rlF1ygS6c2aN5RYH3wBjL8KpX3NdC2aJ6UJ5gf1OI6dM3o0wPDrIb8dNT7Fq1gZMl_NKqQ6sXDK8Lj3w5BNvVOvM'
+    },
+    {
+        name: "Do'stlik",
+        region: 'Andijon viloyati',
+        agents: 15,
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDpkSuZdZd0HXkEhxMqX8gEMZUJJRvkZqL7R_SBxN3QqQ2qlF-H8oO-p3rZYVsXg3rQfGwLB5x-P7rEZqMBKN2DfPYu0OkUq3Z7jMZ9qQF3KqMWxZPLR4f8ZjQc7PYPWv5kXQdJ9r0YNmLvJnLQw3sPXrZ8fN6HqG1KlZdnQqYx3pQgZYJx0pXQvLm8K7zRN8sPfLqWkM0gJQp6KxYPZrM9N_Z7qQkWh5p0Lw1RNO3WLJp6XG8KvQpZJ5gWM3dPHvKf8LQR7NZYjQ'
+    }
+];
+
 const AGENTS = [
     {
         id: 'ali',
@@ -279,20 +301,129 @@ function startMBFlow() {
 }
 
 function loadBorderPosts() {
-    const container = document.getElementById('borderPostsList');
+    // Load popular posts
+    loadPopularPosts();
+
+    // Load alphabetically grouped posts
+    loadGroupedPosts();
+}
+
+// Load popular posts carousel
+function loadPopularPosts() {
+    const container = document.getElementById('popularPostsContainer');
+    if (!container) return;
+
     container.innerHTML = '';
 
-    BORDER_POSTS.forEach(post => {
-        const item = document.createElement('div');
-        item.className = 'post-item';
-        item.innerHTML = `
-            <span class="post-icon">🏛</span>
-            <span class="post-name">${post}</span>
-            <span class="post-arrow">→</span>
+    POPULAR_POSTS.forEach(post => {
+        const card = document.createElement('div');
+        card.className = 'popular-post-card';
+        card.innerHTML = `
+            <div class="popular-post-image" style="background-image: url('${post.image}')">
+                <div class="popular-post-overlay">
+                    <h4 class="popular-post-name">${post.name}</h4>
+                    <p class="popular-post-region">${post.region}</p>
+                    <span class="popular-post-agents">${post.agents} agentlar</span>
+                </div>
+            </div>
         `;
-        item.onclick = () => selectBorderPost(post);
-        container.appendChild(item);
+        card.onclick = () => selectBorderPost(post.name);
+        container.appendChild(card);
     });
+}
+
+// Load posts grouped alphabetically
+function loadGroupedPosts() {
+    const container = document.getElementById('borderPostsList');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    // Sort posts alphabetically
+    const sortedPosts = [...BORDER_POSTS].sort((a, b) => a.localeCompare(b, 'uz'));
+
+    // Group by first letter
+    const groups = {};
+    sortedPosts.forEach(post => {
+        const firstLetter = post.charAt(0).toUpperCase();
+        if (!groups[firstLetter]) {
+            groups[firstLetter] = [];
+        }
+        groups[firstLetter].push(post);
+    });
+
+    // Render grouped posts
+    Object.keys(groups).sort().forEach(letter => {
+        // Letter header
+        const letterHeader = document.createElement('div');
+        letterHeader.className = 'post-letter-header';
+        letterHeader.textContent = letter;
+        container.appendChild(letterHeader);
+
+        // Posts in this group
+        groups[letter].forEach(post => {
+            const item = document.createElement('div');
+            item.className = 'post-item-grouped';
+            item.innerHTML = `
+                <div class="post-item-info">
+                    <span class="post-item-name">${post}</span>
+                </div>
+                <span class="post-item-arrow">›</span>
+            `;
+            item.onclick = () => selectBorderPost(post);
+            container.appendChild(item);
+        });
+    });
+}
+
+// Search/filter border posts
+function filterBorderPosts(query) {
+    const lowerQuery = query.toLowerCase().trim();
+
+    // Filter popular posts
+    const popularContainer = document.getElementById('popularPostsContainer');
+    if (popularContainer) {
+        const popularCards = popularContainer.querySelectorAll('.popular-post-card');
+        popularCards.forEach(card => {
+            const name = card.querySelector('.popular-post-name')?.textContent.toLowerCase() || '';
+            card.style.display = name.includes(lowerQuery) || !lowerQuery ? 'block' : 'none';
+        });
+
+        // Hide popular section title if all cards are hidden
+        const popularSection = document.querySelector('.popular-posts-section');
+        if (popularSection) {
+            const visibleCards = popularContainer.querySelectorAll('.popular-post-card[style*="display: block"], .popular-post-card:not([style*="display"])');
+            popularSection.style.display = lowerQuery && visibleCards.length === 0 ? 'none' : 'block';
+        }
+    }
+
+    // Filter grouped posts
+    const listContainer = document.getElementById('borderPostsList');
+    if (listContainer) {
+        const items = listContainer.querySelectorAll('.post-item-grouped');
+        const letterHeaders = listContainer.querySelectorAll('.post-letter-header');
+
+        // Track which letters have visible items
+        const visibleLetters = new Set();
+
+        items.forEach(item => {
+            const name = item.querySelector('.post-item-name')?.textContent.toLowerCase() || '';
+            const isVisible = name.includes(lowerQuery) || !lowerQuery;
+            item.style.display = isVisible ? 'flex' : 'none';
+
+            if (isVisible) {
+                // Find the letter for this item
+                const letter = name.charAt(0).toUpperCase();
+                visibleLetters.add(letter);
+            }
+        });
+
+        // Show/hide letter headers
+        letterHeaders.forEach(header => {
+            const letter = header.textContent;
+            header.style.display = visibleLetters.has(letter) || !lowerQuery ? 'block' : 'none';
+        });
+    }
 }
 
 function selectBorderPost(post) {
@@ -925,5 +1056,8 @@ window.toggleOfflineAgents = toggleOfflineAgents;
 window.findNearestPost = findNearestPost;
 window.formatPrice = formatPrice;
 window.editSummaryField = editSummaryField;
+window.loadPopularPosts = loadPopularPosts;
+window.loadGroupedPosts = loadGroupedPosts;
+window.filterBorderPosts = filterBorderPosts;
 
 console.log('CARAVAN TRANZIT Mini App v2.0 loaded');
