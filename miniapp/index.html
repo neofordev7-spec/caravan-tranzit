@@ -115,41 +115,17 @@
                 </div>
             </div>
 
-            <!-- ==================== AGENT SELECTION ==================== -->
-            <div class="screen" id="agentScreen">
+            <!-- ==================== VILOYAT SELECTION (ANIQ EMAS uchun) ==================== -->
+            <div class="screen" id="viloyatScreen">
                 <div class="screen-header">
-                    <h2>👨‍💼 Agent tanlang</h2>
-                    <p>Quyidagi agentlardan birini tanlang:</p>
+                    <h2>🗺 Viloyatni tanlang</h2>
+                    <p>Qaysi viloyatga borasiz?</p>
                 </div>
-                <div class="agents-list" id="agentsList">
-                    <div class="agent-card" onclick="selectAgent('aziz')">
-                        <div class="agent-avatar">👤</div>
-                        <div class="agent-info">
-                            <h4>Agent Aziz</h4>
-                            <div class="agent-rating">⭐⭐⭐⭐⭐ <span>(4.9)</span></div>
-                            <p class="agent-location">📍 Oybek posti</p>
-                            <p class="agent-stats">✅ 1,240 ariza bajarilgan</p>
-                        </div>
-                        <span class="agent-arrow">→</span>
-                    </div>
-                    <div class="agent-card" onclick="selectAgent('bobur')">
-                        <div class="agent-avatar">👤</div>
-                        <div class="agent-info">
-                            <h4>Agent Bobur</h4>
-                            <div class="agent-rating">⭐⭐⭐⭐⭐ <span>(4.8)</span></div>
-                            <p class="agent-location">📍 Oybek posti</p>
-                            <p class="agent-stats">✅ 890 ariza bajarilgan</p>
-                        </div>
-                        <span class="agent-arrow">→</span>
-                    </div>
-                    <div class="agent-card cash-option" onclick="selectAgent('cash')">
-                        <div class="agent-avatar">💵</div>
-                        <div class="agent-info">
-                            <h4>AGENTLAR ORQALI</h4>
-                            <p class="agent-desc">NAQD PULDA (To'lov postda)</p>
-                        </div>
-                        <span class="agent-arrow">→</span>
-                    </div>
+                <div class="search-box">
+                    <input type="text" id="viloyatSearch" placeholder="🔍 Qidirish..." oninput="filterList('viloyatList', this.value)">
+                </div>
+                <div class="posts-list" id="viloyatList">
+                    <!-- Viloyatlar will be loaded dynamically -->
                 </div>
             </div>
 
@@ -237,16 +213,12 @@
                         <span class="summary-value" id="sumVehicle">-</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">🏛 Post:</span>
+                        <span class="summary-label">🏛 Kirish posti:</span>
                         <span class="summary-value" id="sumPost">-</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">📍 Manzil:</span>
+                        <span class="summary-label">📍 Manzil (TIF):</span>
                         <span class="summary-value" id="sumDest">-</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">👨‍💼 Agent:</span>
-                        <span class="summary-value" id="sumAgent">-</span>
                     </div>
                     <div class="summary-row">
                         <span class="summary-label">📷 Rasmlar:</span>

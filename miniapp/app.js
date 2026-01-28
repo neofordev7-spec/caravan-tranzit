@@ -22,38 +22,122 @@ const AppState = {
     userId: null
 };
 
-// ==================== DATA ====================
+// ==================== DATA (BOTDAGI KABI) ====================
+// CHEGARA BOJXONA POSTLARI (59 ta) - keyboards.py dan
 const BORDER_POSTS = [
-    "Oybek", "Yallama", "Olot", "Dustlik (Andijon)", "S. Najimov",
-    "Dovut-ota", "Sirdaryo", "Ayritom", "Jartepa", "Ozbekiston",
-    "Sariosiyo", "Uchqorgon", "Shovot", "Toshkent aeroporti",
-    "Andarxon", "Xojayli", "Kosonsoy", "Navoiy aeroporti",
-    "Nukus aeroporti", "Qoraqalpogiston", "Dustlik (Qoraqalpog'iston)",
-    "Andijon aeroporti", "Mingtepa", "Qorasuv", "Xonobod",
-    "Pushmon", "Madaniyat", "Keskanyor", "Savay", "Buxoro aeroporti",
-    "Xojadavlat", "Uchtorgon", "Qoshkent", "Qarshi-Kerki",
-    "Qarshi aeroporti", "Namangan aeroporti", "Pop", "Samarqand aeroporti",
-    "Termiz aeroporti", "Gulbahor", "Boldir", "Xovosobod",
-    "Oq oltin", "Malik", "Navoiy", "Bekobod avto", "Gishtko'prik",
-    "Farhod", "Bekobod", "Fargona aeroporti", "Fargona", "Rishton",
-    "Rovot", "Sox", "Dustlik (Xorazm)", "Urganch aeroporti",
-    "Keles", "Chuqursoy texnik idora"
+    "Yallama",
+    "Olot",
+    "Doʻstlik (Andijon)",
+    "S. Najimov",
+    "Dovut-ota",
+    "Sirdaryo",
+    "Ayritom",
+    "Jartepa",
+    "Oʻzbekiston",
+    "Oybek",
+    "Sariosiyo",
+    "Uchqoʻrgʻon",
+    "Shovot",
+    "Islom Karimov nomidagi Toshkent xalqaro aeroporti",
+    "Andarxon",
+    "Xoʻjayli",
+    "Kosonsoy",
+    "Navoiy aeroporti",
+    "Nukus aeroporti",
+    "Qoraqalpogʻiston",
+    "Doʻstlik (Qoraqalpog'iston)",
+    "Andijon aeroporti",
+    "Mingtepa",
+    "Qorasuv",
+    "Xonobod",
+    "Pushmon",
+    "Madaniyat",
+    "Keskanyor",
+    "Savay",
+    "Buxoro aeroporti",
+    "Xoʻjadavlat",
+    "Uchtoʻrgʻon",
+    "Qoʻshkent",
+    "Qarshi-Kerki",
+    "Qarshi aeroporti",
+    "Namangan aeroporti",
+    "Pop",
+    "Samarqand aeroporti",
+    "Termiz aeroporti",
+    "Gulbahor",
+    "Boldir",
+    "Xovosobod",
+    "Oq oltin",
+    "Malik",
+    "Navoiy",
+    "Bekobod avto",
+    "Gʻishtkoʻprik",
+    "Farhod",
+    "Bekobod",
+    "Fargʻona aeroporti",
+    "Fargʻona",
+    "Rishton",
+    "Rovot",
+    "Soʻx",
+    "Doʻstlik (Xorazm)",
+    "Urganch aeroporti",
+    "Keles",
+    "Chuqursoy texnik idora"
 ];
 
+// TIF (TASHQI IQTISODIY FAOLIYAT) POSTLARI (33 ta) - keyboards.py dan
 const TIF_POSTS = [
-    "Toshkent TIF", "Sirgali", "Chuqursoy", "Toshkent-tovar",
-    "Termiz TIF", "Buxoro TIF", "Angren", "Vodiy", "Ark buloq",
-    "Qorakol", "Termiz xalqaro savdo markazi", "Nasaf", "Urganch",
-    "Ulugbek", "Guliston", "Asaka", "Namangan", "Samarqand",
-    "Jizzax", "Qoqon", "Nukus", "Andijon", "Qamashi-Guzor",
-    "Navoiy TIF", "Zarafshon", "Denov", "Daryo porti", "Chirchiq",
-    "Olmaliq", "Yangiyol", "Nazarbek", "Keles", "Elektron tijorat"
+    "Avia yuklar",
+    "Sirgʻali",
+    "Chuqursoy",
+    "Toshkent-tovar",
+    "Termiz",
+    "Buxoro",
+    "Angren",
+    "Vodiy",
+    "Ark buloq",
+    "Qorakoʻl",
+    "Termiz xalqaro savdo markazi",
+    "Nasaf",
+    "Urganch",
+    "Ulugʻbek",
+    "Guliston",
+    "Asaka",
+    "Namangan",
+    "Samarqand",
+    "Jizzax",
+    "Qoʻqon",
+    "Nukus",
+    "Andijon",
+    "Qamashi-Gʻuzor",
+    "Navoiy",
+    "Zarafshon",
+    "Denov",
+    "Daryo porti",
+    "Chirchiq",
+    "Olmaliq",
+    "Yangiyoʻl",
+    "Nazarbek",
+    "Keles",
+    "Elektron tijorat"
 ];
 
-const AGENTS = [
-    { id: 'aziz', name: 'Agent Aziz', rating: 4.9, location: 'Oybek posti', completed: 1240 },
-    { id: 'bobur', name: 'Agent Bobur', rating: 4.8, location: 'Oybek posti', completed: 890 },
-    { id: 'sardor', name: 'Agent Sardor', rating: 4.7, location: 'Yallama posti', completed: 650 }
+// O'ZBEKISTON VILOYATLARI (14 ta) - keyboards.py dan
+const VILOYATLAR = [
+    "Qoraqalpogʻiston Respublikasi",
+    "Andijon viloyati",
+    "Buxoro viloyati",
+    "Fargʻona viloyati",
+    "Jizzax viloyati",
+    "Xorazm viloyati",
+    "Namangan viloyati",
+    "Navoiy viloyati",
+    "Qashqadaryo viloyati",
+    "Samarqand viloyati",
+    "Sirdaryo viloyati",
+    "Surxondaryo viloyati",
+    "Toshkent viloyati",
+    "Toshkent shahri"
 ];
 
 // ==================== INITIALIZATION ====================
@@ -226,7 +310,7 @@ function resetFlowState() {
     AppState.uploadedFiles = [];
 }
 
-// ==================== EPI/MB FLOW ====================
+// ==================== EPI/MB FLOW (BOTDAGI KABI) ====================
 function startEPIFlow() {
     AppState.serviceType = 'EPI';
     loadBorderPosts();
@@ -243,6 +327,18 @@ function loadBorderPosts() {
     const container = document.getElementById('borderPostsList');
     container.innerHTML = '';
 
+    // ANIQ EMAS tugmasi - birinchi
+    const aniqEmasItem = document.createElement('div');
+    aniqEmasItem.className = 'post-item aniq-emas';
+    aniqEmasItem.innerHTML = `
+        <span class="post-icon">❓</span>
+        <span class="post-name">ANIQ EMAS</span>
+        <span class="post-arrow">→</span>
+    `;
+    aniqEmasItem.onclick = () => showViloyatSelection('border');
+    container.appendChild(aniqEmasItem);
+
+    // Barcha postlar
     BORDER_POSTS.forEach(post => {
         const item = document.createElement('div');
         item.className = 'post-item';
@@ -256,22 +352,54 @@ function loadBorderPosts() {
     });
 }
 
+function showViloyatSelection(type) {
+    // type: 'border' yoki 'dest'
+    AppState.viloyatSelectionType = type;
+    loadViloyatlar();
+    navigateTo('viloyatScreen');
+}
+
+function loadViloyatlar() {
+    const container = document.getElementById('viloyatList');
+    if (!container) return;
+    container.innerHTML = '';
+
+    VILOYATLAR.forEach(viloyat => {
+        const item = document.createElement('div');
+        item.className = 'post-item';
+        item.innerHTML = `
+            <span class="post-icon">🗺</span>
+            <span class="post-name">${viloyat}</span>
+            <span class="post-arrow">→</span>
+        `;
+        item.onclick = () => selectViloyat(viloyat);
+        container.appendChild(item);
+    });
+}
+
+function selectViloyat(viloyat) {
+    if (tg) tg.HapticFeedback?.impactOccurred('medium');
+
+    if (AppState.viloyatSelectionType === 'border') {
+        AppState.selectedPost = `ANIQ EMAS (${viloyat})`;
+        // TIF tanlashga o'tish
+        loadDestinations();
+        navigateTo('destScreen');
+    } else {
+        AppState.selectedDestination = `ANIQ EMAS (${viloyat})`;
+        // Mashina raqamiga o'tish
+        navigateTo('vehicleScreen');
+    }
+}
+
 function selectBorderPost(post) {
     AppState.selectedPost = post;
 
     if (tg) tg.HapticFeedback?.impactOccurred('medium');
 
-    // Go to agent selection
-    navigateTo('agentScreen');
-}
-
-function selectAgent(agentId) {
-    AppState.selectedAgent = agentId;
-
-    if (tg) tg.HapticFeedback?.impactOccurred('medium');
-
-    // Go to vehicle number input
-    navigateTo('vehicleScreen');
+    // TIF (manzil) tanlashga o'tish - botdagi kabi
+    loadDestinations();
+    navigateTo('destScreen');
 }
 
 function formatVehicleNumber(input) {
@@ -317,7 +445,7 @@ function submitVehicle() {
 
     if (tg) tg.HapticFeedback?.impactOccurred('medium');
 
-    // Go to document upload
+    // Hujjat yuklashga o'tish - botdagi kabi
     navigateTo('documentsScreen');
 }
 
@@ -388,15 +516,27 @@ function removeFile(index) {
 function submitDocuments() {
     if (tg) tg.HapticFeedback?.impactOccurred('medium');
 
-    // Load destinations and go to destination selection
-    loadDestinations();
-    navigateTo('destScreen');
+    // Summary ga o'tish - botdagi kabi
+    updateSummary();
+    navigateTo('summaryScreen');
 }
 
 function loadDestinations() {
     const container = document.getElementById('destList');
     container.innerHTML = '';
 
+    // ANIQ EMAS tugmasi - birinchi
+    const aniqEmasItem = document.createElement('div');
+    aniqEmasItem.className = 'post-item aniq-emas';
+    aniqEmasItem.innerHTML = `
+        <span class="post-icon">❓</span>
+        <span class="post-name">ANIQ EMAS</span>
+        <span class="post-arrow">→</span>
+    `;
+    aniqEmasItem.onclick = () => showViloyatSelection('dest');
+    container.appendChild(aniqEmasItem);
+
+    // Barcha TIF postlari
     TIF_POSTS.forEach(dest => {
         const item = document.createElement('div');
         item.className = 'post-item';
@@ -415,23 +555,15 @@ function selectDestination(dest) {
 
     if (tg) tg.HapticFeedback?.impactOccurred('medium');
 
-    // Update summary and show
-    updateSummary();
-    navigateTo('summaryScreen');
+    // Mashina raqamiga o'tish - botdagi kabi
+    navigateTo('vehicleScreen');
 }
 
 function updateSummary() {
     document.getElementById('sumVehicle').textContent = AppState.vehicleNumber || '-';
     document.getElementById('sumPost').textContent = AppState.selectedPost || '-';
     document.getElementById('sumDest').textContent = AppState.selectedDestination || '-';
-    document.getElementById('sumAgent').textContent = getAgentName(AppState.selectedAgent);
     document.getElementById('sumPhotos').textContent = `${AppState.uploadedFiles.length} ta`;
-}
-
-function getAgentName(agentId) {
-    if (agentId === 'cash') return 'Naqd pulda';
-    const agent = AGENTS.find(a => a.id === agentId);
-    return agent ? agent.name : '-';
 }
 
 // ==================== SUBMIT APPLICATION ====================
@@ -445,15 +577,14 @@ async function submitApplication() {
     const appCode = generateAppCode();
     const now = new Date();
 
-    // Prepare data
+    // Prepare data - botdagi kabi
     const applicationData = {
         code: appCode,
         user_id: AppState.userId,
         service_type: AppState.serviceType,
         border_post: AppState.selectedPost,
-        destination: AppState.selectedDestination,
-        vehicle_number: AppState.vehicleNumber,
-        agent: AppState.selectedAgent,
+        dest_post: AppState.selectedDestination,
+        car_number: AppState.vehicleNumber,
         files_count: AppState.uploadedFiles.length,
         timestamp: now.toISOString()
     };
