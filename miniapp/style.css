@@ -490,6 +490,21 @@ input {
     font-size: var(--font-size-lg);
 }
 
+/* ANIQ EMAS special style */
+.post-item.aniq-emas {
+    background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+    border-color: #FF9800;
+}
+
+.post-item.aniq-emas .post-icon {
+    font-size: 28px;
+}
+
+.post-item.aniq-emas .post-name {
+    font-weight: 700;
+    color: #E65100;
+}
+
 /* ========== AGENT CARDS ========== */
 .agents-list {
     display: flex;

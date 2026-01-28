@@ -501,9 +501,8 @@ function updateUploadedPreview() {
 
     counter.textContent = `${AppState.uploadedFiles.length} ta rasm`;
 
-    // Enable/disable submit button
-    const minFiles = AppState.serviceType === 'EPI' ? 2 : 2;
-    submitBtn.disabled = AppState.uploadedFiles.length < minFiles;
+    // Enable submit button - always enabled (0 ta bo'lsa ham davom etish mumkin)
+    submitBtn.disabled = false;
 }
 
 function removeFile(index) {
