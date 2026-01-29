@@ -433,8 +433,16 @@ def get_pricing_kb(app_code):
 
 def get_user_payment_methods(app_code, amount):
     """Foydalanuvchi uchun to'lov usullari"""
+    from payme_api import generate_checkout_url
+    from click_api import ClickAPI
+    from decimal import Decimal
+
+    payme_url = generate_checkout_url(app_code, Decimal(str(amount)))
+    click_url = ClickAPI.generate_payment_url(app_code, Decimal(str(amount)))
+
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=f"📲 Click / Payme ({amount})", url="https://payme.uz")],
-        [InlineKeyboardButton(text="💳 Karta orqali", callback_data=f"pay_card_{app_code}")],
-        [InlineKeyboardButton(text="🖼 QR-kod", callback_data=f"pay_qr_{app_code}")]
+        [InlineKeyboardButton(text=f"💳 Payme ({amount:,.0f} UZS)", url=payme_url)],
+        [InlineKeyboardButton(text=f"💳 Click ({amount:,.0f} UZS)", url=click_url)],
+        [InlineKeyboardButton(text="🪙 Tangalardan to'lash", callback_data=f"pay_coins_{app_code}")],
+        [InlineKeyboardButton(text="❌ Bekor qilish", callback_data=f"cancel_payment_{app_code}")]
     ])
