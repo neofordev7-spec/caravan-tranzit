@@ -2548,6 +2548,23 @@ input {
     border-radius: var(--radius-sm);
 }
 
+/* Simple popular post card (no image) */
+.popular-post-simple {
+    width: 160px;
+    padding: var(--spacing-md);
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.popular-post-simple .popular-post-name {
+    color: var(--text-primary);
+}
+
+.popular-post-simple .popular-post-region {
+    color: var(--text-secondary);
+}
+
 /* All Posts Section */
 .all-posts-section {
     margin-bottom: 80px;
