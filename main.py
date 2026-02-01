@@ -35,7 +35,7 @@ async def main():
     try:
         web_runner = await start_web_server()
         print("✅ Web server Mini App uchun ishga tushdi!")
-        print(f"📱 Mini App URL: https://thorough-integrity-production-a29f.up.railway.app/miniapp/")
+        print(f"📱 Mini App URL: https://caravan-tranzit-production.up.railway.app/miniapp/")
     except Exception as e:
         print(f"⚠️ Web server xatosi (bot ishlaydi): {e}")
 
