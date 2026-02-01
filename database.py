@@ -344,6 +344,14 @@ class Database:
                 transaction_id, status, payment_id
             )
 
+    async def get_transaction_by_payment_id(self, payment_id):
+        """Payme/Click payment ID bo'yicha tranzaksiyani topadi"""
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow(
+                'SELECT * FROM transactions WHERE payment_id = $1 ORDER BY created_at DESC LIMIT 1',
+                payment_id
+            )
+
     # =============================================================
     # REFERRALS & GAMIFICATION
     # =============================================================

@@ -80,8 +80,14 @@ BOT_TOKEN=your_bot_token_here
 # Database (Railway provides this automatically)
 DATABASE_URL=postgresql://user:pass@host:port/dbname
 
-# Payment Provider (Click/Payme)
-PAYMENT_PROVIDER_TOKEN=your_payment_token_here
+# Payme Payment
+PAYME_MERCHANT_ID=694404d0656e7b8e815d85ce
+PAYME_MERCHANT_KEY=your_payme_merchant_key
+
+# Click Payment
+CLICK_SERVICE_ID=91522
+CLICK_MERCHANT_ID=40158
+CLICK_SECRET_KEY=your_click_secret_key
 ```
 
 ### 3. Database Setup
@@ -174,15 +180,27 @@ To get your chat ID:
 
 ### Payment Integration
 
-#### Click/Payme Setup
-1. Register at [Click](https://click.uz) or [Payme](https://payme.uz)
-2. Get merchant credentials
-3. Set `PAYMENT_PROVIDER_TOKEN` in `.env`
+#### Payme Setup
+1. Register at [Payme Business](https://merchant.payme.uz)
+2. Create a merchant (virtual terminal)
+3. Get Merchant ID and Key from "Инструменты разработчика"
+4. Set callback URL in Payme dashboard: `https://your-domain.up.railway.app/api/payme`
+5. Set credentials in `.env`:
+```env
+PAYME_MERCHANT_ID=your_merchant_id
+PAYME_MERCHANT_KEY=your_merchant_key
+```
 
-#### Telegram Payments API
-```python
-# payment_handlers.py line 18
-PAYMENT_PROVIDER_TOKEN = "your_click_or_payme_token"
+#### Click Setup
+1. Register at [Click](https://click.uz)
+2. Get merchant credentials
+3. Set prepare URL: `https://your-domain.up.railway.app/api/click/prepare`
+4. Set complete URL: `https://your-domain.up.railway.app/api/click/complete`
+5. Set credentials in `.env`:
+```env
+CLICK_SERVICE_ID=your_service_id
+CLICK_MERCHANT_ID=your_merchant_id
+CLICK_SECRET_KEY=your_secret_key
 ```
 
 ## 📱 Supported Languages
@@ -268,10 +286,10 @@ git push origin main
 **Solution**: Ensure `webapp_url` in `keyboards.py` is a valid HTTPS URL
 
 ### Payment Not Working
-```
-❌ Invalid payment provider token
-```
-**Solution**: Get correct token from Click/Payme and update `PAYMENT_PROVIDER_TOKEN`
+**Solution**:
+- Payme: Set correct `PAYME_MERCHANT_ID` and `PAYME_MERCHANT_KEY` in `.env`
+- Payme: Set callback URL in Payme dashboard: `https://your-domain/api/payme`
+- Click: Set correct `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID`, `CLICK_SECRET_KEY` in `.env`
 
 ## 📈 Future Enhancements
 

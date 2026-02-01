@@ -1,10 +1,14 @@
 """
 CARAVAN TRANZIT Web Server
 Serves Mini App static files alongside the Telegram bot
++ Payme Merchant API endpoint (JSON-RPC 2.0)
++ Click API endpoint
 """
 import os
 from aiohttp import web
 import logging
+from payme_api import PaymeAPI
+from click_api import ClickAPI
 
 logger = logging.getLogger(__name__)
 
@@ -123,12 +127,57 @@ async def create_web_app():
                 'error': str(e)
             }, status=400)
 
+    # Payme API endpoint (JSON-RPC 2.0)
+    async def payme_endpoint(request):
+        """Payme Merchant API - JSON-RPC 2.0 endpoint"""
+        return await PaymeAPI.handle_request(request)
+
+    # Click API endpoints
+    async def click_prepare(request):
+        """Click Prepare endpoint"""
+        try:
+            data = await request.post()
+            result = await ClickAPI.prepare_payment(
+                click_trans_id=int(data.get('click_trans_id', 0)),
+                merchant_trans_id=data.get('merchant_trans_id', ''),
+                amount=float(data.get('amount', 0)),
+                sign_time=data.get('sign_time', ''),
+                sign_string=data.get('sign_string', '')
+            )
+            return web.json_response(result)
+        except Exception as e:
+            logger.error(f"Click prepare error: {e}")
+            return web.json_response({"error": -9, "error_note": str(e)})
+
+    async def click_complete(request):
+        """Click Complete endpoint"""
+        try:
+            data = await request.post()
+            result = await ClickAPI.complete_payment(
+                click_trans_id=int(data.get('click_trans_id', 0)),
+                merchant_trans_id=data.get('merchant_trans_id', ''),
+                merchant_prepare_id=data.get('merchant_prepare_id', ''),
+                amount=float(data.get('amount', 0)),
+                sign_time=data.get('sign_time', ''),
+                sign_string=data.get('sign_string', ''),
+                error=int(data.get('error', 0))
+            )
+            return web.json_response(result)
+        except Exception as e:
+            logger.error(f"Click complete error: {e}")
+            return web.json_response({"error": -9, "error_note": str(e)})
+
     # Setup routes
     app.router.add_get('/', root_handler)
     app.router.add_get('/health', health_check)
     app.router.add_get('/miniapp', miniapp_index)  # Redirect without trailing slash
     app.router.add_get('/miniapp/', miniapp_index)  # Main miniapp entry point
     app.router.add_post('/api/applications', miniapp_api_submit)
+
+    # Payment API routes
+    app.router.add_post('/api/payme', payme_endpoint)          # Payme JSON-RPC
+    app.router.add_post('/api/click/prepare', click_prepare)   # Click Prepare
+    app.router.add_post('/api/click/complete', click_complete)  # Click Complete
 
     # Serve miniapp static files (CSS, JS, images, etc.)
     app.router.add_static('/miniapp/', miniapp_path, name='miniapp', show_index=True)
