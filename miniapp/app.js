@@ -54,72 +54,14 @@ const TIF_POSTS = [
     "Olmaliq", "Yangiyol", "Nazarbek", "Keles", "Elektron tijorat"
 ];
 
-// Popular border posts with images
+// Popular border posts (no images)
 const POPULAR_POSTS = [
-    {
-        name: 'Yallama',
-        region: 'Toshkent viloyati',
-        agents: 12,
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCp-W_rYtGPEKTrMRFwSk8wy_LwJcJnUPbUaNOBTN-evLT2Y81LFIl-tI4HVLGSm3VWsOQQnNg6SIL2c9FNxCMTOg9TqMSVw75VawA8GXVFV_R4A7xSbf8LJsBMQNKzwEqXMzKd5s8M2ECU9IbN0EzzOy_YN-jWRuOCjRwrxqJQ6yOQTj14YEZSfJnP-cQtS6h_XW-iRCN7C1u4OhP_g6JZG_q8eMj_i0hl84F8mXG3sJ1Ct5qIBEGDlOZnqb90sRKBQfAQDFFmTuI'
-    },
-    {
-        name: 'Olot',
-        region: 'Buxoro viloyati',
-        agents: 8,
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCwdYoL14nKWM5EBcjHLPy-o4_4xKV0yEyLQ-6_TQ0D49AqFOy1MK0q0bexXpRpAdUOCBq_S3aKOKLhC5-O9l8SKg0kC0JY4mA0Kv1TWj5LF8NWY5RM7mZQzQJ3TqDEDLlLQOI9qjJk4xZ-SNZK9uJZOiRyJQ1oU8LdG0WBWxf_W3cPQ7pAa1rlF1ygS6c2aN5RYH3wBjL8KpX3NdC2aJ6UJ5gf1OI6dM3o0wPDrIb8dNT7Fq1gZMl_NKqQ6sXDK8Lj3w5BNvVOvM'
-    },
-    {
-        name: "Do'stlik",
-        region: 'Andijon viloyati',
-        agents: 15,
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDpkSuZdZd0HXkEhxMqX8gEMZUJJRvkZqL7R_SBxN3QqQ2qlF-H8oO-p3rZYVsXg3rQfGwLB5x-P7rEZqMBKN2DfPYu0OkUq3Z7jMZ9qQF3KqMWxZPLR4f8ZjQc7PYPWv5kXQdJ9r0YNmLvJnLQw3sPXrZ8fN6HqG1KlZdnQqYx3pQgZYJx0pXQvLm8K7zRN8sPfLqWkM0gJQp6KxYPZrM9N_Z7qQkWh5p0Lw1RNO3WLJp6XG8KvQpZJ5gWM3dPHvKf8LQR7NZYjQ'
-    }
+    { name: 'Yallama', region: 'Toshkent viloyati' },
+    { name: 'Olot', region: 'Buxoro viloyati' },
+    { name: "Do'stlik", region: 'Andijon viloyati' }
 ];
 
-const AGENTS = [
-    {
-        id: 'ali',
-        name: 'Ali Valiyev',
-        rating: 4.8,
-        priceMin: 35000,
-        priceMax: 60000,
-        badge: 'top_rated',
-        online: true,
-        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA-4mXKU91loGciYNcynW5W0szXcGke8fIG5daq5NfGfkfMdAAAjJLEzhtuoNEnKUhKoBTK97bsvZhj1QQE8L7gmbQkaovU4Y0UqOX__aUuRi-lYNP8BmP-ieznwyHxDNABqYuc0H3bshPEwKnRdxZX8Ay_0N66kLJmWGp332wNgz5BckDHwyFGh_NzVKn74hg5RRiudRCy-aYCEcRKGQkkB2lHU9ac9t02MJiNVOgbGNmkCcLSuhxQaNDm-YhJ1_4dCPCdrMPoTdY'
-    },
-    {
-        id: 'sanjar',
-        name: 'Sanjar Islomov',
-        rating: 4.9,
-        priceMin: 40000,
-        priceMax: 65000,
-        badge: 'fast_response',
-        online: true,
-        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDA5jd_af6u8rvQ-3pYCQE4HYF9sO6t19uhZ3vqyKzsYvFDZg4_sGewLg9BecZMqQAmAM9EootOyjA9MLMyvmeNd_BAbezyLTAkT9tAvKVpva0u_PqJiCwZvvT96ybFyjrNdTXQg-VbnkJ5PPRCOtalYo4DNbmpUDKuv6vYiPGDupMlEDJ2pKNIA7XVI3JY417U53DEWMv8n5S7Zm2YGvye9944PrDqpltPV5VdGpBVbxJAXuWFUileTSuMxcxEd6kb4zrw27j5d7A'
-    },
-    {
-        id: 'nigora',
-        name: 'Nigora Saidova',
-        rating: 4.7,
-        priceMin: 38000,
-        priceMax: 62000,
-        badge: 'highly_recommended',
-        online: true,
-        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCODBuLtQS0l9ImFObjL52sU7JrI5Kb9poisA6ywRjkhcHm_vNHHCg5HDp3rHpEE4z8pfNHbIQ-SDcNyE9zJuNj_BW7sFNqYZsbg8mtif2Bk01rm4GK7Xa2KxKtbctmNGnuVVt5uwA_FR2hKA9tfwbjsoEXVGYHWLt5P03DSpswM9wuNXDDlUv9WE7R9W8QraIGwlCUcOnuQeQikYscPvsCmrXzXQeBDm940mjqfpx8o_Esy5vZE8EHlTm8Ss3Ah0UMTQQ6UhiBa7M'
-    }
-];
-
-// Offline agents data
-const OFFLINE_AGENTS = [
-    { id: 'karim', name: 'Karim Rahimov', rating: 4.5 },
-    { id: 'aziza', name: 'Aziza Karimova', rating: 4.6 },
-    { id: 'bobur', name: 'Bobur Xolmatov', rating: 4.4 },
-    { id: 'dilnoza', name: 'Dilnoza Tosheva', rating: 4.3 },
-    { id: 'jamshid', name: 'Jamshid Aliev', rating: 4.5 },
-    { id: 'shoxrux', name: 'Shoxrux Ergashev', rating: 4.2 },
-    { id: 'madina', name: 'Madina Yusupova', rating: 4.6 },
-    { id: 'rustam', name: 'Rustam Nazarov', rating: 4.4 }
-];
+// Agent selection removed - not needed for now
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -466,7 +408,7 @@ function loadBorderPosts() {
     loadGroupedPosts();
 }
 
-// Load popular posts carousel
+// Load popular posts (simple list, no images)
 function loadPopularPosts() {
     const container = document.getElementById('popularPostsContainer');
     if (!container) return;
@@ -477,12 +419,9 @@ function loadPopularPosts() {
         const card = document.createElement('div');
         card.className = 'popular-post-card';
         card.innerHTML = `
-            <div class="popular-post-image" style="background-image: url('${post.image}')">
-                <div class="popular-post-overlay">
-                    <h4 class="popular-post-name">${post.name}</h4>
-                    <p class="popular-post-region">${post.region}</p>
-                    <span class="popular-post-agents">${post.agents} ${t('agents_count')}</span>
-                </div>
+            <div class="popular-post-simple">
+                <h4 class="popular-post-name">${post.name}</h4>
+                <p class="popular-post-region">${post.region}</p>
             </div>
         `;
         card.onclick = () => selectBorderPost(post.name);
@@ -589,107 +528,8 @@ function selectBorderPost(post) {
 
     if (tg) tg.HapticFeedback?.impactOccurred('medium');
 
-    // Update agent screen header with post name
-    const postNameEl = document.getElementById('agentPostName');
-    if (postNameEl) {
-        postNameEl.textContent = post + ' posti';
-    }
-
-    // Load agents for this post
-    loadAgents();
-
-    // Go to agent selection
-    navigateTo('agentScreen');
-}
-
-// Load online agents dynamically
-function loadAgents() {
-    const container = document.getElementById('agentsList');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    const onlineAgents = AGENTS.filter(a => a.online);
-    document.getElementById('onlineAgentCount').textContent = onlineAgents.length;
-
-    onlineAgents.forEach(agent => {
-        const badgeText = agent.badge === 'top_rated' ? t('top_rated') :
-                         agent.badge === 'fast_response' ? t('fast_response') : agent.badge;
-
-        const card = document.createElement('div');
-        card.className = 'agent-card-new';
-        card.innerHTML = `
-            <div class="agent-avatar-wrapper">
-                <div class="agent-avatar-img" style="background-image: url('${agent.avatar}')"></div>
-                <div class="agent-online-indicator"></div>
-            </div>
-            <div class="agent-info-new">
-                <h4 class="agent-name">${agent.name}</h4>
-                <p class="agent-price">${formatPrice(agent.priceMin)} - ${formatPrice(agent.priceMax)} so'm</p>
-                <div class="agent-rating-badge">
-                    <span class="star">⭐</span>
-                    <span>${agent.rating} • ${badgeText}</span>
-                </div>
-            </div>
-            <button class="agent-select-btn" onclick="event.stopPropagation(); selectAgent('${agent.id}')">
-                ${t('select')}
-            </button>
-        `;
-        card.onclick = () => selectAgent(agent.id);
-        container.appendChild(card);
-    });
-
-    // Load offline agents count
-    document.getElementById('offlineAgentCount').textContent = OFFLINE_AGENTS.length;
-    loadOfflineAgents();
-}
-
-// Load offline agents list
-function loadOfflineAgents() {
-    const container = document.getElementById('offlineAgentsList');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    OFFLINE_AGENTS.forEach(agent => {
-        const item = document.createElement('div');
-        item.className = 'offline-agent-item';
-        item.innerHTML = `
-            <div class="offline-agent-avatar">👤</div>
-            <div class="offline-agent-info">
-                <span class="offline-agent-name">${agent.name}</span>
-                <span class="offline-agent-rating">⭐ ${agent.rating}</span>
-            </div>
-            <span class="offline-status">Offline</span>
-        `;
-        container.appendChild(item);
-    });
-}
-
-// Toggle offline agents section
-function toggleOfflineAgents() {
-    const list = document.getElementById('offlineAgentsList');
-    const arrow = document.getElementById('offlineArrow');
-
-    if (list.style.display === 'none') {
-        list.style.display = 'block';
-        arrow.textContent = '▲';
-    } else {
-        list.style.display = 'none';
-        arrow.textContent = '▼';
-    }
-
-    if (tg) tg.HapticFeedback?.impactOccurred('light');
-}
-
-// Find nearest post function
-function findNearestPost() {
-    if (tg) {
-        tg.HapticFeedback?.impactOccurred('medium');
-        tg.showAlert(t('coming_soon'));
-    } else {
-        alert(t('coming_soon'));
-    }
+    // Skip agent selection - go directly to vehicle number input
+    navigateTo('vehicleScreen');
 }
 
 // Format price with thousands separator
@@ -697,21 +537,12 @@ function formatPrice(price) {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-function selectAgent(agentId) {
-    AppState.selectedAgent = agentId;
-
-    if (tg) tg.HapticFeedback?.impactOccurred('medium');
-
-    // Go to vehicle number input
-    navigateTo('vehicleScreen');
-}
-
 function formatVehicleNumber(input) {
-    let value = input.value.toUpperCase().replace(/[^0-9A-Z]/g, '');
+    let value = input.value.toUpperCase().replace(/[^0-9A-Za-z\- ]/g, '');
     input.value = value;
 
-    // Validate format
-    const isValid = /^[0-9]{2}[A-Z][0-9]{3}[A-Z]{2}$/.test(value);
+    // Accept any vehicle number with at least 3 characters (international formats)
+    const isValid = value.replace(/[\s\-]/g, '').length >= 3;
 
     if (isValid) {
         input.classList.add('valid');
@@ -733,7 +564,8 @@ function submitVehicle() {
     const input = document.getElementById('vehicleNumber');
     const value = input.value.trim();
 
-    if (!/^[0-9]{2}[A-Z][0-9]{3}[A-Z]{2}$/.test(value)) {
+    // Accept any vehicle number with at least 3 chars (international formats)
+    if (value.replace(/[\s\-]/g, '').length < 3) {
         if (tg) {
             tg.showAlert(t('error_vehicle_format'));
         } else {
@@ -757,20 +589,34 @@ function submitVehicle() {
 function handleFileSelect(event) {
     const files = Array.from(event.target.files);
 
+    if (!files || files.length === 0) return;
+
     files.forEach(file => {
-        if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+        // Accept images and PDFs (check by extension too for mobile compatibility)
+        const ext = file.name.toLowerCase().split('.').pop();
+        const isImage = file.type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp', 'gif'].includes(ext);
+        const isPdf = file.type === 'application/pdf' || ext === 'pdf';
+
+        if (isImage || isPdf) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 AppState.uploadedFiles.push({
                     name: file.name,
                     data: e.target.result,
-                    type: file.type
+                    type: file.type || (isImage ? 'image/jpeg' : 'application/pdf'),
+                    size: file.size
                 });
                 updateUploadedPreview();
+            };
+            reader.onerror = () => {
+                console.error('File read error:', file.name);
             };
             reader.readAsDataURL(file);
         }
     });
+
+    // Reset input so same file can be selected again
+    event.target.value = '';
 
     if (tg) tg.HapticFeedback?.impactOccurred('light');
 }
@@ -805,9 +651,8 @@ function updateUploadedPreview() {
 
     counter.textContent = `${AppState.uploadedFiles.length} ${t('photos_count')}`;
 
-    // Enable/disable submit button
-    const minFiles = AppState.serviceType === 'EPI' ? 2 : 2;
-    submitBtn.disabled = AppState.uploadedFiles.length < minFiles;
+    // Enable/disable submit button (at least 1 file required)
+    submitBtn.disabled = AppState.uploadedFiles.length < 1;
 }
 
 function removeFile(index) {
@@ -863,7 +708,6 @@ function updateSummary() {
     document.getElementById('sumVehicle').textContent = AppState.vehicleNumber || '-';
     document.getElementById('sumPost').textContent = AppState.selectedPost || '-';
     document.getElementById('sumDest').textContent = AppState.selectedDestination || '-';
-    document.getElementById('sumAgent').textContent = getAgentName(AppState.selectedAgent);
 
     // Update documents count with new format
     const photosEl = document.getElementById('sumPhotos');
@@ -887,11 +731,6 @@ function editSummaryField(field) {
             loadBorderPosts();
             navigateTo('borderPostScreen');
             break;
-        case 'agent':
-            // Go to agent selection
-            loadAgents();
-            navigateTo('agentScreen');
-            break;
         case 'vehicle':
             // Go to vehicle input
             navigateTo('vehicleScreen');
@@ -911,11 +750,6 @@ function editSummaryField(field) {
 }
 
 function getAgentName(agentId) {
-    if (agentId === 'cash') return t('cash_payment');
-    const agent = AGENTS.find(a => a.id === agentId);
-    if (agent) {
-        return `${agent.name} (${formatPrice(agent.priceMin)}-${formatPrice(agent.priceMax)} so'm)`;
-    }
     return '-';
 }
 
@@ -930,9 +764,8 @@ async function submitApplication() {
     const appCode = generateAppCode();
     const now = new Date();
 
-    // Get agent info
-    const agent = AGENTS.find(a => a.id === AppState.selectedAgent);
-    const agentName = agent ? agent.name : (AppState.selectedAgent === 'cash' ? t('cash_payment') : '-');
+    // Agent info (not selected in mini app flow)
+    const agentName = '-';
 
     // Prepare data to send to bot
     const applicationData = {
@@ -1242,7 +1075,6 @@ function handleMainButton() {
 // ==================== EXPORT FOR HTML ONCLICK ====================
 window.startEPIFlow = startEPIFlow;
 window.startMBFlow = startMBFlow;
-window.selectAgent = selectAgent;
 window.formatVehicleNumber = formatVehicleNumber;
 window.useRecentVehicle = useRecentVehicle;
 window.submitVehicle = submitVehicle;
@@ -1274,10 +1106,6 @@ window.clearCache = clearCache;
 window.editPhone = editPhone;
 window.contactAdmin = contactAdmin;
 window.filterList = filterList;
-window.loadAgents = loadAgents;
-window.loadOfflineAgents = loadOfflineAgents;
-window.toggleOfflineAgents = toggleOfflineAgents;
-window.findNearestPost = findNearestPost;
 window.formatPrice = formatPrice;
 window.editSummaryField = editSummaryField;
 window.loadPopularPosts = loadPopularPosts;

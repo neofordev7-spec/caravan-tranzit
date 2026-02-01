@@ -30,69 +30,9 @@ async def create_web_app():
             'miniapp_url': '/miniapp/'
         })
 
-    # Root endpoint
+    # Root endpoint - redirect directly to Mini App
     async def root_handler(request):
-        return web.Response(
-            text="""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>CARAVAN TRANZIT - Caravan Broker</title>
-                <style>
-                    body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        min-height: 100vh;
-                        margin: 0;
-                        background: linear-gradient(135deg, #8304F9 0%, #6503C7 100%);
-                        color: white;
-                    }
-                    .container {
-                        text-align: center;
-                        padding: 40px;
-                        background: rgba(255,255,255,0.1);
-                        border-radius: 20px;
-                        backdrop-filter: blur(10px);
-                    }
-                    h1 { font-size: 48px; margin: 0 0 20px; }
-                    p { font-size: 18px; margin: 10px 0; opacity: 0.9; }
-                    a {
-                        display: inline-block;
-                        margin: 20px 10px;
-                        padding: 15px 30px;
-                        background: white;
-                        color: #8304F9;
-                        text-decoration: none;
-                        border-radius: 12px;
-                        font-weight: 600;
-                        transition: transform 0.2s;
-                    }
-                    a:hover { transform: scale(1.05); }
-                    .emoji { font-size: 64px; margin: 20px 0; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="emoji">🚛</div>
-                    <h1>CARAVAN TRANZIT</h1>
-                    <p>Caravan Broker LTD</p>
-                    <p>Telegram Bot va Mini App xizmati</p>
-                    <div style="margin-top: 30px;">
-                        <a href="/miniapp/">📱 Mini App ochish</a>
-                        <a href="https://t.me/caravan_tranzit_bot" target="_blank">🤖 Telegram Bot</a>
-                    </div>
-                    <p style="margin-top: 40px; font-size: 14px;">
-                        📞 +998 91 702 00 99 | +998 94 312 00 99
-                    </p>
-                </div>
-            </body>
-            </html>
-            """,
-            content_type='text/html'
-        )
+        raise web.HTTPFound('/miniapp/')
 
     # Miniapp index handler to ensure index.html is served
     async def miniapp_index(request):

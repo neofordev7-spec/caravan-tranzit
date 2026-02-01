@@ -184,69 +184,6 @@
                 </div>
             </div>
 
-            <!-- ==================== AGENT SELECTION ==================== -->
-            <div class="screen" id="agentScreen">
-                <!-- Post name header -->
-                <div class="agent-post-header">
-                    <h2 id="agentPostName">Agent tanlang</h2>
-                </div>
-
-                <!-- Cash Payment Card (Primary Option) -->
-                <div class="cash-payment-card" onclick="selectAgent('cash')">
-                    <div class="cash-card-content">
-                        <div class="cash-card-info">
-                            <div class="cash-card-title">
-                                <span class="cash-icon">💵</span>
-                                <span>Cash Payment</span>
-                            </div>
-                            <p class="cash-card-desc">Pay directly at the post terminal without an agent</p>
-                        </div>
-                        <button class="cash-select-btn">
-                            Select Option →
-                        </button>
-                    </div>
-                    <div class="cash-card-icon">
-                        <span>🚛</span>
-                    </div>
-                </div>
-
-                <!-- Online Agents Section -->
-                <div class="agents-section-header">
-                    <h3>Online Agents</h3>
-                    <span class="online-badge">
-                        <span class="online-dot"></span>
-                        <span id="onlineAgentCount">3</span> Available
-                    </span>
-                </div>
-
-                <!-- Online Agents List -->
-                <div class="agents-list" id="agentsList">
-                    <!-- Agents will be loaded dynamically -->
-                </div>
-
-                <!-- Offline Agents Section (Collapsed) -->
-                <div class="offline-agents-section" id="offlineAgentsSection" onclick="toggleOfflineAgents()">
-                    <div class="offline-header">
-                        <div class="offline-icon">👤</div>
-                        <div class="offline-info">
-                            <h4>Offline Agents</h4>
-                            <p><span id="offlineAgentCount">8</span> agents currently unavailable</p>
-                        </div>
-                        <span class="offline-arrow" id="offlineArrow">▼</span>
-                    </div>
-                    <div class="offline-agents-list" id="offlineAgentsList" style="display: none;">
-                        <!-- Offline agents will be loaded dynamically -->
-                    </div>
-                </div>
-
-                <!-- Bottom Action Button -->
-                <div class="agent-bottom-action">
-                    <button class="find-nearest-btn" onclick="findNearestPost()">
-                        📍 Find Nearest Post
-                    </button>
-                </div>
-            </div>
-
             <!-- ==================== CAR NUMBER INPUT ==================== -->
             <div class="screen" id="vehicleScreen">
                 <div class="screen-header">
@@ -256,10 +193,10 @@
                     <input type="text"
                            id="vehicleNumber"
                            class="vehicle-input"
-                           placeholder="01 A 777 AA"
-                           maxlength="10"
+                           placeholder="Avtomobil raqami"
+                           maxlength="20"
                            oninput="formatVehicleNumber(this)">
-                    <p class="input-example">📝 Misol: 01A777AA</p>
+                    <p class="input-example">📝 Misol: 01A777AA, KZ 123 ABC, B 777 XX 77</p>
                 </div>
                 <div class="recent-vehicles" id="recentVehicles">
                     <div class="recent-item" onclick="useRecentVehicle('01B555BB')">
@@ -294,10 +231,15 @@
                     <!-- Uploaded images will appear here -->
                 </div>
                 <div class="upload-area" id="uploadArea">
-                    <input type="file" id="fileInput" multiple accept="image/*" onchange="handleFileSelect(event)" style="display: none;">
+                    <input type="file" id="fileInput" multiple accept="image/*,application/pdf,.jpg,.jpeg,.png,.heic,.heif" onchange="handleFileSelect(event)" style="display: none;">
+                    <input type="file" id="cameraInput" capture="environment" accept="image/*" onchange="handleFileSelect(event)" style="display: none;">
                     <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        <span class="upload-icon">📁</span>
+                        <span>FAYL TANLASH</span>
+                    </button>
+                    <button class="upload-btn" onclick="document.getElementById('cameraInput').click()" style="margin-top: 8px;">
                         <span class="upload-icon">📷</span>
-                        <span>RASM QO'SHISH (+)</span>
+                        <span>KAMERADAN RASMGA OLISH</span>
                     </button>
                 </div>
                 <button class="btn-primary" id="uploadDoneBtn" onclick="submitDocuments()" disabled>
@@ -354,15 +296,6 @@
                         <div class="summary-item-content">
                             <span class="summary-item-label">CUSTOMS POST</span>
                             <span class="summary-item-value" id="sumPost">-</span>
-                        </div>
-                        <span class="summary-item-arrow">→</span>
-                    </div>
-
-                    <!-- Agent -->
-                    <div class="summary-item" onclick="editSummaryField('agent')">
-                        <div class="summary-item-content">
-                            <span class="summary-item-label">AGENT</span>
-                            <span class="summary-item-value" id="sumAgent">-</span>
                         </div>
                         <span class="summary-item-arrow">→</span>
                     </div>
