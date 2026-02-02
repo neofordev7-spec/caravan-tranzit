@@ -386,7 +386,7 @@ async def send_to_admin_group(bot: Bot, app_code: str, user, data: dict, app_id:
 # BALANCE CHECKER
 # =========================================================================
 
-@router.message(F.text.contains("Balans") | F.text.contains("Balance") | F.text.contains("💰") | F.text.contains("Tangalarim"))
+@router.message(F.text.contains("💰"))
 async def show_balance(message: Message):
     """
     Foydalanuvchi balansini ko'rsatadi

@@ -145,14 +145,14 @@ def get_lang_kb():
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def get_agreement_kb(lang):
-    btn = "✅ Roziman" if lang in ['uz', 'oz'] else ("✅ Согласен" if lang == 'ru' else "✅ I Agree")
+    t = TEXTS.get(lang, TEXTS['uz'])
+    btn = "✅ " + t.get('btn_agree', 'Roziman')
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=btn, callback_data="agree_yes")]])
 
 def get_phone_kb(lang):
-    t = "📱 Raqamni yuborish"
-    if lang == 'ru': t = "📱 Отправить номер"
-    elif lang == 'en': t = "📱 Share Contact"
-    return ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=t, request_contact=True)]], resize_keyboard=True)
+    t = TEXTS.get(lang, TEXTS['uz'])
+    btn_text = "📱 " + t.get('btn_share_phone', 'Raqamni yuborish')
+    return ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=btn_text, request_contact=True)]], resize_keyboard=True)
 
 # =========================================================
 # 3. ASOSIY MENYU (17 TA XIZMAT)
@@ -358,44 +358,48 @@ def get_social_media_kb():
 # =========================================================
 # 12. DINAMIK POSTLAR (2 QATORLI)
 # =========================================================
-def get_posts_kb():
+def get_posts_kb(lang='uz'):
     """Chegara postlari - birinchi qatorda ANIQ EMAS"""
+    t = TEXTS.get(lang, TEXTS['uz'])
     builder = ReplyKeyboardBuilder()
     # Birinchi qatorda ANIQ EMAS
-    builder.add(KeyboardButton(text="❓ ANIQ EMAS"))
+    builder.add(KeyboardButton(text="❓ " + t.get('btn_not_sure', 'ANIQ EMAS')))
     for post in BORDER_POSTS_LIST:
         builder.add(KeyboardButton(text=post))
-    builder.add(KeyboardButton(text="⬅️ Ortga"))
+    builder.add(KeyboardButton(text="⬅️ " + t.get('btn_back', 'Ortga')))
     builder.adjust(1, 2)  # Birinchi qator 1 ta, qolganlari 2 tadan
     return builder.as_markup(resize_keyboard=True)
 
-def get_dest_posts_kb():
+def get_dest_posts_kb(lang='uz'):
     """TIF (Manzil) postlari - birinchi qatorda ANIQ EMAS"""
+    t = TEXTS.get(lang, TEXTS['uz'])
     builder = ReplyKeyboardBuilder()
     # Birinchi qatorda ANIQ EMAS
-    builder.add(KeyboardButton(text="❓ ANIQ EMAS"))
+    builder.add(KeyboardButton(text="❓ " + t.get('btn_not_sure', 'ANIQ EMAS')))
     for post in TIF_POSTS_LIST:
         builder.add(KeyboardButton(text=post))
-    builder.add(KeyboardButton(text="⬅️ Ortga"))
+    builder.add(KeyboardButton(text="⬅️ " + t.get('btn_back', 'Ortga')))
     builder.adjust(1, 2)  # Birinchi qator 1 ta, qolganlari 2 tadan
     return builder.as_markup(resize_keyboard=True)
 
-def get_dest_border_posts_kb():
+def get_dest_border_posts_kb(lang='uz'):
     """Manzil chegara postlari - TRANZIT uchun"""
+    t = TEXTS.get(lang, TEXTS['uz'])
     builder = ReplyKeyboardBuilder()
-    builder.add(KeyboardButton(text="❓ ANIQ EMAS"))
+    builder.add(KeyboardButton(text="❓ " + t.get('btn_not_sure', 'ANIQ EMAS')))
     for post in BORDER_POSTS_LIST:
         builder.add(KeyboardButton(text=post))
-    builder.add(KeyboardButton(text="⬅️ Ortga"))
+    builder.add(KeyboardButton(text="⬅️ " + t.get('btn_back', 'Ortga')))
     builder.adjust(1, 2)
     return builder.as_markup(resize_keyboard=True)
 
-def get_viloyatlar_kb():
+def get_viloyatlar_kb(lang='uz'):
     """O'zbekiston viloyatlari - ANIQ EMAS bosilganda"""
+    t = TEXTS.get(lang, TEXTS['uz'])
     builder = ReplyKeyboardBuilder()
     for viloyat in VILOYATLAR_LIST:
         builder.add(KeyboardButton(text=viloyat))
-    builder.add(KeyboardButton(text="⬅️ Ortga"))
+    builder.add(KeyboardButton(text="⬅️ " + t.get('btn_back', 'Ortga')))
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)
 

@@ -43,6 +43,8 @@ TEXTS = {
         
         # Tugmalar
         'btn_done': "Yuklab bo'ldim",
+        'btn_agree': "Roziman",
+        'btn_share_phone': "Raqamni yuborish",
         'btn_yes_auto': "Ha, ishlatamiz",
         'btn_no_auto': "Yo'q, yangi yuklayman",
         'btn_lang': "Tilni o'zgartirish",
@@ -58,9 +60,16 @@ TEXTS = {
         'btn_search_app': "ARIZA BOR",
         'btn_my_apps': "ARIZALARIM",
         'btn_cash': "AGENTLAR ORQALI NAXD PULDA",
-        
+        'btn_not_sure': "ANIQ EMAS",
+
         # Bosqichlar
         'step_1': "1-qadam: Raqam", 'step_2': "2-qadam: Hujjatlar", 'step_3': "3-qadam: Post", 'step_4': "4-qadam: Manzil", 'step_5': "Yakunlash",
+        'select_viloyat': "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
+        'phone_changed': "✅ Raqam o'zgartirildi!",
+        'lang_changed': "✅ Til o'zgartirildi!",
+        'car_number_text_only': "⚠️ Iltimos, mashina raqamini yozing (Rasm emas).",
+        'file_too_large': "⚠️ Fayl juda katta (10MB dan ko'p). Kichikroq rasm yuklang.",
+        'kgd_request_sent': "✅ So'rovingiz yuborildi! Javobni kutib turing.",
 
         # ===== YANGI QISMLAR =====
 
@@ -204,6 +213,8 @@ TEXTS = {
 
         # Tugmalar
         'btn_done': "Юклаб бўлдим",
+        'btn_agree': "Розиман",
+        'btn_share_phone': "Рақамни юбориш",
         'btn_yes_auto': "Ҳа, ишлатамиз",
         'btn_no_auto': "Йўқ, янги юклайман",
         'btn_lang': "Тилни ўзгартириш",
@@ -219,9 +230,16 @@ TEXTS = {
         'btn_search_app': "АРИЗА БОР",
         'btn_my_apps': "АРИЗАЛАРИМ",
         'btn_cash': "АГЕНТЛАР ОРҚАЛИ НАҚД ПУЛДА",
+        'btn_not_sure': "АНИҚ ЭМАС",
 
         # Bosqichlar
         'step_1': "1-қадам: Рақам", 'step_2': "2-қадам: Ҳужжатлар", 'step_3': "3-қадам: Пост", 'step_4': "4-қадам: Манзил", 'step_5': "Якунлаш",
+        'select_viloyat': "🗺 **Қайси вилоятга борасиз?**\n\nВилоятни танланг:",
+        'phone_changed': "✅ Рақам ўзгартирилди!",
+        'lang_changed': "✅ Тил ўзгартирилди!",
+        'car_number_text_only': "⚠️ Илтимос, машина рақамини ёзинг (Расм эмас).",
+        'file_too_large': "⚠️ Файл жуда катта (10МБ дан кўп). Кичикроқ расм юкланг.",
+        'kgd_request_sent': "✅ Сўровингиз юборилди! Жавобни кутиб туринг.",
 
         # Asosiy menyu
         'menu_epi': 'ЭПИ КОД АТ ДЕКЛАРАЦИЯ',
@@ -356,6 +374,8 @@ TEXTS = {
 
         # Кнопки
         'btn_done': "Загрузил",
+        'btn_agree': "Согласен",
+        'btn_share_phone': "Отправить номер",
         'btn_yes_auto': "Да, использовать",
         'btn_no_auto': "Нет, загружу новые",
         'btn_lang': "Изменить язык",
@@ -371,9 +391,16 @@ TEXTS = {
         'btn_search_app': "ПОИСК ЗАЯВКИ",
         'btn_my_apps': "МОИ ЗАЯВКИ",
         'btn_cash': "НАЛИЧНЫМИ ЧЕРЕЗ АГЕНТОВ",
+        'btn_not_sure': "НЕ ЗНАЮ ТОЧНО",
 
         # Шаги
         'step_1': "Шаг 1: Номер", 'step_2': "Шаг 2: Документы", 'step_3': "Шаг 3: Пост", 'step_4': "Шаг 4: Пункт", 'step_5': "Завершение",
+        'select_viloyat': "🗺 **В какой регион едете?**\n\nВыберите регион:",
+        'phone_changed': "✅ Номер изменён!",
+        'lang_changed': "✅ Язык изменён!",
+        'car_number_text_only': "⚠️ Пожалуйста, введите номер машины текстом (не фото).",
+        'file_too_large': "⚠️ Файл слишком большой (более 10МБ). Загрузите файл поменьше.",
+        'kgd_request_sent': "✅ Ваш запрос отправлен! Ожидайте ответ.",
 
         # Главное меню
         'menu_epi': 'ЭПИ КОД АТ ДЕКЛАРАЦИЯ',
@@ -508,6 +535,8 @@ TEXTS = {
 
         # Buttons
         'btn_done': "Done",
+        'btn_agree': "I Agree",
+        'btn_share_phone': "Share Contact",
         'btn_yes_auto': "Yes, use saved",
         'btn_no_auto': "No, upload new",
         'btn_lang': "Change Language",
@@ -523,9 +552,16 @@ TEXTS = {
         'btn_search_app': "SEARCH APPLICATION",
         'btn_my_apps': "MY APPLICATIONS",
         'btn_cash': "CASH VIA AGENTS",
+        'btn_not_sure': "NOT SURE",
 
         # Steps
         'step_1': "Step 1: Number", 'step_2': "Step 2: Documents", 'step_3': "Step 3: Post", 'step_4': "Step 4: Destination", 'step_5': "Finish",
+        'select_viloyat': "🗺 **Which region are you going to?**\n\nSelect a region:",
+        'phone_changed': "✅ Number changed!",
+        'lang_changed': "✅ Language changed!",
+        'car_number_text_only': "⚠️ Please type the vehicle number (not a photo).",
+        'file_too_large': "⚠️ File is too large (over 10MB). Please upload a smaller file.",
+        'kgd_request_sent': "✅ Your request has been sent! Please wait for a response.",
 
         # Main menu
         'menu_epi': 'EPI CODE AT DECLARATION',
@@ -660,6 +696,8 @@ TEXTS = {
 
         # Батырмалар
         'btn_done': "Болды",
+        'btn_agree': "Келісемін",
+        'btn_share_phone': "Нөмірді жіберу",
         'btn_yes_auto': "Иә, қолданамыз",
         'btn_no_auto': "Жоқ, жаңасын жүктеймін",
         'btn_lang': "Тілді өзгерту",
@@ -675,9 +713,16 @@ TEXTS = {
         'btn_search_app': "ӨТІНІШ БАР",
         'btn_my_apps': "ӨТІНІШТЕРІМ",
         'btn_cash': "АГЕНТТЕР АРҚЫЛЫ ҚОЛМА-ҚОЛ",
+        'btn_not_sure': "АНЫҚ ЕМЕС",
 
         # Қадамдар
         'step_1': "1-қадам: Нөмір", 'step_2': "2-қадам: Құжаттар", 'step_3': "3-қадам: Бекет", 'step_4': "4-қадам: Баратын жер", 'step_5': "Аяқтау",
+        'select_viloyat': "🗺 **Қай аймаққа барасыз?**\n\nАймақты таңдаңыз:",
+        'phone_changed': "✅ Нөмір өзгертілді!",
+        'lang_changed': "✅ Тіл өзгертілді!",
+        'car_number_text_only': "⚠️ Көлік нөмірін жазыңыз (сурет емес).",
+        'file_too_large': "⚠️ Файл тым үлкен (10МБ-дан артық). Кішірек файл жүктеңіз.",
+        'kgd_request_sent': "✅ Сұрауыңыз жіберілді! Жауабын күтіңіз.",
 
         # Негізгі мәзір
         'menu_epi': 'ЭПИ КОД АТ ДЕКЛАРАЦИЯ',
@@ -812,6 +857,8 @@ TEXTS = {
 
         # Баскычтар
         'btn_done': "Бүттүм",
+        'btn_agree': "Макулмун",
+        'btn_share_phone': "Номерди жөнөтүү",
         'btn_yes_auto': "Ооба, колдоноюн",
         'btn_no_auto': "Жок, жаңысын жүктөйм",
         'btn_lang': "Тилди өзгөртүү",
@@ -827,9 +874,16 @@ TEXTS = {
         'btn_search_app': "АРЫЗ БАР",
         'btn_my_apps': "АРЫЗДАРЫМ",
         'btn_cash': "АГЕНТТЕР АРКЫЛУУ НАКТАЛАЙ",
+        'btn_not_sure': "АНИК ЭМЕС",
 
         # Кадамдар
         'step_1': "1-кадам: Номер", 'step_2': "2-кадам: Документтер", 'step_3': "3-кадам: Пост", 'step_4': "4-кадам: Баратаган жер", 'step_5': "Бүтүрүү",
+        'select_viloyat': "🗺 **Кайсы аймакка барасыз?**\n\nАймакты тандаңыз:",
+        'phone_changed': "✅ Номер өзгөртүлдү!",
+        'lang_changed': "✅ Тил өзгөртүлдү!",
+        'car_number_text_only': "⚠️ Унаа номерин жазыңыз (сүрөт эмес).",
+        'file_too_large': "⚠️ Файл өтө чоң (10МБдан ашык). Кичирээк файл жүктөңүз.",
+        'kgd_request_sent': "✅ Сурооңуз жөнөтүлдү! Жоопту күтүңүз.",
 
         # Негизги меню
         'menu_epi': 'ЭПИ КОД АТ ДЕКЛАРАЦИЯ',
@@ -964,6 +1018,8 @@ TEXTS = {
 
         # Тугмаҳо
         'btn_done': "Тайёр",
+        'btn_agree': "Розиям",
+        'btn_share_phone': "Рақамро фиристодан",
         'btn_yes_auto': "Ҳа, истифода мебарем",
         'btn_no_auto': "Не, нав бор мекунам",
         'btn_lang': "Тағйири забон",
@@ -979,9 +1035,16 @@ TEXTS = {
         'btn_search_app': "АРИЗА ҲАСТ",
         'btn_my_apps': "АРИЗАҲОИ МАН",
         'btn_cash': "БО НАҚД ТАВАССУТИ АГЕНТҲО",
+        'btn_not_sure': "ДАҚИҚ НЕ",
 
         # Қадамҳо
         'step_1': "Қадами 1: Рақам", 'step_2': "Қадами 2: Ҳуҷҷатҳо", 'step_3': "Қадами 3: Пост", 'step_4': "Қадами 4: Мақсад", 'step_5': "Анҷом",
+        'select_viloyat': "🗺 **Ба кадом минтақа меравед?**\n\nМинтақаро интихоб кунед:",
+        'phone_changed': "✅ Рақам иваз шуд!",
+        'lang_changed': "✅ Забон иваз шуд!",
+        'car_number_text_only': "⚠️ Лутфан рақами мошинро нависед (на сурат).",
+        'file_too_large': "⚠️ Файл хеле калон аст (аз 10МБ зиёд). Файли хурдтар боргирӣ кунед.",
+        'kgd_request_sent': "✅ Дархости шумо фиристода шуд! Ҷавобро мунтазир бошед.",
 
         # Менюи асосӣ
         'menu_epi': 'ЭПИ КОД АТ ДЕКЛАРАТСИЯ',
@@ -1116,6 +1179,8 @@ TEXTS = {
 
         # Düğmeler
         'btn_done': "Tamam",
+        'btn_agree': "Kabul ediyorum",
+        'btn_share_phone': "Numarayı paylaş",
         'btn_yes_auto': "Evet, kullanalım",
         'btn_no_auto': "Hayır, yeni yükleyeceğim",
         'btn_lang': "Dili Değiştir",
@@ -1131,9 +1196,16 @@ TEXTS = {
         'btn_search_app': "BAŞVURU ARA",
         'btn_my_apps': "BAŞVURULARIM",
         'btn_cash': "ACENTELER ARACILIĞIYLA NAKİT",
+        'btn_not_sure': "EMİN DEĞİLİM",
 
         # Adımlar
         'step_1': "Adım 1: Numara", 'step_2': "Adım 2: Belgeler", 'step_3': "Adım 3: Kapı", 'step_4': "Adım 4: Varış", 'step_5': "Bitiş",
+        'select_viloyat': "🗺 **Hangi bölgeye gidiyorsunuz?**\n\nBölge seçin:",
+        'phone_changed': "✅ Numara değiştirildi!",
+        'lang_changed': "✅ Dil değiştirildi!",
+        'car_number_text_only': "⚠️ Lütfen araç numarasını yazın (fotoğraf değil).",
+        'file_too_large': "⚠️ Dosya çok büyük (10MB'den fazla). Daha küçük dosya yükleyin.",
+        'kgd_request_sent': "✅ Talebiniz gönderildi! Yanıtı bekleyin.",
 
         # Ana menü
         'menu_epi': 'EPİ KOD AT DEKLARASYON',
@@ -1268,6 +1340,8 @@ TEXTS = {
 
         # Düwmeler
         'btn_done': "Boldy",
+        'btn_agree': "Razylaşýaryn",
+        'btn_share_phone': "Belgini iber",
         'btn_yes_auto': "Hawa, ulanalyň",
         'btn_no_auto': "Ýok, täzesini ýüklärin",
         'btn_lang': "Dili üýtgetmek",
@@ -1283,9 +1357,16 @@ TEXTS = {
         'btn_search_app': "ARZA GÖZLE",
         'btn_my_apps': "ARZALARYM",
         'btn_cash': "AGENTLER ARKALY NAGT",
+        'btn_not_sure': "ANYK DÄL",
 
         # Ädimler
         'step_1': "1-nji ädim: Belgi", 'step_2': "2-nji ädim: Resminamalar", 'step_3': "3-nji ädim: Post", 'step_4': "4-nji ädim: Barmaly ýer", 'step_5': "Soňy",
+        'select_viloyat': "🗺 **Haýsy sebite barýarsyňyz?**\n\nSebiti saýlaň:",
+        'phone_changed': "✅ Belgi üýtgedildi!",
+        'lang_changed': "✅ Dil üýtgedildi!",
+        'car_number_text_only': "⚠️ Ulag belgisini ýazyň (surat däl).",
+        'file_too_large': "⚠️ Faýl gaty uly (10MB-dan köp). Kiçiräk faýl ýükläň.",
+        'kgd_request_sent': "✅ Haýyşyňyz iberildi! Jogaba garaşyň.",
 
         # Baş menýu
         'menu_epi': 'EPI KOD AT DEKLARASIÝA',
@@ -1420,6 +1501,8 @@ TEXTS = {
 
         # 按钮
         'btn_done': "完成",
+        'btn_agree': "同意",
+        'btn_share_phone': "分享联系方式",
         'btn_yes_auto': "是，使用",
         'btn_no_auto': "否，上传新的",
         'btn_lang': "更改语言",
@@ -1435,9 +1518,16 @@ TEXTS = {
         'btn_search_app': "搜索申请",
         'btn_my_apps': "我的申请",
         'btn_cash': "通过代理现金",
+        'btn_not_sure': "不确定",
 
         # 步骤
         'step_1': "步骤1: 号码", 'step_2': "步骤2: 文件", 'step_3': "步骤3: 哨所", 'step_4': "步骤4: 目的地", 'step_5': "完成",
+        'select_viloyat': "🗺 **您要去哪个地区？**\n\n请选择地区：",
+        'phone_changed': "✅ 号码已更改！",
+        'lang_changed': "✅ 语言已更改！",
+        'car_number_text_only': "⚠️ 请输入车辆号码（不是照片）。",
+        'file_too_large': "⚠️ 文件太大（超过10MB）。请上传较小的文件。",
+        'kgd_request_sent': "✅ 您的请求已发送！请等待回复。",
 
         # 主菜单
         'menu_epi': 'EPI代码AT报关',
