@@ -15,8 +15,15 @@ from aiogram.types import (
 from database import db
 from payme_api import generate_checkout_url
 from click_api import ClickAPI
+from strings import TEXTS
 
 router = Router()
+
+
+def t(lang: str, key: str) -> str:
+    """Helper to get translated text with fallback to Uzbek."""
+    return TEXTS.get(lang, TEXTS['uz']).get(key, TEXTS['uz'].get(key, ''))
+
 
 # =========================================================================
 # PAYMENT SELECTION - PAYME
@@ -41,31 +48,32 @@ async def handle_pay_payme(call: CallbackQuery, bot: Bot):
             await call.answer("Narx belgilanmagan!", show_alert=True)
             return
 
+        # Get user language
+        user = await db.get_user(call.from_user.id)
+        lang = user.get('language', 'uz') if user else 'uz'
+
         # Payme checkout URL yaratamiz
         checkout_url = generate_checkout_url(app_code, Decimal(str(price)))
 
         # Foydalanuvchiga to'lov havolasini yuboramiz
         kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text=f"💳 Payme orqali to'lash ({price:,.0f} UZS)", url=checkout_url)],
-            [InlineKeyboardButton(text="Bekor qilish", callback_data=f"cancel_payment_{app_code}")]
+            [InlineKeyboardButton(text=f"💳 Payme ({price:,.0f} UZS)", url=checkout_url)],
+            [InlineKeyboardButton(text=t(lang, 'payment_cancelled'), callback_data=f"cancel_payment_{app_code}")]
         ])
 
         await call.message.edit_text(
-            f"💳 **PAYME ORQALI TO'LOV**\n\n"
-            f"🆔 Ariza: `{app_code}`\n"
-            f"💰 Summa: **{price:,.0f} UZS**\n\n"
-            f"Quyidagi tugmani bosib to'lovni amalga oshiring.\n"
-            f"To'lov muvaffaqiyatli bo'lgandan so'ng, "
-            f"arizangiz avtomatik tasdiqlanadi.",
+            t(lang, 'payme_title').format(code=app_code, amount=f"{price:,.0f}"),
             reply_markup=kb,
             parse_mode="Markdown"
         )
 
-        await call.answer("To'lov sahifasi tayyor!")
+        await call.answer(t(lang, 'payment_page_ready'))
 
     except Exception as e:
         print(f"Pay payme error: {e}")
-        await call.answer("Xatolik!", show_alert=True)
+        user = await db.get_user(call.from_user.id)
+        lang = user.get('language', 'uz') if user else 'uz'
+        await call.answer(t(lang, 'error_general'), show_alert=True)
 
 
 # =========================================================================
@@ -91,29 +99,32 @@ async def handle_pay_click(call: CallbackQuery, bot: Bot):
             await call.answer("Narx belgilanmagan!", show_alert=True)
             return
 
+        # Get user language
+        user = await db.get_user(call.from_user.id)
+        lang = user.get('language', 'uz') if user else 'uz'
+
         # Click checkout URL yaratamiz
         click_url = ClickAPI.generate_payment_url(app_code, Decimal(str(price)))
 
         # Foydalanuvchiga to'lov havolasini yuboramiz
         kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text=f"💳 Click orqali to'lash ({price:,.0f} UZS)", url=click_url)],
-            [InlineKeyboardButton(text="Bekor qilish", callback_data=f"cancel_payment_{app_code}")]
+            [InlineKeyboardButton(text=f"💳 Click ({price:,.0f} UZS)", url=click_url)],
+            [InlineKeyboardButton(text=t(lang, 'payment_cancelled'), callback_data=f"cancel_payment_{app_code}")]
         ])
 
         await call.message.edit_text(
-            f"💳 **CLICK ORQALI TO'LOV**\n\n"
-            f"🆔 Ariza: `{app_code}`\n"
-            f"💰 Summa: **{price:,.0f} UZS**\n\n"
-            f"Quyidagi tugmani bosib to'lovni amalga oshiring.",
+            t(lang, 'click_title').format(code=app_code, amount=f"{price:,.0f}"),
             reply_markup=kb,
             parse_mode="Markdown"
         )
 
-        await call.answer("To'lov sahifasi tayyor!")
+        await call.answer(t(lang, 'payment_page_ready'))
 
     except Exception as e:
         print(f"Pay click error: {e}")
-        await call.answer("Xatolik!", show_alert=True)
+        user = await db.get_user(call.from_user.id)
+        lang = user.get('language', 'uz') if user else 'uz'
+        await call.answer(t(lang, 'error_general'), show_alert=True)
 
 
 # =========================================================================
@@ -136,36 +147,33 @@ async def handle_pay_coins(call: CallbackQuery, bot: Bot):
 
         # Foydalanuvchi balansini tekshiramiz
         user = await db.get_user(call.from_user.id)
+        lang = user.get('language', 'uz') if user else 'uz'
         balance = user['balance']
 
         if balance < 35000:
             await call.answer(
-                f"Yetarli tangalar yo'q!\n\n"
-                f"Sizda: {balance:,.0f} tanga\n"
-                f"Kerak: 35,000 tanga",
+                t(lang, 'not_enough_coins_msg').format(balance=f"{balance:,.0f}"),
                 show_alert=True
             )
             return
 
         # Tasdiqni so'raymiz
         kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Tasdiqlash", callback_data=f"confirm_coins_{app_code}")],
-            [InlineKeyboardButton(text="Bekor qilish", callback_data=f"cancel_payment_{app_code}")]
+            [InlineKeyboardButton(text=t(lang, 'btn_confirm'), callback_data=f"confirm_coins_{app_code}")],
+            [InlineKeyboardButton(text=t(lang, 'payment_cancelled'), callback_data=f"cancel_payment_{app_code}")]
         ])
 
         await call.message.edit_text(
-            f"💰 **Tangalar bilan to'lash**\n\n"
-            f"🆔 Ariza: `{app_code}`\n"
-            f"💎 Olinadi: **35,000 tanga**\n"
-            f"💰 Qoladi: **{balance - 35000:,.0f} tanga**\n\n"
-            f"Tasdiqlaysizmi?",
+            t(lang, 'coins_payment_confirm').format(code=app_code, remaining=f"{balance - 35000:,.0f}"),
             reply_markup=kb,
             parse_mode="Markdown"
         )
 
     except Exception as e:
         print(f"Pay coins error: {e}")
-        await call.answer("Xatolik!", show_alert=True)
+        user = await db.get_user(call.from_user.id)
+        lang = user.get('language', 'uz') if user else 'uz'
+        await call.answer(t(lang, 'error_general'), show_alert=True)
 
 
 @router.callback_query(F.data.startswith("confirm_coins_"))
@@ -184,10 +192,14 @@ async def handle_confirm_coins(call: CallbackQuery, bot: Bot):
 
         # Balansni tekshiramiz va kamaytiramiz
         user = await db.get_user(call.from_user.id)
+        lang = user.get('language', 'uz') if user else 'uz'
         balance = user['balance']
 
         if balance < 35000:
-            await call.answer("Yetarli tangalar yo'q!", show_alert=True)
+            await call.answer(
+                t(lang, 'not_enough_coins_msg').format(balance=f"{balance:,.0f}"),
+                show_alert=True
+            )
             return
 
         # Tangalarni kamaytiramiz
@@ -207,15 +219,11 @@ async def handle_confirm_coins(call: CallbackQuery, bot: Bot):
 
         # Foydalanuvchiga xabar
         await call.message.edit_text(
-            f"**TO'LOV MUVAFFAQIYATLI!**\n\n"
-            f"🆔 Ariza: `{app_code}`\n"
-            f"💰 To'landi: **35,000 tanga**\n"
-            f"💎 Qoldiq: **{balance - 35000:,.0f} tanga**\n\n"
-            f"Tez orada hujjatlaringizni olasiz!",
+            t(lang, 'payment_success_title').format(code=app_code, amount="35,000 tanga"),
             parse_mode="Markdown"
         )
 
-        # Admin guruhga xabar
+        # Admin guruhga xabar (stays in Uzbek)
         from admin_handlers import ADMIN_GROUP_ID
         await bot.send_message(
             ADMIN_GROUP_ID,
@@ -229,17 +237,20 @@ async def handle_confirm_coins(call: CallbackQuery, bot: Bot):
         # Referral reward tekshiramiz
         referrer_id = await db.mark_referral_reward(call.from_user.id)
         if referrer_id:
+            # Get referrer's language
+            referrer = await db.get_user(referrer_id)
+            ref_lang = referrer.get('language', 'uz') if referrer else 'uz'
             await bot.send_message(
                 referrer_id,
-                f"🎁 **MUKOFOT!**\n\n"
-                f"Do'stingiz xizmatdan foydalandi!\n"
-                f"💰 +17,500 tanga qo'shildi!",
+                t(ref_lang, 'referral_reward'),
                 parse_mode="Markdown"
             )
 
     except Exception as e:
         print(f"Confirm coins error: {e}")
-        await call.answer("Xatolik!", show_alert=True)
+        user = await db.get_user(call.from_user.id)
+        lang = user.get('language', 'uz') if user else 'uz'
+        await call.answer(t(lang, 'error_general'), show_alert=True)
 
 
 @router.callback_query(F.data.startswith("cancel_payment_"))
@@ -247,8 +258,10 @@ async def handle_cancel_payment(call: CallbackQuery):
     """
     To'lovni bekor qilish
     """
+    user = await db.get_user(call.from_user.id)
+    lang = user.get('language', 'uz') if user else 'uz'
     await call.message.delete()
-    await call.answer("Bekor qilindi.")
+    await call.answer(t(lang, 'payment_cancelled'))
 
 
 # =========================================================================
@@ -263,8 +276,10 @@ async def handle_payme_text_button(message: Message, bot: Bot):
     try:
         user = await db.get_user(message.from_user.id)
         if not user:
-            await message.answer("Iltimos, avval /start bosing.")
+            await message.answer(t('uz', 'press_start'))
             return
+
+        lang = user.get('language', 'uz')
 
         # Eng so'nggi "priced" statusidagi arizani topamiz
         apps = await db.get_user_apps(message.from_user.id)
@@ -275,10 +290,7 @@ async def handle_payme_text_button(message: Message, bot: Bot):
                 break
 
         if not priced_app:
-            await message.answer(
-                "Hozirda to'lov kutayotgan ariza yo'q.\n"
-                "Avval ariza yuboring va admin narx belgilasin."
-            )
+            await message.answer(t(lang, 'no_pending_app'))
             return
 
         app_code = priced_app['app_code']
@@ -289,21 +301,20 @@ async def handle_payme_text_button(message: Message, bot: Bot):
 
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=f"💳 Payme ({price:,.0f} UZS)", url=checkout_url)],
-            [InlineKeyboardButton(text="Bekor qilish", callback_data=f"cancel_payment_{app_code}")]
+            [InlineKeyboardButton(text=t(lang, 'payment_cancelled'), callback_data=f"cancel_payment_{app_code}")]
         ])
 
         await message.answer(
-            f"💳 **PAYME ORQALI TO'LOV**\n\n"
-            f"🆔 Ariza: `{app_code}`\n"
-            f"💰 Summa: **{price:,.0f} UZS**\n\n"
-            f"Quyidagi tugmani bosib to'lovni amalga oshiring:",
+            t(lang, 'payme_title').format(code=app_code, amount=f"{price:,.0f}"),
             reply_markup=kb,
             parse_mode="Markdown"
         )
 
     except Exception as e:
         print(f"Payme text button error: {e}")
-        await message.answer("Xatolik yuz berdi. Qaytadan urinib ko'ring.")
+        user = await db.get_user(message.from_user.id)
+        lang = user.get('language', 'uz') if user else 'uz'
+        await message.answer(t(lang, 'error_general'))
 
 
 @router.message(F.text.contains("Click"))
@@ -314,8 +325,10 @@ async def handle_click_text_button(message: Message, bot: Bot):
     try:
         user = await db.get_user(message.from_user.id)
         if not user:
-            await message.answer("Iltimos, avval /start bosing.")
+            await message.answer(t('uz', 'press_start'))
             return
+
+        lang = user.get('language', 'uz')
 
         # Eng so'nggi "priced" statusidagi arizani topamiz
         apps = await db.get_user_apps(message.from_user.id)
@@ -326,10 +339,7 @@ async def handle_click_text_button(message: Message, bot: Bot):
                 break
 
         if not priced_app:
-            await message.answer(
-                "Hozirda to'lov kutayotgan ariza yo'q.\n"
-                "Avval ariza yuboring va admin narx belgilasin."
-            )
+            await message.answer(t(lang, 'no_pending_app'))
             return
 
         app_code = priced_app['app_code']
@@ -340,21 +350,20 @@ async def handle_click_text_button(message: Message, bot: Bot):
 
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=f"💳 Click ({price:,.0f} UZS)", url=click_url)],
-            [InlineKeyboardButton(text="Bekor qilish", callback_data=f"cancel_payment_{app_code}")]
+            [InlineKeyboardButton(text=t(lang, 'payment_cancelled'), callback_data=f"cancel_payment_{app_code}")]
         ])
 
         await message.answer(
-            f"💳 **CLICK ORQALI TO'LOV**\n\n"
-            f"🆔 Ariza: `{app_code}`\n"
-            f"💰 Summa: **{price:,.0f} UZS**\n\n"
-            f"Quyidagi tugmani bosib to'lovni amalga oshiring:",
+            t(lang, 'click_title').format(code=app_code, amount=f"{price:,.0f}"),
             reply_markup=kb,
             parse_mode="Markdown"
         )
 
     except Exception as e:
         print(f"Click text button error: {e}")
-        await message.answer("Xatolik yuz berdi. Qaytadan urinib ko'ring.")
+        user = await db.get_user(message.from_user.id)
+        lang = user.get('language', 'uz') if user else 'uz'
+        await message.answer(t(lang, 'error_general'))
 
 
 # =========================================================================
@@ -375,20 +384,17 @@ async def notify_payment_success(bot: Bot, app_code: str, amount: Decimal, provi
         if not user:
             return
 
+        lang = user.get('language', 'uz')
         provider_name = "Payme" if provider == 'payme' else "Click"
 
         # Foydalanuvchiga xabar
         await bot.send_message(
             app['user_id'],
-            f"**TO'LOV MUVAFFAQIYATLI!**\n\n"
-            f"🆔 Ariza: `{app_code}`\n"
-            f"💰 To'langan: **{amount:,.0f} UZS**\n"
-            f"💳 Usul: {provider_name}\n\n"
-            f"Tez orada hujjatlaringizni olasiz!",
+            t(lang, 'payment_success_title').format(code=app_code, amount=f"{amount:,.0f} UZS ({provider_name})"),
             parse_mode="Markdown"
         )
 
-        # Admin guruhga xabar
+        # Admin guruhga xabar (stays in Uzbek)
         from admin_handlers import ADMIN_GROUP_ID
         await bot.send_message(
             ADMIN_GROUP_ID,
@@ -402,11 +408,12 @@ async def notify_payment_success(bot: Bot, app_code: str, amount: Decimal, provi
         # Referral reward
         referrer_id = await db.mark_referral_reward(app['user_id'])
         if referrer_id:
+            # Get referrer's language
+            referrer = await db.get_user(referrer_id)
+            ref_lang = referrer.get('language', 'uz') if referrer else 'uz'
             await bot.send_message(
                 referrer_id,
-                f"🎁 **MUKOFOT!**\n\n"
-                f"Do'stingiz xizmatdan foydalandi!\n"
-                f"💰 +17,500 tanga qo'shildi!",
+                t(ref_lang, 'referral_reward'),
                 parse_mode="Markdown"
             )
 

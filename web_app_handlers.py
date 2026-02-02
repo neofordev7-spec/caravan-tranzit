@@ -110,11 +110,196 @@ WEBAPP_TEXTS = {
         'set_price': '💰 Set Price',
         'reject': '❌ Reject',
         'accept': '✅ Accept'
+    },
+    'oz': {
+        'app_received': '✅ Ариза муваффақиятли қабул қилинди!',
+        'app_code': '🆔 Ариза коди',
+        'service': '📋 Хизмат',
+        'post': '📍 Пост',
+        'destination': '🏁 Манзил',
+        'vehicle': '🚛 Машина',
+        'agent': '👤 Агент',
+        'wait_admin': '⏳ Админ жавобини кутинг...',
+        'wait_time': 'Одатда 5-15 дақиқа',
+        'notification': '🔔 Жавоб келганда билдиришнома оласиз',
+        'error_user': '❌ Хатолик: Фойдаланувчи топилмади. /start босинг.',
+        'error_general': '❌ Хатолик юз берди. Қайтадан уриниб кўринг.',
+        'new_app': '🆕 ЯНГИ АРИЗА',
+        'via_webapp': '(Mini App орқали)',
+        'user': '👤 Фойдаланувчи',
+        'username': '📱 Username',
+        'telegram_id': '🔑 ID',
+        'files_count': '📎 Файллар',
+        'language': '🌐 Тил',
+        'time': '⏰ Вақт',
+        'actions': '⚙️ Амаллар',
+        'set_price': '💰 Нарх белгилаш',
+        'reject': '❌ Рад этиш',
+        'accept': '✅ Қабул қилиш'
+    },
+    'kz': {
+        'app_received': '✅ Өтініш сәтті қабылданды!',
+        'app_code': '🆔 Өтініш коды',
+        'service': '📋 Қызмет',
+        'post': '📍 Пост',
+        'destination': '🏁 Бағыт',
+        'vehicle': '🚛 Көлік',
+        'agent': '👤 Агент',
+        'wait_admin': '⏳ Админ жауабын күтіңіз...',
+        'wait_time': 'Әдетте 5-15 минут',
+        'notification': '🔔 Жауап келгенде хабарлама аласыз',
+        'error_user': '❌ Қате: Пайдаланушы табылмады. /start басыңыз.',
+        'error_general': '❌ Қате пайда болды. Қайта көріңіз.',
+        'new_app': '🆕 ЖАҢА ӨТІНІШ',
+        'via_webapp': '(Mini App арқылы)',
+        'user': '👤 Пайдаланушы',
+        'username': '📱 Username',
+        'telegram_id': '🔑 ID',
+        'files_count': '📎 Файлдар',
+        'language': '🌐 Тіл',
+        'time': '⏰ Уақыт',
+        'actions': '⚙️ Әрекеттер',
+        'set_price': '💰 Бағаны белгілеу',
+        'reject': '❌ Қабылдамау',
+        'accept': '✅ Қабылдау'
+    },
+    'kg': {
+        'app_received': '✅ Арыз ийгиликтүү кабыл алынды!',
+        'app_code': '🆔 Арыз коду',
+        'service': '📋 Кызмат',
+        'post': '📍 Пост',
+        'destination': '🏁 Багыт',
+        'vehicle': '🚛 Унаа',
+        'agent': '👤 Агент',
+        'wait_admin': '⏳ Админ жоопту күтүңүз...',
+        'wait_time': 'Адатта 5-15 мүнөт',
+        'notification': '🔔 Жооп келгенде билдирүү аласыз',
+        'error_user': '❌ Ката: Колдонуучу табылган жок. /start басыңыз.',
+        'error_general': '❌ Ката кетти. Кайра аракет кылыңыз.',
+        'new_app': '🆕 ЖАҢЫ АРЫЗ',
+        'via_webapp': '(Mini App аркылуу)',
+        'user': '👤 Колдонуучу',
+        'username': '📱 Username',
+        'telegram_id': '🔑 ID',
+        'files_count': '📎 Файлдар',
+        'language': '🌐 Тил',
+        'time': '⏰ Убакыт',
+        'actions': '⚙️ Аракеттер',
+        'set_price': '💰 Баа коюу',
+        'reject': '❌ Четке кагуу',
+        'accept': '✅ Кабыл алуу'
+    },
+    'tj': {
+        'app_received': '✅ Ариза бо муваффақият қабул шуд!',
+        'app_code': '🆔 Коди ариза',
+        'service': '📋 Хизмат',
+        'post': '📍 Пост',
+        'destination': '🏁 Самт',
+        'vehicle': '🚛 Мошин',
+        'agent': '👤 Агент',
+        'wait_admin': '⏳ Ҷавоби админро интизор шавед...',
+        'wait_time': 'Одатан 5-15 дақиқа',
+        'notification': '🔔 Вақте ки ҷавоб ояд, хабарнома мегиред',
+        'error_user': '❌ Хатогӣ: Истифодабаранда ёфт нашуд. /start пахш кунед.',
+        'error_general': '❌ Хатогӣ рух дод. Дубора кӯшиш кунед.',
+        'new_app': '🆕 АРИЗАИ НАВ',
+        'via_webapp': '(Mini App тавассути)',
+        'user': '👤 Истифодабаранда',
+        'username': '📱 Username',
+        'telegram_id': '🔑 ID',
+        'files_count': '📎 Файлҳо',
+        'language': '🌐 Забон',
+        'time': '⏰ Вақт',
+        'actions': '⚙️ Амалҳо',
+        'set_price': '💰 Нарх муқаррар кардан',
+        'reject': '❌ Рад кардан',
+        'accept': '✅ Қабул кардан'
+    },
+    'tr': {
+        'app_received': '✅ Başvuru başarıyla alındı!',
+        'app_code': '🆔 Başvuru Kodu',
+        'service': '📋 Hizmet',
+        'post': '📍 Gümrük',
+        'destination': '🏁 Varış',
+        'vehicle': '🚛 Araç',
+        'agent': '👤 Temsilci',
+        'wait_admin': '⏳ Yönetici yanıtı bekleniyor...',
+        'wait_time': 'Genellikle 5-15 dakika',
+        'notification': '🔔 Yanıt geldiğinde bildirim alacaksınız',
+        'error_user': '❌ Hata: Kullanıcı bulunamadı. /start basın.',
+        'error_general': '❌ Bir hata oluştu. Tekrar deneyin.',
+        'new_app': '🆕 YENİ BAŞVURU',
+        'via_webapp': '(Mini App ile)',
+        'user': '👤 Kullanıcı',
+        'username': '📱 Username',
+        'telegram_id': '🔑 ID',
+        'files_count': '📎 Dosyalar',
+        'language': '🌐 Dil',
+        'time': '⏰ Zaman',
+        'actions': '⚙️ İşlemler',
+        'set_price': '💰 Fiyat Belirle',
+        'reject': '❌ Reddet',
+        'accept': '✅ Kabul Et'
+    },
+    'tm': {
+        'app_received': '✅ Arza üstünlikli kabul edildi!',
+        'app_code': '🆔 Arza kody',
+        'service': '📋 Hyzmat',
+        'post': '📍 Post',
+        'destination': '🏁 Baryş',
+        'vehicle': '🚛 Ulag',
+        'agent': '👤 Agent',
+        'wait_admin': '⏳ Admin jogabyna garaşyň...',
+        'wait_time': 'Adatça 5-15 minut',
+        'notification': '🔔 Jogap gelende habar alarsyňyz',
+        'error_user': '❌ Ýalňyşlyk: Ulanyjy tapylmady. /start basyň.',
+        'error_general': '❌ Ýalňyşlyk ýüze çykdy. Gaýtadan synanyşyň.',
+        'new_app': '🆕 TÄZE ARZA',
+        'via_webapp': '(Mini App arkaly)',
+        'user': '👤 Ulanyjy',
+        'username': '📱 Username',
+        'telegram_id': '🔑 ID',
+        'files_count': '📎 Faýllar',
+        'language': '🌐 Dil',
+        'time': '⏰ Wagt',
+        'actions': '⚙️ Amallar',
+        'set_price': '💰 Bahany bellemek',
+        'reject': '❌ Ret etmek',
+        'accept': '✅ Kabul etmek'
+    },
+    'zh': {
+        'app_received': '✅ 申请已成功接收！',
+        'app_code': '🆔 申请代码',
+        'service': '📋 服务',
+        'post': '📍 口岸',
+        'destination': '🏁 目的地',
+        'vehicle': '🚛 车辆',
+        'agent': '👤 代理',
+        'wait_admin': '⏳ 等待管理员回复...',
+        'wait_time': '通常5-15分钟',
+        'notification': '🔔 收到回复时您将收到通知',
+        'error_user': '❌ 错误：未找到用户。请按 /start。',
+        'error_general': '❌ 发生错误。请重试。',
+        'new_app': '🆕 新申请',
+        'via_webapp': '(通过Mini App)',
+        'user': '👤 用户',
+        'username': '📱 用户名',
+        'telegram_id': '🔑 ID',
+        'files_count': '📎 文件',
+        'language': '🌐 语言',
+        'time': '⏰ 时间',
+        'actions': '⚙️ 操作',
+        'set_price': '💰 设定价格',
+        'reject': '❌ 拒绝',
+        'accept': '✅ 接受'
     }
 }
 
 def get_webapp_text(lang: str, key: str) -> str:
     """Tilga mos matnni olish"""
+    # Map alternative language codes
+    lang_map = {'uz_cyrillic': 'oz', 'kk': 'kz', 'ky': 'kg', 'tk': 'tm'}
+    lang = lang_map.get(lang, lang)
     texts = WEBAPP_TEXTS.get(lang, WEBAPP_TEXTS.get('uz'))
     return texts.get(key, WEBAPP_TEXTS['uz'].get(key, key))
 
@@ -249,7 +434,7 @@ async def handle_chat_message(message: Message, bot: Bot, data: dict):
 💬 **YANGI XABAR (Mini App)**
 
 👤 Foydalanuvchi: {message.from_user.full_name}
-📱 Username: @{message.from_user.username or 'yo\'q'}
+📱 Username: @{message.from_user.username or "yoq"}
 🔑 ID: `{message.from_user.id}`
 
 💬 Xabar:
@@ -313,7 +498,7 @@ async def send_to_admin_group(bot: Bot, app_code: str, user, data: dict, app_id:
 
 👤 **Foydalanuvchi:**
    • Ism: {user.full_name}
-   • Username: @{user.username or 'yo\'q'}
+   • Username: @{user.username or "yoq"}
    • ID: `{user.id}`
    • Til: {lang_name}
 
@@ -388,9 +573,6 @@ async def send_to_admin_group(bot: Bot, app_code: str, user, data: dict, app_id:
 
 @router.message(F.text.contains("Balans") | F.text.contains("Balance") | F.text.contains("💰") | F.text.contains("Tangalarim"))
 async def show_balance(message: Message):
-    """
-    Foydalanuvchi balansini ko'rsatadi
-    """
     user = await db.get_user(message.from_user.id)
     if not user:
         await message.answer("❌ /start bosing.")
@@ -398,55 +580,10 @@ async def show_balance(message: Message):
 
     balance = user.get('balance', 0)
     lang = user.get('language', 'uz')
-
-    # 35,000 coins = 1 free service
     free_services = int(balance / 35000)
 
-    # Ko'p tilli matn
-    if lang == 'ru':
-        msg = f"""
-💰 **Ваш баланс:**
-
-🪙 Монеты: **{balance:,.0f}**
-🎁 Бесплатные услуги: **{free_services}**
-
-📊 **Как заработать монеты:**
-• 35,000 монет = 1 бесплатная декларация
-• Пригласите друзей: +2,000 монет
-• Друг использует услугу: +17,500 монет
-
-🔗 **Ваша реферальная ссылка:**
-https://t.me/CARAVAN_TRANZIT_BOT?start={message.from_user.id}
-"""
-    elif lang == 'en':
-        msg = f"""
-💰 **Your Balance:**
-
-🪙 Coins: **{balance:,.0f}**
-🎁 Free services: **{free_services}**
-
-📊 **How to earn coins:**
-• 35,000 coins = 1 free declaration
-• Invite friends: +2,000 coins
-• Friend uses service: +17,500 coins
-
-🔗 **Your referral link:**
-https://t.me/CARAVAN_TRANZIT_BOT?start={message.from_user.id}
-"""
-    else:
-        msg = f"""
-💰 **Sizning balansingiz:**
-
-🪙 Tangalar: **{balance:,.0f}**
-🎁 Bepul xizmatlar: **{free_services}**
-
-📊 **Tanga ishlating:**
-• 35,000 tanga = 1 bepul deklaratsiya
-• Do'stlarni taklif qiling: +2,000 tanga
-• Do'stingiz xizmatdan foydalansa: +17,500 tanga
-
-🔗 **Taklif havolangiz:**
-https://t.me/CARAVAN_TRANZIT_BOT?start={message.from_user.id}
-"""
+    msg = TEXTS.get(lang, TEXTS['uz']).get('balance_msg', '').format(balance=int(balance))
+    if not msg:
+        msg = f"💰 Balance: {balance:,.0f}"
 
     await message.answer(msg, parse_mode="Markdown")

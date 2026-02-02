@@ -34,6 +34,27 @@ async def get_user_lang(state: FSMContext):
     data = await state.get_data()
     return data.get('lang', 'uz')
 
+def _all_texts(key):
+    """Get set of all translations for a key across all languages"""
+    return {TEXTS[lang].get(key, '') for lang in TEXTS} - {''}
+
+def _text_in_any(text, key):
+    """Check if text contains any translation of key"""
+    if not text:
+        return False
+    for lang_code in TEXTS:
+        val = TEXTS[lang_code].get(key, '')
+        if val and val in text:
+            return True
+    return False
+
+def _menu_filter(*keys):
+    """Create filter matching any of the given translation keys"""
+    all_values = set()
+    for key in keys:
+        all_values.update(_all_texts(key))
+    return F.text.func(lambda t: any(v in t for v in all_values) if t else False)
+
 # ==========================================================
 # 1. ONBOARDING FLOW
 # ==========================================================
@@ -99,14 +120,9 @@ async def phone_received(message: Message, state: FSMContext):
             if success:
                 try:
                     bot = message.bot
-                    await bot.send_message(
-                        referrer_id,
-                        f"🎉 **Yangi do'st!**\n\n"
-                        f"👤 {message.from_user.full_name} sizning havolangiz orqali botga qo'shildi!\n"
-                        f"💰 +2,000 tanga qo'shildi!\n\n"
-                        f"🎁 Do'stingiz birinchi xizmatdan foydalansa, yana +17,500 tanga olasiz!",
-                        parse_mode="Markdown"
-                    )
+                    referrer_lang = (await db.get_user(referrer_id))['language'] if await db.get_user(referrer_id) else 'uz'
+                    msg = TEXTS.get(referrer_lang, TEXTS['uz'])['referral_new_friend'].format(name=message.from_user.full_name)
+                    await bot.send_message(referrer_id, msg, parse_mode="Markdown")
                 except:
                     pass
     except Exception as e:
@@ -122,7 +138,7 @@ async def phone_received(message: Message, state: FSMContext):
 # 2. MAIN MENU HANDLERS (17 XIZMAT)
 # ==========================================================
 
-@router.message(F.text.contains("EPI KOD AT DEKLARATSIYA"))
+@router.message(_menu_filter('menu_epi'))
 async def start_epi_kod(message: Message, state: FSMContext):
     """EPI KOD AT DEKLARATSIYA flow"""
     await state.clear()
@@ -130,10 +146,10 @@ async def start_epi_kod(message: Message, state: FSMContext):
     await state.update_data(lang=lang, service_type='EPI')
 
     t = await get_text(state, 'epi_start')
-    await message.answer(t, reply_markup=kb.get_posts_kb())
+    await message.answer(t, reply_markup=kb.get_posts_kb(lang))
     await state.set_state(EPIKodFlow.select_border_post)
 
-@router.message(F.text.contains("MB DEKLARATSIYA"))
+@router.message(_menu_filter('menu_mb'))
 async def start_mb_deklaratsiya(message: Message, state: FSMContext):
     """MB DEKLARATSIYA flow"""
     await state.clear()
@@ -141,10 +157,10 @@ async def start_mb_deklaratsiya(message: Message, state: FSMContext):
     await state.update_data(lang=lang, service_type='MB')
 
     t = await get_text(state, 'mb_start')
-    await message.answer(t, reply_markup=kb.get_posts_kb())
+    await message.answer(t, reply_markup=kb.get_posts_kb(lang))
     await state.set_state(MBDeklaratsiyaFlow.select_border_post)
 
-@router.message(F.text.contains("ISHONCH TELEFONLARI"))
+@router.message(_menu_filter('menu_contacts'))
 async def show_contacts(message: Message, state: FSMContext):
     """Show contact information menu with 4 main functions"""
     await state.clear()
@@ -160,32 +176,32 @@ async def contact_info_option_chosen(message: Message, state: FSMContext):
     """Contact Info: Option chosen"""
     lang = await get_user_lang(state)
 
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         await state.clear()
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
         return
 
-    if "RAQAMNI O'ZGARTIRISH" in message.text or "Change" in message.text and "phone" in message.text.lower():
+    if _text_in_any(message.text, 'btn_change_phone'):
         # Raqamni o'zgartirish
         t = await get_text(state, 'change_phone_msg')
         await message.answer(t, reply_markup=kb.get_phone_kb(lang))
         await state.set_state(ContactInfoFlow.change_phone)
 
-    elif "TILNI O'ZGARTIRISH" in message.text or "Language" in message.text:
+    elif _text_in_any(message.text, 'btn_change_lang'):
         # Tilni o'zgartirish
         t = await get_text(state, 'change_lang_msg')
         await message.answer(t, reply_markup=kb.get_lang_kb())
         await state.set_state(ContactInfoFlow.change_language)
 
-    elif "XOTIRANI TOZALASH" in message.text or "Clear" in message.text:
+    elif _text_in_any(message.text, 'btn_clear_cache'):
         # Xotirani tozalash
         await db.clear_user_cache(message.from_user.id)
         t = await get_text(state, 'cache_cleared_msg')
         await message.answer(t)
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
         await state.clear()
 
-    elif "ADMIN BILAN ALOQA" in message.text or "Contact" in message.text:
+    elif _text_in_any(message.text, 'btn_admin_contact'):
         # Admin bilan aloqa - 3 ta tugma
         t = await get_text(state, 'admin_contact_msg')
         await message.answer(
@@ -218,9 +234,10 @@ async def contact_info_phone_changed(message: Message, state: FSMContext):
             user.get('direction', 'IMPORT')
         )
 
-    await message.answer("✅ Raqam o'zgartirildi!")
+    t = await get_text(state, 'phone_changed')
+    await message.answer(t)
     lang = await get_user_lang(state)
-    await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+    await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
     await state.clear()
 
 @router.callback_query(ContactInfoFlow.change_language)
@@ -238,12 +255,12 @@ async def contact_info_lang_changed(call: CallbackQuery, state: FSMContext):
         )
 
     await call.message.delete()
-    await call.message.answer("✅ Til o'zgartirildi!")
-    await call.message.answer("🏠 Menu", reply_markup=kb.get_main_menu(new_lang))
+    await call.message.answer(TEXTS[new_lang]['lang_changed'])
+    await call.message.answer(TEXTS.get(new_lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(new_lang))
     await state.clear()
     await state.update_data(lang=new_lang)
 
-@router.message(F.text.contains("ARIZALARIM"))
+@router.message(_menu_filter('menu_apps'))
 async def my_applications(message: Message, state: FSMContext):
     """My applications menu"""
     await state.clear()
@@ -254,7 +271,7 @@ async def my_applications(message: Message, state: FSMContext):
     await message.answer(t, reply_markup=kb.get_applications_menu_kb(lang))
     await state.set_state(ApplicationsFlow.choose_option)
 
-@router.message(F.text.contains("SOZLAMALAR"))
+@router.message(_menu_filter('menu_settings'))
 async def settings_menu(message: Message, state: FSMContext):
     """Settings menu"""
     await state.clear()
@@ -265,20 +282,20 @@ async def settings_menu(message: Message, state: FSMContext):
     await message.answer(t, reply_markup=kb.get_settings_kb(lang))
     await state.set_state(SettingsFlow.menu)
 
-@router.message(F.text.contains("NARXLAR KATALOGI"))
+@router.message(_menu_filter('menu_prices'))
 async def show_prices(message: Message, state: FSMContext):
     """Show prices catalog"""
     t = await get_text(state, 'prices_catalog')
     await message.answer(t, parse_mode="HTML")
 
-@router.message(F.text.contains("DASTURNI YUKLAB OLING"))
+@router.message(_menu_filter('menu_app'))
 async def app_download(message: Message, state: FSMContext):
     """App download menu"""
     lang = await get_user_lang(state)
     t = await get_text(state, 'app_download_msg')
     await message.answer(t, reply_markup=kb.get_app_download_kb(lang))
 
-@router.message(F.text.contains("KGD") | F.text.contains("E-TRANZIT"))
+@router.message(_menu_filter('menu_kgd'))
 async def kgd_menu(message: Message, state: FSMContext):
     """KGD viewing menu"""
     await state.clear()
@@ -289,19 +306,19 @@ async def kgd_menu(message: Message, state: FSMContext):
     await message.answer(t, reply_markup=kb.get_kgd_menu_kb(lang))
     await state.set_state(KGDFlow.choose_method)
 
-@router.message(F.text.contains("GABARIT RUXSATNOMA"))
+@router.message(_menu_filter('menu_gabarit'))
 async def gabarit_info(message: Message, state: FSMContext):
     """Gabarit permit info"""
     t = await get_text(state, 'gabarit_msg')
     await message.answer(t, parse_mode="Markdown")
 
-@router.message(F.text.contains("SUGURTA") | F.text.contains("ELEKTRON NAVBAT") | F.text.contains("ISHONCHLI YUKLAR"))
+@router.message(_menu_filter('menu_sugurta', 'menu_navbat', 'menu_yuklar'))
 async def coming_soon(message: Message, state: FSMContext):
     """Placeholder for future services"""
     t = await get_text(state, 'coming_soon')
     await message.answer(t)
 
-@router.message(F.text.contains("BOT ORQALI BONUS"))
+@router.message(_menu_filter('menu_bonus'))
 async def bonus_menu(message: Message, state: FSMContext):
     """Bonus/referral menu"""
     await state.clear()
@@ -312,20 +329,20 @@ async def bonus_menu(message: Message, state: FSMContext):
     await message.answer(t, reply_markup=kb.get_bonus_menu_kb(lang))
     await state.set_state(BonusFlow.menu)
 
-@router.message(F.text.contains("TANGALARIM HISOBI"))
+@router.message(_menu_filter('menu_balance'))
 async def show_balance(message: Message, state: FSMContext):
     """Show coin balance"""
     balance = await db.get_user_balance(message.from_user.id)
     t = await get_text(state, 'balance_msg', balance=int(balance))
     await message.answer(t, parse_mode="Markdown")
 
-@router.message(F.text.contains("SOCIAL MEDIA"))
+@router.message(_menu_filter('menu_social'))
 async def social_media(message: Message, state: FSMContext):
     """Show social media links"""
     t = await get_text(state, 'social_msg')
     await message.answer(t, reply_markup=kb.get_social_media_kb())
 
-@router.message(F.text.contains("GAPLASHISH"))
+@router.message(_menu_filter('menu_chat'))
 async def start_chat(message: Message, state: FSMContext):
     """Start chat with support"""
     await state.clear()
@@ -343,17 +360,19 @@ async def start_chat(message: Message, state: FSMContext):
 @router.message(EPIKodFlow.select_border_post)
 async def epi_border_post_selected(message: Message, state: FSMContext):
     """EPI: Border post selected"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         lang = await get_user_lang(state)
         await state.clear()
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
         return
 
     # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
-    if "ANIQ EMAS" in message.text:
+    if _text_in_any(message.text, 'btn_unknown_post'):
+        lang = await get_user_lang(state)
+        t = await get_text(state, 'viloyat_select')
         await message.answer(
-            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
-            reply_markup=kb.get_viloyatlar_kb(),
+            t,
+            reply_markup=kb.get_viloyatlar_kb(lang),
             parse_mode="Markdown"
         )
         await state.set_state(EPIKodFlow.select_viloyat_border)
@@ -362,16 +381,18 @@ async def epi_border_post_selected(message: Message, state: FSMContext):
     await state.update_data(border_post=message.text)
 
     # To'g'ridan-to'g'ri TIF postlarini ko'rsatamiz
+    lang = await get_user_lang(state)
     t = await get_text(state, 'select_dest_post')
-    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb(lang))
     await state.set_state(EPIKodFlow.select_dest_post)
 
 @router.message(EPIKodFlow.select_viloyat_border)
 async def epi_viloyat_border_selected(message: Message, state: FSMContext):
     """EPI: Viloyat selected for border post (ANIQ EMAS)"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
+        lang = await get_user_lang(state)
         t = await get_text(state, 'epi_start')
-        await message.answer(t, reply_markup=kb.get_posts_kb())
+        await message.answer(t, reply_markup=kb.get_posts_kb(lang))
         await state.set_state(EPIKodFlow.select_border_post)
         return
 
@@ -379,24 +400,28 @@ async def epi_viloyat_border_selected(message: Message, state: FSMContext):
     await state.update_data(border_post=f"ANIQ EMAS ({message.text})")
 
     # Manzil postini tanlashga o'tish
+    lang = await get_user_lang(state)
     t = await get_text(state, 'select_dest_post')
-    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb(lang))
     await state.set_state(EPIKodFlow.select_dest_post)
 
 @router.message(EPIKodFlow.select_dest_post)
 async def epi_dest_post_selected(message: Message, state: FSMContext):
     """EPI: Destination post selected"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
+        lang = await get_user_lang(state)
         t = await get_text(state, 'epi_start')
-        await message.answer(t, reply_markup=kb.get_posts_kb())
+        await message.answer(t, reply_markup=kb.get_posts_kb(lang))
         await state.set_state(EPIKodFlow.select_border_post)
         return
 
     # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
-    if "ANIQ EMAS" in message.text:
+    if _text_in_any(message.text, 'btn_unknown_post'):
+        lang = await get_user_lang(state)
+        t = await get_text(state, 'viloyat_select')
         await message.answer(
-            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
-            reply_markup=kb.get_viloyatlar_kb(),
+            t,
+            reply_markup=kb.get_viloyatlar_kb(lang),
             parse_mode="Markdown"
         )
         await state.set_state(EPIKodFlow.select_viloyat_dest)
@@ -411,9 +436,10 @@ async def epi_dest_post_selected(message: Message, state: FSMContext):
 @router.message(EPIKodFlow.select_viloyat_dest)
 async def epi_viloyat_dest_selected(message: Message, state: FSMContext):
     """EPI: Viloyat selected for destination post (ANIQ EMAS)"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
+        lang = await get_user_lang(state)
         t = await get_text(state, 'select_dest_post')
-        await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+        await message.answer(t, reply_markup=kb.get_dest_posts_kb(lang))
         await state.set_state(EPIKodFlow.select_dest_post)
         return
 
@@ -428,7 +454,8 @@ async def epi_viloyat_dest_selected(message: Message, state: FSMContext):
 async def epi_car_number_entered(message: Message, state: FSMContext):
     """EPI: Car number entered"""
     if not message.text:
-        await message.reply("⚠️ Iltimos, mashina raqamini yozing (Rasm emas).")
+        t = await get_text(state, 'error_not_text')
+        await message.reply(t)
         return
 
     car = message.text.replace(" ", "").upper()
@@ -455,7 +482,8 @@ async def epi_photo_received(message: Message, state: FSMContext):
         file_size = message.document.file_size
 
     if file_size > MAX_FILE_SIZE:
-        await message.reply("⚠️ Fayl juda katta (10MB dan ko'p). Kichikroq rasm yuklang.")
+        t = await get_text(state, 'error_file_large')
+        await message.reply(t)
         return
 
     if file_id:
@@ -465,14 +493,14 @@ async def epi_photo_received(message: Message, state: FSMContext):
 @router.message(EPIKodFlow.collect_docs, F.text)
 async def epi_docs_done(message: Message, state: FSMContext, bot: Bot):
     """EPI: Documents upload done"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         t = await get_text(state, 'enter_car_number')
         await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
         await state.set_state(EPIKodFlow.enter_car_number)
         return
 
     # Check if "Done" button pressed
-    if any(k in message.text for k in ["Yuklab", "Done", "Болды", "完成"]):
+    if _text_in_any(message.text, 'btn_done'):
         data = await state.get_data()
         if not data.get('photos') or len(data.get('photos', [])) == 0:
             t = await get_text(state, 'zero_photos')
@@ -503,17 +531,19 @@ async def epi_docs_done(message: Message, state: FSMContext, bot: Bot):
 @router.message(MBDeklaratsiyaFlow.select_border_post)
 async def mb_border_post_selected(message: Message, state: FSMContext):
     """MB: Border post selected"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         lang = await get_user_lang(state)
         await state.clear()
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
         return
 
     # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
-    if "ANIQ EMAS" in message.text:
+    if _text_in_any(message.text, 'btn_unknown_post'):
+        lang = await get_user_lang(state)
+        t = await get_text(state, 'viloyat_select')
         await message.answer(
-            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
-            reply_markup=kb.get_viloyatlar_kb(),
+            t,
+            reply_markup=kb.get_viloyatlar_kb(lang),
             parse_mode="Markdown"
         )
         await state.set_state(MBDeklaratsiyaFlow.select_viloyat_border)
@@ -522,16 +552,18 @@ async def mb_border_post_selected(message: Message, state: FSMContext):
     await state.update_data(border_post=message.text)
 
     # To'g'ridan-to'g'ri TIF postlarini ko'rsatamiz
+    lang = await get_user_lang(state)
     t = await get_text(state, 'select_dest_post')
-    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb(lang))
     await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
 
 @router.message(MBDeklaratsiyaFlow.select_viloyat_border)
 async def mb_viloyat_border_selected(message: Message, state: FSMContext):
     """MB: Viloyat selected for border post (ANIQ EMAS)"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
+        lang = await get_user_lang(state)
         t = await get_text(state, 'mb_start')
-        await message.answer(t, reply_markup=kb.get_posts_kb())
+        await message.answer(t, reply_markup=kb.get_posts_kb(lang))
         await state.set_state(MBDeklaratsiyaFlow.select_border_post)
         return
 
@@ -539,24 +571,28 @@ async def mb_viloyat_border_selected(message: Message, state: FSMContext):
     await state.update_data(border_post=f"ANIQ EMAS ({message.text})")
 
     # Manzil postini tanlashga o'tish
+    lang = await get_user_lang(state)
     t = await get_text(state, 'select_dest_post')
-    await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+    await message.answer(t, reply_markup=kb.get_dest_posts_kb(lang))
     await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
 
 @router.message(MBDeklaratsiyaFlow.select_dest_post)
 async def mb_dest_post_selected(message: Message, state: FSMContext):
     """MB: Destination post selected"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
+        lang = await get_user_lang(state)
         t = await get_text(state, 'mb_start')
-        await message.answer(t, reply_markup=kb.get_posts_kb())
+        await message.answer(t, reply_markup=kb.get_posts_kb(lang))
         await state.set_state(MBDeklaratsiyaFlow.select_border_post)
         return
 
     # "ANIQ EMAS" bosilsa - viloyatlar ro'yxatini ko'rsatamiz
-    if "ANIQ EMAS" in message.text:
+    if _text_in_any(message.text, 'btn_unknown_post'):
+        lang = await get_user_lang(state)
+        t = await get_text(state, 'viloyat_select')
         await message.answer(
-            "🗺 **Qaysi viloyatga borasiz?**\n\nViloyatni tanlang:",
-            reply_markup=kb.get_viloyatlar_kb(),
+            t,
+            reply_markup=kb.get_viloyatlar_kb(lang),
             parse_mode="Markdown"
         )
         await state.set_state(MBDeklaratsiyaFlow.select_viloyat_dest)
@@ -571,9 +607,10 @@ async def mb_dest_post_selected(message: Message, state: FSMContext):
 @router.message(MBDeklaratsiyaFlow.select_viloyat_dest)
 async def mb_viloyat_dest_selected(message: Message, state: FSMContext):
     """MB: Viloyat selected for destination post (ANIQ EMAS)"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
+        lang = await get_user_lang(state)
         t = await get_text(state, 'select_dest_post')
-        await message.answer(t, reply_markup=kb.get_dest_posts_kb())
+        await message.answer(t, reply_markup=kb.get_dest_posts_kb(lang))
         await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
         return
 
@@ -588,7 +625,8 @@ async def mb_viloyat_dest_selected(message: Message, state: FSMContext):
 async def mb_car_number_entered(message: Message, state: FSMContext):
     """MB: Car number entered"""
     if not message.text:
-        await message.reply("⚠️ Iltimos, mashina raqamini yozing (Rasm emas).")
+        t = await get_text(state, 'error_not_text')
+        await message.reply(t)
         return
 
     car = message.text.replace(" ", "").upper()
@@ -615,7 +653,8 @@ async def mb_photo_received(message: Message, state: FSMContext):
         file_size = message.document.file_size
 
     if file_size > MAX_FILE_SIZE:
-        await message.reply("⚠️ Fayl juda katta (10MB dan ko'p). Kichikroq rasm yuklang.")
+        t = await get_text(state, 'error_file_large')
+        await message.reply(t)
         return
 
     if file_id:
@@ -625,13 +664,13 @@ async def mb_photo_received(message: Message, state: FSMContext):
 @router.message(MBDeklaratsiyaFlow.collect_docs, F.text)
 async def mb_docs_done(message: Message, state: FSMContext, bot: Bot):
     """MB: Documents upload done"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         t = await get_text(state, 'enter_car_number')
         await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
         await state.set_state(MBDeklaratsiyaFlow.enter_car_number)
         return
 
-    if any(k in message.text for k in ["Yuklab", "Done", "Болды", "完成"]):
+    if _text_in_any(message.text, 'btn_done'):
         data = await state.get_data()
         if not data.get('photos') or len(data.get('photos', [])) == 0:
             t = await get_text(state, 'zero_photos')
@@ -711,17 +750,17 @@ async def send_to_admin_group(bot: Bot, message: Message, code: str, data: dict,
 @router.message(ApplicationsFlow.choose_option)
 async def apps_option_chosen(message: Message, state: FSMContext):
     """Applications: Option chosen"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         lang = await get_user_lang(state)
         await state.clear()
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
         return
 
-    if "ARIZA BOR" in message.text or "Search" in message.text:
+    if _text_in_any(message.text, 'btn_search_app'):
         t = await get_text(state, 'search_app_car')
         await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
         await state.set_state(ApplicationsFlow.enter_car_for_search)
-    elif "ARIZALARIM" in message.text or "My" in message.text:
+    elif _text_in_any(message.text, 'btn_my_apps'):
         apps = await db.get_user_apps(message.from_user.id)
         if not apps:
             t = await get_text(state, 'my_apps_empty')
@@ -736,7 +775,7 @@ async def apps_option_chosen(message: Message, state: FSMContext):
 @router.message(ApplicationsFlow.enter_car_for_search)
 async def apps_search_by_car(message: Message, state: FSMContext):
     """Applications: Search by car number"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         lang = await get_user_lang(state)
         t = await get_text(state, 'apps_menu')
         await message.answer(t, reply_markup=kb.get_applications_menu_kb(lang))
@@ -766,29 +805,29 @@ async def settings_option_chosen(message: Message, state: FSMContext):
     """Settings: Option chosen"""
     lang = await get_user_lang(state)
 
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         await state.clear()
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
         return
 
-    if "RAQAMNI O'ZGARTIRISH" in message.text or "Change" in message.text and "phone" in message.text.lower():
+    if _text_in_any(message.text, 'btn_change_phone'):
         t = await get_text(state, 'change_phone_msg')
         await message.answer(t, reply_markup=kb.get_phone_kb(lang))
         await state.set_state(SettingsFlow.change_phone)
 
-    elif "TILNI O'ZGARTIRISH" in message.text or "Language" in message.text:
+    elif _text_in_any(message.text, 'btn_change_lang'):
         t = await get_text(state, 'change_lang_msg')
         await message.answer(t, reply_markup=kb.get_lang_kb())
         await state.set_state(SettingsFlow.change_language)
 
-    elif "XOTIRANI TOZALASH" in message.text or "Clear" in message.text:
+    elif _text_in_any(message.text, 'btn_clear_cache'):
         await db.clear_user_cache(message.from_user.id)
         t = await get_text(state, 'cache_cleared_msg')
         await message.answer(t)
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
         await state.clear()
 
-    elif "ADMIN BILAN ALOQA" in message.text or "Contact" in message.text:
+    elif _text_in_any(message.text, 'btn_admin_contact'):
         t = await get_text(state, 'admin_contact_msg')
         await message.answer(t, reply_markup=kb.get_admin_contact_kb(), parse_mode="Markdown")
 
@@ -806,9 +845,10 @@ async def settings_phone_changed(message: Message, state: FSMContext):
             user.get('direction', 'IMPORT')
         )
 
-    await message.answer("✅ Raqam o'zgartirildi!")
+    t = await get_text(state, 'phone_changed')
+    await message.answer(t)
     lang = await get_user_lang(state)
-    await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+    await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
     await state.clear()
 
 @router.callback_query(SettingsFlow.change_language)
@@ -826,8 +866,8 @@ async def settings_lang_changed(call: CallbackQuery, state: FSMContext):
         )
 
     await call.message.delete()
-    await call.message.answer("✅ Til o'zgartirildi!")
-    await call.message.answer("🏠 Menu", reply_markup=kb.get_main_menu(new_lang))
+    await call.message.answer(TEXTS[new_lang]['lang_changed'])
+    await call.message.answer(TEXTS.get(new_lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(new_lang))
     await state.clear()
     await state.update_data(lang=new_lang)
 
@@ -840,16 +880,16 @@ async def kgd_method_chosen(message: Message, state: FSMContext):
     """KGD: Method chosen"""
     lang = await get_user_lang(state)
 
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         await state.clear()
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
         return
 
-    if "DASTUR ORQALI" in message.text:
+    if _text_in_any(message.text, 'btn_kgd_app'):
         t = await get_text(state, 'kgd_app_msg')
         await message.answer(t, reply_markup=kb.get_kgd_app_submenu_kb(lang), parse_mode="Markdown")
 
-    elif "XODIMLAR ORQALI" in message.text:
+    elif _text_in_any(message.text, 'btn_kgd_staff'):
         t = await get_text(state, 'kgd_staff_car')
         await message.answer(t, reply_markup=kb.get_cancel_kb(lang))
         await state.set_state(KGDFlow.enter_car_number)
@@ -857,7 +897,7 @@ async def kgd_method_chosen(message: Message, state: FSMContext):
 @router.message(KGDFlow.enter_car_number)
 async def kgd_car_entered(message: Message, state: FSMContext, bot: Bot):
     """KGD: Car number entered for staff check"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         lang = await get_user_lang(state)
         t = await get_text(state, 'kgd_menu_msg')
         await message.answer(t, reply_markup=kb.get_kgd_menu_kb(lang))
@@ -882,7 +922,8 @@ async def kgd_car_entered(message: Message, state: FSMContext, bot: Bot):
         print(f"Error sending KGD request: {e}")
 
     lang = await get_user_lang(state)
-    await message.answer("✅ So'rovingiz yuborildi! Javobni kutib turing.", reply_markup=kb.get_main_menu(lang))
+    t = await get_text(state, 'request_sent')
+    await message.answer(t, reply_markup=kb.get_main_menu(lang))
     await state.clear()
 
 # ==========================================================
@@ -894,22 +935,22 @@ async def bonus_option_chosen(message: Message, state: FSMContext):
     """Bonus: Option chosen"""
     lang = await get_user_lang(state)
 
-    if "Ortga" in message.text or "Back" in message.text:
+    if _text_in_any(message.text, 'btn_back'):
         await state.clear()
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
         return
 
-    if "HAVOLANGIZNI OLING" in message.text or "link" in message.text.lower():
+    if _text_in_any(message.text, 'btn_get_link'):
         bot_username = (await message.bot.me()).username
         referral_link = f"https://t.me/{bot_username}?start={message.from_user.id}"
         t = await get_text(state, 'get_referral_link', link=referral_link)
         await message.answer(t, parse_mode="Markdown")
 
-    elif "TUSHUNTIRISHNOMA" in message.text or "info" in message.text.lower():
+    elif _text_in_any(message.text, 'btn_bonus_info'):
         t = await get_text(state, 'bonus_info')
         await message.answer(t, parse_mode="Markdown")
 
-    elif "TANGALARIM" in message.text or "coins" in message.text.lower():
+    elif _text_in_any(message.text, 'btn_my_coins'):
         balance = await db.get_user_balance(message.from_user.id)
         t = await get_text(state, 'balance_msg', balance=int(balance))
         await message.answer(t, parse_mode="Markdown")
@@ -924,16 +965,12 @@ async def chat_message_received(message: Message, state: FSMContext, bot: Bot):
     text = message.text or ""
 
     # Agar "Chatni tugatish" yoki "Ortga" yoki "Bekor" bosilsa - chatni tugatish
-    if ("tugatish" in text.lower() or "Ortga" in text or "Back" in text or
-        "Bekor" in text or "Cancel" in text or "Отмена" in text or
-        "завершить" in text.lower() or "end chat" in text.lower() or
-        "аяқтау" in text.lower() or "аяктоо" in text.lower() or
-        "анҷом" in text.lower() or "bitir" in text.lower() or
-        "gutarmak" in text.lower() or "结束" in text):
+    if _text_in_any(text, 'btn_end_chat') or _text_in_any(text, 'btn_back') or _text_in_any(text, 'btn_cancel'):
         lang = await get_user_lang(state)
         await state.clear()
         t = await get_text(state, 'chat_ended')
-        await message.answer(t if t else "✅ Chat tugadi. Asosiy menyu:", reply_markup=kb.get_main_menu(lang))
+        fallback_t = TEXTS.get(lang, TEXTS['uz']).get('chat_ended', '✅')
+        await message.answer(t if t != "..." else fallback_t, reply_markup=kb.get_main_menu(lang))
         return
 
     # Send to admin group
@@ -952,7 +989,8 @@ async def chat_message_received(message: Message, state: FSMContext, bot: Bot):
     # Chat davom etadi - state tozalanmaydi!
     t = await get_text(state, 'chat_continue')
     lang = await get_user_lang(state)
-    await message.answer(t if t else "✅ Xabar yuborildi! Yana yozing yoki chatni tugating.", reply_markup=kb.get_chat_kb(lang))
+    fallback_t = TEXTS.get(lang, TEXTS['uz']).get('chat_continue', '✅')
+    await message.answer(t if t != "..." else fallback_t, reply_markup=kb.get_chat_kb(lang))
     # State saqlanadi - chat davom etadi
     await state.set_state(ChatFlow.waiting_message)
 
@@ -977,13 +1015,9 @@ async def admin_claim(call: CallbackQuery, bot: Bot):
         app = await db.get_application_by_code(code)
         if app:
             try:
-                await bot.send_message(
-                    app['user_id'],
-                    f"✅ **Arizangiz qabul qilindi!**\n\n"
-                    f"🆔 Kod: `{code}`\n"
-                    f"⏳ Admin narxni belgilayapti...",
-                    parse_mode="Markdown"
-                )
+                user_lang = (await db.get_user(app['user_id']))['language'] if await db.get_user(app['user_id']) else 'uz'
+                msg = TEXTS.get(user_lang, TEXTS['uz'])['app_accepted_user'].format(code=code)
+                await bot.send_message(app['user_id'], msg, parse_mode="Markdown")
             except:
                 pass
         await call.answer("✅ Qabul qilindi!")
@@ -1013,15 +1047,9 @@ async def admin_reject(call: CallbackQuery, bot: Bot):
 
     # Foydalanuvchiga xabar
     try:
-        await bot.send_message(
-            app['user_id'],
-            f"❌ **Arizangiz rad etildi**\n\n"
-            f"🆔 Kod: `{code}`\n\n"
-            f"📞 Qo'shimcha ma'lumot uchun admin bilan bog'laning:\n"
-            f"• +998 91 702 00 99\n"
-            f"• @CARAVAN_TRANZIT",
-            parse_mode="Markdown"
-        )
+        user_lang = (await db.get_user(app['user_id']))['language'] if await db.get_user(app['user_id']) else 'uz'
+        msg = TEXTS.get(user_lang, TEXTS['uz'])['app_rejected_user'].format(code=code)
+        await bot.send_message(app['user_id'], msg, parse_mode="Markdown")
     except:
         pass
 
@@ -1066,25 +1094,29 @@ async def admin_group_handler(message: Message, bot: Bot):
         match = re.search(r"(?:ID|🆔|Telegram ID):\s*`?(\d+)`?", orig)
         if match:
             try:
+                user_id = int(match.group(1))
+                user_lang = (await db.get_user(user_id))['language'] if await db.get_user(user_id) else 'uz'
+                decl_text = TEXTS.get(user_lang, TEXTS['uz'])['declaration_ready']
+                admin_reply = TEXTS.get(user_lang, TEXTS['uz'])['admin_reply_prefix']
                 # Rasm/fayl bo'lsa uni ham yuborish
                 if message.photo:
                     await bot.send_photo(
-                        int(match.group(1)),
+                        user_id,
                         message.photo[-1].file_id,
-                        caption=f"📋 **DEKLARATSIYA TAYYOR:**\n\n{txt}" if txt else "📋 **DEKLARATSIYA TAYYOR**",
+                        caption=f"{decl_text}\n\n{txt}" if txt else decl_text,
                         parse_mode="Markdown"
                     )
                 elif message.document:
                     await bot.send_document(
-                        int(match.group(1)),
+                        user_id,
                         message.document.file_id,
-                        caption=f"📋 **DEKLARATSIYA TAYYOR:**\n\n{txt}" if txt else "📋 **DEKLARATSIYA TAYYOR**",
+                        caption=f"{decl_text}\n\n{txt}" if txt else decl_text,
                         parse_mode="Markdown"
                     )
                 else:
                     await bot.send_message(
-                        int(match.group(1)),
-                        f"👮‍♂️ **Admin javob:**\n\n{txt}",
+                        user_id,
+                        f"{admin_reply}\n\n{txt}",
                         parse_mode="Markdown"
                     )
                 await message.reply("✅ Foydalanuvchiga yuborildi!")
@@ -1099,25 +1131,28 @@ async def admin_group_handler(message: Message, bot: Bot):
         app = await db.get_application_by_code(app_code)
         if app:
             try:
+                user_lang = (await db.get_user(app['user_id']))['language'] if await db.get_user(app['user_id']) else 'uz'
+                decl_ready = TEXTS.get(user_lang, TEXTS['uz']).get('declaration_ready_code', '📋 **DEKLARATSIYA TAYYOR!**\n\n🆔 Kod: `{code}`').format(code=app_code)
+                admin_reply = TEXTS.get(user_lang, TEXTS['uz'])['admin_reply_prefix']
                 # Rasm/fayl bo'lsa uni ham yuborish
                 if message.photo:
                     await bot.send_photo(
                         app['user_id'],
                         message.photo[-1].file_id,
-                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🆔 Kod: `{app_code}`\n\n{txt}",
+                        caption=f"{decl_ready}\n\n{txt}",
                         parse_mode="Markdown"
                     )
                 elif message.document:
                     await bot.send_document(
                         app['user_id'],
                         message.document.file_id,
-                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🆔 Kod: `{app_code}`\n\n{txt}",
+                        caption=f"{decl_ready}\n\n{txt}",
                         parse_mode="Markdown"
                     )
                 else:
                     await bot.send_message(
                         app['user_id'],
-                        f"📋 **DEKLARATSIYA TAYYOR!**\n\n🆔 Kod: `{app_code}`\n\n🔔 Admin xabar: {txt}",
+                        f"{decl_ready}\n\n{admin_reply} {txt}",
                         parse_mode="Markdown"
                     )
                 await message.reply(f"✅ {app_code} - foydalanuvchiga yuborildi!")
@@ -1134,25 +1169,28 @@ async def admin_group_handler(message: Message, bot: Bot):
         app = await db.get_app_by_car_number(vehicle_number)
         if app:
             try:
+                user_lang = (await db.get_user(app['user_id']))['language'] if await db.get_user(app['user_id']) else 'uz'
+                decl_text = TEXTS.get(user_lang, TEXTS['uz'])['declaration_ready']
+                admin_reply = TEXTS.get(user_lang, TEXTS['uz'])['admin_reply_prefix']
                 # Rasm/fayl bo'lsa uni ham yuborish
                 if message.photo:
                     await bot.send_photo(
                         app['user_id'],
                         message.photo[-1].file_id,
-                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🚛 Mashina: `{vehicle_number}`\n\n{txt}",
+                        caption=f"{decl_text}\n\n{txt}",
                         parse_mode="Markdown"
                     )
                 elif message.document:
                     await bot.send_document(
                         app['user_id'],
                         message.document.file_id,
-                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🚛 Mashina: `{vehicle_number}`\n\n{txt}",
+                        caption=f"{decl_text}\n\n{txt}",
                         parse_mode="Markdown"
                     )
                 else:
                     await bot.send_message(
                         app['user_id'],
-                        f"📋 **DEKLARATSIYA TAYYOR!**\n\n🚛 Mashina: `{vehicle_number}`\n\n🔔 Admin xabar: {txt}",
+                        f"{decl_text}\n\n{admin_reply} {txt}",
                         parse_mode="Markdown"
                     )
                 await message.reply(f"✅ {vehicle_number} - foydalanuvchiga yuborildi!")
@@ -1165,7 +1203,7 @@ async def admin_group_handler(message: Message, bot: Bot):
 # 12. GLOBAL HANDLERS
 # ==========================================================
 
-@router.message(F.text.in_(["⬅️ Ortga", "⬅️ Назад", "⬅️ Back"]))
+@router.message(F.text.func(lambda t: _text_in_any(t, 'btn_back') if t else False))
 async def global_back_button(message: Message, state: FSMContext):
     """Global back button handler"""
     current_state = await state.get_state()
@@ -1176,15 +1214,15 @@ async def global_back_button(message: Message, state: FSMContext):
     lang = await get_user_lang(state)
     await state.clear()
     await state.update_data(lang=lang)
-    await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+    await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
 
-@router.message(F.text.in_(["❌ Bekor qilish", "❌ Cancel", "❌ Отмена"]))
+@router.message(F.text.func(lambda t: _text_in_any(t, 'btn_cancel') if t else False))
 async def global_cancel_button(message: Message, state: FSMContext):
     """Global cancel button handler"""
     lang = await get_user_lang(state)
     await state.clear()
     await state.update_data(lang=lang)
-    await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+    await message.answer(TEXTS.get(lang, TEXTS['uz'])['menu_text'], reply_markup=kb.get_main_menu(lang))
 
 # ==========================================================
 # 13. CATCH-ALL HANDLERS (prevent "Update is not handled" logs)
@@ -1209,12 +1247,12 @@ async def unhandled_message(message: Message, state: FSMContext):
         lang = user['language'] if user else 'uz'
         await state.update_data(lang=lang)
         await message.answer(
-            "🏠 Asosiy menyu:\n\nQuyidagi tugmalardan birini tanlang:",
+            TEXTS.get(lang, TEXTS['uz'])['main_menu_text'],
             reply_markup=kb.get_main_menu(lang)
         )
     except:
         # Fallback to default language
         await message.answer(
-            "🏠 Asosiy menyu:\n\nQuyidagi tugmalardan birini tanlang:",
+            TEXTS['uz']['main_menu_text'],
             reply_markup=kb.get_main_menu('uz')
         )
