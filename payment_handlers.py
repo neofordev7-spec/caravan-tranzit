@@ -6,6 +6,7 @@ To'lovlarni qayta ishlash:
 - Tangalar bilan to'lash
 - To'lov tarixini saqlash
 """
+import os
 from decimal import Decimal
 from aiogram import Router, F, Bot
 from aiogram.types import (
@@ -17,6 +18,9 @@ from payme_api import generate_checkout_url
 from click_api import ClickAPI
 
 router = Router()
+
+# Click Provider Token for Telegram Payments
+CLICK_PROVIDER_TOKEN = os.getenv("CLICK_PROVIDER_TOKEN", "")
 
 # =========================================================================
 # PAYMENT SELECTION - PAYME
