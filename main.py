@@ -19,7 +19,10 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 async def main():
     load_dotenv()
-    BOT_TOKEN = os.getenv("BOT_TOKEN", "8464794675:AAFIkh35oucNfiug5i5i0hN_QBEgTAPW3m8")
+    BOT_TOKEN = os.getenv("BOT_TOKEN")
+    if not BOT_TOKEN:
+        print("❌ BOT_TOKEN environment variable is not set!")
+        return
 
     try:
         await db.connect()

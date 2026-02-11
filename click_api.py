@@ -1,18 +1,16 @@
 """
 Click.uz Payment API Integration
-Service ID: 91522
-Merchant ID: 40158
-Merchant User ID: 73921
 """
+import os
 import hashlib
 import aiohttp
 from decimal import Decimal
 
-# Click API credentials
-CLICK_SERVICE_ID = 91522
-CLICK_MERCHANT_ID = 40158
-CLICK_MERCHANT_USER_ID = 73921
-CLICK_SECRET_KEY = "sFizqTkXcPS37XB"
+# Click API credentials (from environment variables)
+CLICK_SERVICE_ID = int(os.getenv("CLICK_SERVICE_ID", "0"))
+CLICK_MERCHANT_ID = int(os.getenv("CLICK_MERCHANT_ID", "0"))
+CLICK_MERCHANT_USER_ID = int(os.getenv("CLICK_MERCHANT_USER_ID", "0"))
+CLICK_SECRET_KEY = os.getenv("CLICK_SECRET_KEY", "")
 
 # Click API URLs
 CLICK_API_URL = "https://api.click.uz/v2/merchant"

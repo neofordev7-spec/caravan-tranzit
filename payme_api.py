@@ -1,7 +1,5 @@
 """
 Payme.uz Payment API Integration
-Merchant ID: 694404d0656e7b8e815d85ce
-Merchant Key: BHiKY@ySiVoRkg8MPIuEcIbMN4#bm5Vy7mxc
 
 Payme Merchant API (JSON-RPC 2.0):
 - CheckPerformTransaction
@@ -13,6 +11,7 @@ Payme Merchant API (JSON-RPC 2.0):
 
 Payme Checkout URL generation for user payments.
 """
+import os
 import base64
 import time
 import hashlib
@@ -24,9 +23,9 @@ from database import db
 
 logger = logging.getLogger(__name__)
 
-# Payme credentials
-PAYME_MERCHANT_ID = "694404d0656e7b8e815d85ce"
-PAYME_MERCHANT_KEY = "BHiKY@ySiVoRkg8MPIuEcIbMN4#bm5Vy7mxc"
+# Payme credentials (from environment variables)
+PAYME_MERCHANT_ID = os.getenv("PAYME_MERCHANT_ID", "")
+PAYME_MERCHANT_KEY = os.getenv("PAYME_MERCHANT_KEY", "")
 
 # Payme URLs
 PAYME_CHECKOUT_URL = "https://checkout.paycom.uz"
