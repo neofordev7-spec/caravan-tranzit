@@ -62,6 +62,19 @@ async def handle_accept(call: CallbackQuery, bot: Bot):
             ])
         )
 
+        # Foydalanuvchiga xabar yuboramiz
+        if app:
+            try:
+                await bot.send_message(
+                    app['user_id'],
+                    f"✅ **Arizangiz qabul qilindi!**\n\n"
+                    f"🆔 Kod: `{app_code}`\n"
+                    f"⏳ Admin narxni belgilayapti...",
+                    parse_mode="Markdown"
+                )
+            except:
+                pass
+
         await call.answer("✅ Ariza qabul qilindi!")
 
     except Exception as e:
@@ -326,38 +339,107 @@ async def send_invoice_to_user(bot: Bot, app, amount: Decimal):
 async def admin_group_messages(message: Message, bot: Bot):
     """
     Admin grupidagi xabarlarni qayta ishlash
-    - Reply to message: Foydalanuvchiga javob yuborish
-    - Mashina raqami: Foydalanuvchiga xabar yuborish
+    - Reply to message: Foydalanuvchiga javob yuborish (rasm/fayl/matn)
+    - EPI/MB kod bo'yicha qidirish
+    - Mashina raqami bo'yicha qidirish
     """
-    # Reply to message bo'lsa
-    if message.reply_to_message:
-        orig_text = message.reply_to_message.text or message.reply_to_message.caption or ""
+    txt = message.text or message.caption or ""
 
-        # User ID ni topamiz
-        match = re.search(r'(?:ID|🆔|Telegram ID):\s*`?(\d+)`?', orig_text)
+    # 1. Reply to message bo'lsa - original xabardagi userga javob yuborish
+    if message.reply_to_message:
+        orig = message.reply_to_message.text or message.reply_to_message.caption or ""
+        match = re.search(r"(?:ID|🆔|Telegram ID):\s*`?(\d+)`?", orig)
         if match:
             user_id = int(match.group(1))
             try:
-                await bot.send_message(
-                    user_id,
-                    f"👮‍♂️ **Admin javob:**\n\n{message.text}",
-                    parse_mode="Markdown"
-                )
-                await message.reply("✅ Yuborildi!")
+                # Rasm/fayl bo'lsa uni ham yuborish
+                if message.photo:
+                    await bot.send_photo(
+                        user_id,
+                        message.photo[-1].file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR:**\n\n{txt}" if txt else "📋 **DEKLARATSIYA TAYYOR**",
+                        parse_mode="Markdown"
+                    )
+                elif message.document:
+                    await bot.send_document(
+                        user_id,
+                        message.document.file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR:**\n\n{txt}" if txt else "📋 **DEKLARATSIYA TAYYOR**",
+                        parse_mode="Markdown"
+                    )
+                else:
+                    await bot.send_message(
+                        user_id,
+                        f"👮‍♂️ **Admin javob:**\n\n{txt}",
+                        parse_mode="Markdown"
+                    )
+                await message.reply("✅ Foydalanuvchiga yuborildi!")
             except Exception as e:
                 await message.reply(f"❌ Yuborib bo'lmadi: {e}")
             return
 
-    # Mashina raqamini topib, foydalanuvchiga xabar yuborish
-    text_upper = (message.text or "").upper()
-    car_match = re.search(r'\b(\d{2}[A-Z]\d{3}[A-Z]{2})\b', text_upper)
+    # 2. EPI kod yoki MB kod bo'yicha qidirish (EPI-12345 yoki MB-12345)
+    epi_match = re.search(r"\b(EPI|MB)-(\d{5})\b", txt.upper())
+    if epi_match:
+        app_code = f"{epi_match.group(1)}-{epi_match.group(2)}"
+        app = await db.get_application_by_code(app_code)
+        if app:
+            try:
+                if message.photo:
+                    await bot.send_photo(
+                        app['user_id'],
+                        message.photo[-1].file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🆔 Kod: `{app_code}`\n\n{txt}",
+                        parse_mode="Markdown"
+                    )
+                elif message.document:
+                    await bot.send_document(
+                        app['user_id'],
+                        message.document.file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🆔 Kod: `{app_code}`\n\n{txt}",
+                        parse_mode="Markdown"
+                    )
+                else:
+                    await bot.send_message(
+                        app['user_id'],
+                        f"📋 **DEKLARATSIYA TAYYOR!**\n\n🆔 Kod: `{app_code}`\n\n🔔 Admin xabar: {txt}",
+                        parse_mode="Markdown"
+                    )
+                await message.reply(f"✅ {app_code} - foydalanuvchiga yuborildi!")
+                await db.update_application_status(app_code, 'completed')
+            except Exception as e:
+                await message.reply(f"❌ Yuborib bo'lmadi: {e}")
+            return
 
+    # 3. Mashina raqami bo'yicha qidirish (01A777AA yoki 12345AAA)
+    text_upper = txt.upper()
+    car_match = re.search(r"\b(\d{2}[A-Z]\d{3}[A-Z]{2})\b|\b(\d{5}[A-Z]{3})\b", text_upper)
     if car_match:
-        vehicle_number = car_match.group(1)
-
-        # Bazadan arizani topamiz
-        # TODO: Add method to find application by vehicle number
-        # app = await db.get_application_by_vehicle(vehicle_number)
-        # if app:
-        #     await bot.send_message(app['user_id'], f"🔔 Admin: {message.text}")
-        pass
+        vehicle_number = car_match.group(1) or car_match.group(2)
+        app = await db.get_app_by_car_number(vehicle_number)
+        if app:
+            try:
+                if message.photo:
+                    await bot.send_photo(
+                        app['user_id'],
+                        message.photo[-1].file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🚛 Mashina: `{vehicle_number}`\n\n{txt}",
+                        parse_mode="Markdown"
+                    )
+                elif message.document:
+                    await bot.send_document(
+                        app['user_id'],
+                        message.document.file_id,
+                        caption=f"📋 **DEKLARATSIYA TAYYOR!**\n\n🚛 Mashina: `{vehicle_number}`\n\n{txt}",
+                        parse_mode="Markdown"
+                    )
+                else:
+                    await bot.send_message(
+                        app['user_id'],
+                        f"📋 **DEKLARATSIYA TAYYOR!**\n\n🚛 Mashina: `{vehicle_number}`\n\n🔔 Admin xabar: {txt}",
+                        parse_mode="Markdown"
+                    )
+                await message.reply(f"✅ {vehicle_number} - foydalanuvchiga yuborildi!")
+                await db.update_application_status(app['app_code'], 'completed')
+            except Exception as e:
+                await message.reply(f"❌ Yuborib bo'lmadi: {e}")
