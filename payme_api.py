@@ -113,6 +113,14 @@ def success_response(rpc_id, result: dict):
 class PaymeAPI:
     """Payme Merchant API handler (JSON-RPC 2.0)"""
 
+    # Bot referensi - web server tomonidan o'rnatiladi
+    bot = None
+
+    @classmethod
+    def set_bot(cls, bot_instance):
+        """Bot referensini saqlash (to'lov muvaffaqiyatli bo'lganda xabar yuborish uchun)"""
+        cls.bot = bot_instance
+
     @staticmethod
     async def handle_request(request: web.Request) -> web.Response:
         """
@@ -321,6 +329,15 @@ class PaymeAPI:
                     # Referral reward tekshiramiz
                     referrer_id = await db.mark_referral_reward(transaction['user_id'])
 
+                    # Bot orqali foydalanuvchi va admin guruhga xabar yuboramiz
+                    if PaymeAPI.bot:
+                        try:
+                            from payment_handlers import notify_payment_success
+                            amount_uzs = Decimal(str(transaction['amount']))
+                            await notify_payment_success(PaymeAPI.bot, app['app_code'], amount_uzs, 'payme')
+                        except Exception as notify_err:
+                            logger.error(f"Payment notification error: {notify_err}")
+
             now_ms = int(time.time() * 1000)
             return success_response(rpc_id, {
                 "perform_time": now_ms,
@@ -366,6 +383,20 @@ class PaymeAPI:
                     app = await db.get_application_by_id(transaction['application_id'])
                     if app:
                         await db.update_application_status(app['app_code'], 'new')
+
+                        # Foydalanuvchiga bekor qilinganini xabar beramiz
+                        if PaymeAPI.bot:
+                            try:
+                                await PaymeAPI.bot.send_message(
+                                    app['user_id'],
+                                    f"❌ **TO'LOV BEKOR QILINDI**\n\n"
+                                    f"🆔 Ariza: `{app['app_code']}`\n"
+                                    f"💰 Summa: **{transaction['amount']:,.0f} UZS**\n\n"
+                                    f"To'lov Payme tomonidan bekor qilindi.",
+                                    parse_mode="Markdown"
+                                )
+                            except Exception as notify_err:
+                                logger.error(f"Cancel notification error: {notify_err}")
 
                 return success_response(rpc_id, {
                     "cancel_time": int(time.time() * 1000),

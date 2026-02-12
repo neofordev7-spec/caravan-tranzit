@@ -167,10 +167,11 @@ async def handle_application_data(message: Message, bot: Bot, data: dict):
     user = await db.get_user(message.from_user.id)
     if not user:
         # Yangi foydalanuvchi yaratamiz
-        await db.create_user(
-            telegram_id=message.from_user.id,
-            full_name=message.from_user.full_name,
-            language=lang
+        await db.add_user(
+            message.from_user.id,
+            message.from_user.full_name,
+            '',  # phone - Mini App dan kelmaydi
+            lang
         )
         user = await db.get_user(message.from_user.id)
 
@@ -185,24 +186,24 @@ async def handle_application_data(message: Message, bot: Bot, data: dict):
 
     # Arizani bazaga saqlaymiz
     try:
+        metadata = {
+            'service_type': service_type,
+            'border_post': border_post,
+            'destination': destination,
+            'agent_name': agent_name,
+            'agent_id': agent_id,
+            'files_count': files_count,
+            'language': lang,
+            'vehicle_type': vehicle_type,
+            'via_webapp': True,
+            'photos': []
+        }
         app_record = await db.create_application(
-            app_code=app_code,
-            user_id=message.from_user.id,
-            agent_id=agent_id,
-            post_id=None,  # Postni nomdan topamiz
-            vehicle_number=vehicle_number,
-            vehicle_type=vehicle_type,
-            files={},
-            metadata={
-                'service_type': service_type,
-                'border_post': border_post,
-                'destination': destination,
-                'agent_name': agent_name,
-                'files_count': files_count,
-                'language': lang,
-                'via_webapp': True,
-                'status': 'new'
-            }
+            app_code,
+            message.from_user.id,
+            service_type,
+            vehicle_number or '',
+            metadata
         )
     except Exception as e:
         print(f"Database error: {e}")

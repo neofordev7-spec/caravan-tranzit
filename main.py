@@ -14,6 +14,8 @@ from admin_handlers import router as admin_router
 from payment_handlers import router as payment_router
 from database import db
 from web_server import start_web_server
+from payme_api import PaymeAPI
+from click_api import ClickAPI
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
@@ -45,6 +47,10 @@ async def main():
     # --- O'ZGARISH SHU YERDA ---
     # parse_mode=ParseMode.MARKDOWN -> Bu **text** ni qalin qiladi
     bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
+
+    # Payment API larga bot referensini beramiz (to'lov muvaffaqiyatli bo'lganda xabar yuborish uchun)
+    PaymeAPI.set_bot(bot)
+    ClickAPI.set_bot(bot)
 
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(payment_router)  # Payment handlers (birinchi o'rinda)

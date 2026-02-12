@@ -3,8 +3,11 @@ Click.uz Payment API Integration
 """
 import os
 import hashlib
-import aiohttp
+import logging
 from decimal import Decimal
+from database import db
+
+logger = logging.getLogger(__name__)
 
 # Click API credentials (from environment variables)
 CLICK_SERVICE_ID = int(os.getenv("CLICK_SERVICE_ID", "0"))
@@ -12,14 +15,17 @@ CLICK_MERCHANT_ID = int(os.getenv("CLICK_MERCHANT_ID", "0"))
 CLICK_MERCHANT_USER_ID = int(os.getenv("CLICK_MERCHANT_USER_ID", "0"))
 CLICK_SECRET_KEY = os.getenv("CLICK_SECRET_KEY", "")
 
-# Click API URLs
-CLICK_API_URL = "https://api.click.uz/v2/merchant"
-CLICK_PREPARE_URL = f"{CLICK_API_URL}/prepare"
-CLICK_COMPLETE_URL = f"{CLICK_API_URL}/complete"
-
 
 class ClickAPI:
     """Click.uz payment API handler"""
+
+    # Bot referensi - web server tomonidan o'rnatiladi
+    bot = None
+
+    @classmethod
+    def set_bot(cls, bot_instance):
+        """Bot referensini saqlash"""
+        cls.bot = bot_instance
 
     @staticmethod
     def generate_signature(
@@ -69,14 +75,53 @@ class ClickAPI:
                 "error_note": "SIGN CHECK FAILED!"
             }
 
-        # TODO: Check if transaction already exists in database
-        # TODO: Verify merchant_trans_id (application code) exists
-        # TODO: Verify amount matches
+        # Arizani bazadan tekshiramiz
+        app = await db.get_application_by_code(merchant_trans_id)
+        if not app:
+            return {
+                "error": -5,
+                "error_note": "Order not found"
+            }
+
+        # Ariza allaqachon to'langanmi?
+        if app['status'] == 'paid':
+            return {
+                "error": -4,
+                "error_note": "Already paid"
+            }
+
+        # Narxni tekshiramiz
+        if app['price']:
+            expected_amount = float(app['price'])
+            if abs(amount - expected_amount) > 1:  # 1 UZS tolerans
+                return {
+                    "error": -2,
+                    "error_note": f"Incorrect amount. Expected: {expected_amount}"
+                }
+
+        # Tranzaksiya yaratamiz
+        try:
+            transaction = await db.create_transaction(
+                user_id=app['user_id'],
+                application_id=app['id'],
+                amount=Decimal(str(amount)),
+                trans_type='card_payment',
+                payment_provider='click'
+            )
+
+            if transaction:
+                await db.update_transaction_status(
+                    transaction['id'],
+                    'pending',
+                    str(click_trans_id)
+                )
+        except Exception as e:
+            logger.error(f"Click prepare DB error: {e}")
 
         return {
             "click_trans_id": click_trans_id,
             "merchant_trans_id": merchant_trans_id,
-            "merchant_prepare_id": merchant_trans_id,  # Your internal transaction ID
+            "merchant_prepare_id": merchant_trans_id,
             "error": 0,
             "error_note": "Success"
         }
@@ -114,15 +159,44 @@ class ClickAPI:
             }
 
         if error < 0:
-            # Payment failed on Click side
+            # Click tomonidan to'lov bekor qilindi
+            try:
+                transaction = await db.get_transaction_by_payment_id(str(click_trans_id))
+                if transaction:
+                    await db.update_transaction_status(transaction['id'], 'cancelled', str(click_trans_id))
+            except Exception as e:
+                logger.error(f"Click cancel DB error: {e}")
+
             return {
                 "error": error,
                 "error_note": "Payment cancelled"
             }
 
-        # TODO: Mark transaction as completed in database
-        # TODO: Update application status
-        # TODO: Send notification to user
+        # Tranzaksiyani completed ga o'tkazamiz
+        try:
+            transaction = await db.get_transaction_by_payment_id(str(click_trans_id))
+            if transaction:
+                await db.update_transaction_status(transaction['id'], 'completed', str(click_trans_id))
+
+                # Ariza statusini paid ga o'tkazamiz
+                if transaction['application_id']:
+                    app = await db.get_application_by_id(transaction['application_id'])
+                    if app:
+                        await db.update_application_status(app['app_code'], 'paid')
+
+                        # Referral reward tekshiramiz
+                        await db.mark_referral_reward(transaction['user_id'])
+
+                        # Bot orqali xabar yuboramiz
+                        if ClickAPI.bot:
+                            try:
+                                from payment_handlers import notify_payment_success
+                                amount_uzs = Decimal(str(transaction['amount']))
+                                await notify_payment_success(ClickAPI.bot, app['app_code'], amount_uzs, 'click')
+                            except Exception as notify_err:
+                                logger.error(f"Click payment notification error: {notify_err}")
+        except Exception as e:
+            logger.error(f"Click complete DB error: {e}")
 
         return {
             "click_trans_id": click_trans_id,
@@ -148,9 +222,6 @@ class ClickAPI:
 
         Returns: Click payment URL
         """
-        # Click payment URL format:
-        # https://my.click.uz/services/pay?service_id=SERVICE_ID&merchant_id=MERCHANT_ID&amount=AMOUNT&transaction_param=APP_CODE&return_url=RETURN_URL
-
         base_url = "https://my.click.uz/services/pay"
         params = {
             "service_id": CLICK_SERVICE_ID,
