@@ -122,7 +122,7 @@ async def phone_received(message: Message, state: FSMContext):
 # 2. MAIN MENU HANDLERS (17 XIZMAT)
 # ==========================================================
 
-@router.message(F.text.contains("EPI KOD AT DEKLARATSIYA"))
+@router.message(F.text.startswith("📄"))
 async def start_epi_kod(message: Message, state: FSMContext):
     """EPI KOD AT DEKLARATSIYA flow"""
     await state.clear()
@@ -133,7 +133,7 @@ async def start_epi_kod(message: Message, state: FSMContext):
     await message.answer(t, reply_markup=kb.get_posts_kb())
     await state.set_state(EPIKodFlow.select_border_post)
 
-@router.message(F.text.contains("MB DEKLARATSIYA"))
+@router.message(F.text.startswith("📋"))
 async def start_mb_deklaratsiya(message: Message, state: FSMContext):
     """MB DEKLARATSIYA flow"""
     await state.clear()
@@ -144,7 +144,7 @@ async def start_mb_deklaratsiya(message: Message, state: FSMContext):
     await message.answer(t, reply_markup=kb.get_posts_kb())
     await state.set_state(MBDeklaratsiyaFlow.select_border_post)
 
-@router.message(F.text.contains("ISHONCH TELEFONLARI"))
+@router.message(F.text.startswith("📞"))
 async def show_contacts(message: Message, state: FSMContext):
     """Show contact information menu with 4 main functions"""
     await state.clear()
@@ -160,24 +160,24 @@ async def contact_info_option_chosen(message: Message, state: FSMContext):
     """Contact Info: Option chosen"""
     lang = await get_user_lang(state)
 
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         await state.clear()
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         return
 
-    if "RAQAMNI O'ZGARTIRISH" in message.text or "Change" in message.text and "phone" in message.text.lower():
+    if message.text.startswith("📱"):
         # Raqamni o'zgartirish
         t = await get_text(state, 'change_phone_msg')
         await message.answer(t, reply_markup=kb.get_phone_kb(lang))
         await state.set_state(ContactInfoFlow.change_phone)
 
-    elif "TILNI O'ZGARTIRISH" in message.text or "Language" in message.text:
+    elif message.text.startswith("🌐"):
         # Tilni o'zgartirish
         t = await get_text(state, 'change_lang_msg')
         await message.answer(t, reply_markup=kb.get_lang_kb())
         await state.set_state(ContactInfoFlow.change_language)
 
-    elif "XOTIRANI TOZALASH" in message.text or "Clear" in message.text:
+    elif message.text.startswith("🗑"):
         # Xotirani tozalash
         await db.clear_user_cache(message.from_user.id)
         t = await get_text(state, 'cache_cleared_msg')
@@ -185,21 +185,10 @@ async def contact_info_option_chosen(message: Message, state: FSMContext):
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         await state.clear()
 
-    elif "ADMIN BILAN ALOQA" in message.text or "Contact" in message.text:
-        # Admin bilan aloqa - 3 ta tugma
+    elif message.text.startswith("👨‍💼"):
+        # Admin bilan aloqa
         t = await get_text(state, 'admin_contact_msg')
-        await message.answer(
-            "📞 **ADMIN BILAN ALOQA:**\n\n"
-            "📱 **Telefon raqamlar:**\n"
-            "• +998 91 702 00 99\n"
-            "• +998 94 312 00 99\n\n"
-            "💬 **Telegram:**\n"
-            "• @CARAVAN_TRANZIT\n"
-            "• @caravan_tranzit1\n\n"
-            "📲 **WhatsApp:**\n"
-            "• +998 91 702 00 99\n"
-            "• +998 94 312 00 99\n"
-            "• [Guruhga qo'shilish](https://chat.whatsapp.com/Ka6XhUv2ueVFZPNuHo06BP)",
+        await message.answer(t,
             reply_markup=kb.get_admin_contact_detailed_kb(),
             parse_mode="Markdown"
         )
@@ -243,7 +232,7 @@ async def contact_info_lang_changed(call: CallbackQuery, state: FSMContext):
     await state.clear()
     await state.update_data(lang=new_lang)
 
-@router.message(F.text.contains("ARIZALARIM"))
+@router.message(F.text.startswith("🎫"))
 async def my_applications(message: Message, state: FSMContext):
     """My applications menu"""
     await state.clear()
@@ -254,7 +243,7 @@ async def my_applications(message: Message, state: FSMContext):
     await message.answer(t, reply_markup=kb.get_applications_menu_kb(lang))
     await state.set_state(ApplicationsFlow.choose_option)
 
-@router.message(F.text.contains("SOZLAMALAR"))
+@router.message(F.text.startswith("⚙️"))
 async def settings_menu(message: Message, state: FSMContext):
     """Settings menu"""
     await state.clear()
@@ -265,20 +254,27 @@ async def settings_menu(message: Message, state: FSMContext):
     await message.answer(t, reply_markup=kb.get_settings_kb(lang))
     await state.set_state(SettingsFlow.menu)
 
-@router.message(F.text.contains("NARXLAR KATALOGI"))
+@router.message(F.text.startswith("💰"))
 async def show_prices(message: Message, state: FSMContext):
     """Show prices catalog"""
     t = await get_text(state, 'prices_catalog')
     await message.answer(t, parse_mode="HTML")
 
-@router.message(F.text.contains("DASTURNI YUKLAB OLING"))
-async def app_download(message: Message, state: FSMContext):
-    """App download menu"""
-    lang = await get_user_lang(state)
-    t = await get_text(state, 'app_download_msg')
-    await message.answer(t, reply_markup=kb.get_app_download_kb(lang))
+@router.message(F.text.startswith("📱"))
+async def app_download_or_social(message: Message, state: FSMContext):
+    """App download OR Social media menu (both use 📱 emoji)"""
+    # Tekshiramiz: Social media yoki App download?
+    is_social = any(t in message.text for t in
+        {v.get('menu_social', '') for v in TEXTS.values() if v.get('menu_social')})
+    if is_social:
+        t = await get_text(state, 'social_msg')
+        await message.answer(t, reply_markup=kb.get_social_media_kb())
+    else:
+        lang = await get_user_lang(state)
+        t = await get_text(state, 'app_download_msg')
+        await message.answer(t, reply_markup=kb.get_app_download_kb(lang))
 
-@router.message(F.text.contains("KGD") | F.text.contains("E-TRANZIT"))
+@router.message(F.text.startswith("🚚"))
 async def kgd_menu(message: Message, state: FSMContext):
     """KGD viewing menu"""
     await state.clear()
@@ -289,19 +285,25 @@ async def kgd_menu(message: Message, state: FSMContext):
     await message.answer(t, reply_markup=kb.get_kgd_menu_kb(lang))
     await state.set_state(KGDFlow.choose_method)
 
-@router.message(F.text.contains("GABARIT RUXSATNOMA"))
+@router.message(F.text.startswith("📜"))
 async def gabarit_info(message: Message, state: FSMContext):
     """Gabarit permit info"""
     t = await get_text(state, 'gabarit_msg')
     await message.answer(t, parse_mode="Markdown")
 
-@router.message(F.text.contains("SUGURTA") | F.text.contains("ELEKTRON NAVBAT") | F.text.contains("ISHONCHLI YUKLAR"))
+@router.message(
+    F.text.startswith("🛡") | F.text.startswith("🎯") |
+    F.text.contains("ISHONCHLI YUKLAR") | F.text.contains("ИШОНЧЛИ ЮКЛАР") |
+    F.text.contains("НАДЕЖНЫЕ ГРУЗЫ") | F.text.contains("TRUSTED CARGO") |
+    F.text.contains("СЕНІМДІ ЖҮКТЕР") | F.text.contains("ИШЕНИМДҮҮ ЖҮКТӨР") |
+    F.text.contains("БОЭЪТИМОД") | F.text.contains("GÜVENİLİR YÜKLER") |
+    F.text.contains("YGTYBARLY") | F.text.contains("可靠货物"))
 async def coming_soon(message: Message, state: FSMContext):
     """Placeholder for future services"""
     t = await get_text(state, 'coming_soon')
     await message.answer(t)
 
-@router.message(F.text.contains("BOT ORQALI BONUS"))
+@router.message(F.text.startswith("🎁"))
 async def bonus_menu(message: Message, state: FSMContext):
     """Bonus/referral menu"""
     await state.clear()
@@ -312,20 +314,14 @@ async def bonus_menu(message: Message, state: FSMContext):
     await message.answer(t, reply_markup=kb.get_bonus_menu_kb(lang))
     await state.set_state(BonusFlow.menu)
 
-@router.message(F.text.contains("TANGALARIM HISOBI"))
+@router.message(F.text.startswith("💎"))
 async def show_balance(message: Message, state: FSMContext):
     """Show coin balance"""
     balance = await db.get_user_balance(message.from_user.id)
     t = await get_text(state, 'balance_msg', balance=int(balance))
     await message.answer(t, parse_mode="Markdown")
 
-@router.message(F.text.contains("SOCIAL MEDIA"))
-async def social_media(message: Message, state: FSMContext):
-    """Show social media links"""
-    t = await get_text(state, 'social_msg')
-    await message.answer(t, reply_markup=kb.get_social_media_kb())
-
-@router.message(F.text.contains("GAPLASHISH"))
+@router.message(F.text.startswith("💬"))
 async def start_chat(message: Message, state: FSMContext):
     """Start chat with support"""
     await state.clear()
@@ -343,7 +339,7 @@ async def start_chat(message: Message, state: FSMContext):
 @router.message(EPIKodFlow.select_border_post)
 async def epi_border_post_selected(message: Message, state: FSMContext):
     """EPI: Border post selected"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         lang = await get_user_lang(state)
         await state.clear()
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
@@ -366,7 +362,7 @@ async def epi_border_post_selected(message: Message, state: FSMContext):
 @router.message(EPIKodFlow.select_viloyat_border)
 async def epi_viloyat_border_selected(message: Message, state: FSMContext):
     """EPI: Viloyat selected for border post (ANIQ EMAS)"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         t = await get_text(state, 'epi_start')
         await message.answer(t, reply_markup=kb.get_posts_kb())
         await state.set_state(EPIKodFlow.select_border_post)
@@ -383,7 +379,7 @@ async def epi_viloyat_border_selected(message: Message, state: FSMContext):
 @router.message(EPIKodFlow.select_dest_post)
 async def epi_dest_post_selected(message: Message, state: FSMContext):
     """EPI: Destination post selected"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         t = await get_text(state, 'epi_start')
         await message.answer(t, reply_markup=kb.get_posts_kb())
         await state.set_state(EPIKodFlow.select_border_post)
@@ -405,7 +401,7 @@ async def epi_dest_post_selected(message: Message, state: FSMContext):
 @router.message(EPIKodFlow.select_viloyat_dest)
 async def epi_viloyat_dest_selected(message: Message, state: FSMContext):
     """EPI: Viloyat selected for destination post (ANIQ EMAS)"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         t = await get_text(state, 'select_dest_post')
         await message.answer(t, reply_markup=kb.get_dest_posts_kb())
         await state.set_state(EPIKodFlow.select_dest_post)
@@ -459,7 +455,7 @@ async def epi_photo_received(message: Message, state: FSMContext):
 @router.message(EPIKodFlow.collect_docs, F.text)
 async def epi_docs_done(message: Message, state: FSMContext, bot: Bot):
     """EPI: Documents upload done"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         t = await get_text(state, 'enter_car_number')
         await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
         await state.set_state(EPIKodFlow.enter_car_number)
@@ -497,7 +493,7 @@ async def epi_docs_done(message: Message, state: FSMContext, bot: Bot):
 @router.message(MBDeklaratsiyaFlow.select_border_post)
 async def mb_border_post_selected(message: Message, state: FSMContext):
     """MB: Border post selected"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         lang = await get_user_lang(state)
         await state.clear()
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
@@ -520,7 +516,7 @@ async def mb_border_post_selected(message: Message, state: FSMContext):
 @router.message(MBDeklaratsiyaFlow.select_viloyat_border)
 async def mb_viloyat_border_selected(message: Message, state: FSMContext):
     """MB: Viloyat selected for border post (ANIQ EMAS)"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         t = await get_text(state, 'mb_start')
         await message.answer(t, reply_markup=kb.get_posts_kb())
         await state.set_state(MBDeklaratsiyaFlow.select_border_post)
@@ -537,7 +533,7 @@ async def mb_viloyat_border_selected(message: Message, state: FSMContext):
 @router.message(MBDeklaratsiyaFlow.select_dest_post)
 async def mb_dest_post_selected(message: Message, state: FSMContext):
     """MB: Destination post selected"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         t = await get_text(state, 'mb_start')
         await message.answer(t, reply_markup=kb.get_posts_kb())
         await state.set_state(MBDeklaratsiyaFlow.select_border_post)
@@ -559,7 +555,7 @@ async def mb_dest_post_selected(message: Message, state: FSMContext):
 @router.message(MBDeklaratsiyaFlow.select_viloyat_dest)
 async def mb_viloyat_dest_selected(message: Message, state: FSMContext):
     """MB: Viloyat selected for destination post (ANIQ EMAS)"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         t = await get_text(state, 'select_dest_post')
         await message.answer(t, reply_markup=kb.get_dest_posts_kb())
         await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
@@ -613,7 +609,7 @@ async def mb_photo_received(message: Message, state: FSMContext):
 @router.message(MBDeklaratsiyaFlow.collect_docs, F.text)
 async def mb_docs_done(message: Message, state: FSMContext, bot: Bot):
     """MB: Documents upload done"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         t = await get_text(state, 'enter_car_number')
         await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
         await state.set_state(MBDeklaratsiyaFlow.enter_car_number)
@@ -685,10 +681,18 @@ async def send_to_admin_group(bot: Bot, message: Message, code: str, data: dict,
 
         await bot.send_message(ADMIN_GROUP_ID, f"🆔 `{code}` boshqarish:",
                               reply_markup=kb.get_admin_claim_kb(code), parse_mode="Markdown")
+        print(f"✅ Admin guruhga yuborildi: {code}")
     except Exception as e:
-        print(f"Admin send error: {e}")
+        print(f"❌ Admin send error [{code}]: {e}")
+        import traceback
+        traceback.print_exc()
         try:
             await bot.send_message(ADMIN_GROUP_ID, f"🆕 Ariza: {code} (Xatolik: {e})")
+        except Exception as e2:
+            print(f"❌ Admin fallback send also failed: {e2}")
+        # Foydalanuvchiga ham xabar beramiz
+        try:
+            await message.answer(f"⚠️ Texnik xatolik yuz berdi. Iltimos admin bilan bog'laning: @CARAVAN_TRANZIT")
         except:
             pass
 
@@ -699,17 +703,17 @@ async def send_to_admin_group(bot: Bot, message: Message, code: str, data: dict,
 @router.message(ApplicationsFlow.choose_option)
 async def apps_option_chosen(message: Message, state: FSMContext):
     """Applications: Option chosen"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         lang = await get_user_lang(state)
         await state.clear()
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         return
 
-    if "ARIZA BOR" in message.text or "Search" in message.text:
+    if message.text.startswith("🔍"):
         t = await get_text(state, 'search_app_car')
         await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
         await state.set_state(ApplicationsFlow.enter_car_for_search)
-    elif "ARIZALARIM" in message.text or "My" in message.text:
+    elif message.text.startswith("📂"):
         apps = await db.get_user_apps(message.from_user.id)
         if not apps:
             t = await get_text(state, 'my_apps_empty')
@@ -724,7 +728,7 @@ async def apps_option_chosen(message: Message, state: FSMContext):
 @router.message(ApplicationsFlow.enter_car_for_search)
 async def apps_search_by_car(message: Message, state: FSMContext):
     """Applications: Search by car number"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         lang = await get_user_lang(state)
         t = await get_text(state, 'apps_menu')
         await message.answer(t, reply_markup=kb.get_applications_menu_kb(lang))
@@ -754,29 +758,29 @@ async def settings_option_chosen(message: Message, state: FSMContext):
     """Settings: Option chosen"""
     lang = await get_user_lang(state)
 
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         await state.clear()
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         return
 
-    if "RAQAMNI O'ZGARTIRISH" in message.text or "Change" in message.text and "phone" in message.text.lower():
+    if message.text.startswith("📱"):
         t = await get_text(state, 'change_phone_msg')
         await message.answer(t, reply_markup=kb.get_phone_kb(lang))
         await state.set_state(SettingsFlow.change_phone)
 
-    elif "TILNI O'ZGARTIRISH" in message.text or "Language" in message.text:
+    elif message.text.startswith("🌐"):
         t = await get_text(state, 'change_lang_msg')
         await message.answer(t, reply_markup=kb.get_lang_kb())
         await state.set_state(SettingsFlow.change_language)
 
-    elif "XOTIRANI TOZALASH" in message.text or "Clear" in message.text:
+    elif message.text.startswith("🗑"):
         await db.clear_user_cache(message.from_user.id)
         t = await get_text(state, 'cache_cleared_msg')
         await message.answer(t)
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         await state.clear()
 
-    elif "ADMIN BILAN ALOQA" in message.text or "Contact" in message.text:
+    elif message.text.startswith("👨‍💼"):
         t = await get_text(state, 'admin_contact_msg')
         await message.answer(t, reply_markup=kb.get_admin_contact_kb(), parse_mode="Markdown")
 
@@ -828,16 +832,16 @@ async def kgd_method_chosen(message: Message, state: FSMContext):
     """KGD: Method chosen"""
     lang = await get_user_lang(state)
 
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         await state.clear()
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         return
 
-    if "DASTUR ORQALI" in message.text:
+    if message.text.startswith("📱"):
         t = await get_text(state, 'kgd_app_msg')
         await message.answer(t, reply_markup=kb.get_kgd_app_submenu_kb(lang), parse_mode="Markdown")
 
-    elif "XODIMLAR ORQALI" in message.text:
+    elif message.text.startswith("👥"):
         t = await get_text(state, 'kgd_staff_car')
         await message.answer(t, reply_markup=kb.get_cancel_kb(lang))
         await state.set_state(KGDFlow.enter_car_number)
@@ -845,7 +849,7 @@ async def kgd_method_chosen(message: Message, state: FSMContext):
 @router.message(KGDFlow.enter_car_number)
 async def kgd_car_entered(message: Message, state: FSMContext, bot: Bot):
     """KGD: Car number entered for staff check"""
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         lang = await get_user_lang(state)
         t = await get_text(state, 'kgd_menu_msg')
         await message.answer(t, reply_markup=kb.get_kgd_menu_kb(lang))
@@ -882,22 +886,22 @@ async def bonus_option_chosen(message: Message, state: FSMContext):
     """Bonus: Option chosen"""
     lang = await get_user_lang(state)
 
-    if "Ortga" in message.text or "Back" in message.text:
+    if message.text.startswith("⬅️"):
         await state.clear()
         await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
         return
 
-    if "HAVOLANGIZNI OLING" in message.text or "link" in message.text.lower():
+    if message.text.startswith("🔗"):
         bot_username = (await message.bot.me()).username
         referral_link = f"https://t.me/{bot_username}?start={message.from_user.id}"
         t = await get_text(state, 'get_referral_link', link=referral_link)
         await message.answer(t, parse_mode="Markdown")
 
-    elif "TUSHUNTIRISHNOMA" in message.text or "info" in message.text.lower():
+    elif message.text.startswith("ℹ️"):
         t = await get_text(state, 'bonus_info')
         await message.answer(t, parse_mode="Markdown")
 
-    elif "TANGALARIM" in message.text or "coins" in message.text.lower():
+    elif message.text.startswith("💎"):
         balance = await db.get_user_balance(message.from_user.id)
         t = await get_text(state, 'balance_msg', balance=int(balance))
         await message.answer(t, parse_mode="Markdown")
@@ -911,13 +915,8 @@ async def chat_message_received(message: Message, state: FSMContext, bot: Bot):
     """Chat: Message received - davom etadigan chat"""
     text = message.text or ""
 
-    # Agar "Chatni tugatish" yoki "Ortga" yoki "Bekor" bosilsa - chatni tugatish
-    if ("tugatish" in text.lower() or "Ortga" in text or "Back" in text or
-        "Bekor" in text or "Cancel" in text or "Отмена" in text or
-        "завершить" in text.lower() or "end chat" in text.lower() or
-        "аяқтау" in text.lower() or "аяктоо" in text.lower() or
-        "анҷом" in text.lower() or "bitir" in text.lower() or
-        "gutarmak" in text.lower() or "结束" in text):
+    # Agar "Chatni tugatish" (🏁) yoki "Ortga" (⬅️) yoki "Bekor" (❌) bosilsa
+    if text.startswith("🏁") or text.startswith("⬅️") or text.startswith("❌"):
         lang = await get_user_lang(state)
         await state.clear()
         t = await get_text(state, 'chat_ended')
@@ -948,14 +947,14 @@ async def chat_message_received(message: Message, state: FSMContext, bot: Bot):
 # 11. ADMIN HANDLERS
 # ==========================================================
 
-    # NOTE: Admin callback handlers (claim_, reject_, setprice_) and admin_group_handler
-    # are in admin_handlers.py which is registered first in main.py
+# NOTE: Admin callback handlers (claim_, reject_, setprice_) and admin_group_handler
+# are in admin_handlers.py which is registered first in main.py
 
 # ==========================================================
 # 12. GLOBAL HANDLERS
 # ==========================================================
 
-@router.message(F.text.in_(["⬅️ Ortga", "⬅️ Назад", "⬅️ Back"]))
+@router.message(F.text.startswith("⬅️"))
 async def global_back_button(message: Message, state: FSMContext):
     """Global back button handler"""
     current_state = await state.get_state()
@@ -968,7 +967,7 @@ async def global_back_button(message: Message, state: FSMContext):
     await state.update_data(lang=lang)
     await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
 
-@router.message(F.text.in_(["❌ Bekor qilish", "❌ Cancel", "❌ Отмена"]))
+@router.message(F.text.startswith("❌"))
 async def global_cancel_button(message: Message, state: FSMContext):
     """Global cancel button handler"""
     lang = await get_user_lang(state)
