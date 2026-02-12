@@ -1,10 +1,11 @@
 import asyncio
 import logging
+import signal
 import sys
 import os
 from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties # MUHIM YANGILIK
-from aiogram.enums import ParseMode # MUHIM YANGILIK
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
 
@@ -17,6 +18,7 @@ from web_server import start_web_server
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
+
 async def main():
     load_dotenv()
     BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -24,9 +26,10 @@ async def main():
         print("❌ BOT_TOKEN environment variable is not set!")
         return
 
+    web_runner = None
+
     try:
         await db.connect()
-        await db.create_tables()
         await db.seed_customs_posts()
         await db.seed_test_agents()
         print("✅ Baza ulandi va seed data yuklandi!")
@@ -42,8 +45,6 @@ async def main():
     except Exception as e:
         print(f"⚠️ Web server xatosi (bot ishlaydi): {e}")
 
-    # --- O'ZGARISH SHU YERDA ---
-    # parse_mode=ParseMode.MARKDOWN -> Bu **text** ni qalin qiladi
     bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 
     dp = Dispatcher(storage=MemoryStorage())
@@ -53,11 +54,29 @@ async def main():
     dp.include_router(router)           # Boshqa handlerlar
 
     print("🚀 Bot ishga tushdi!")
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+        await dp.start_polling(bot)
+    finally:
+        # Graceful shutdown: barcha resurslarni tozalash
+        print("🛑 Graceful shutdown boshlandi...")
+
+        if web_runner:
+            await web_runner.cleanup()
+            print("✅ Web server yopildi.")
+
+        await db.close()
+        print("✅ Database pool yopildi.")
+
+        await bot.session.close()
+        print("✅ Bot session yopildi.")
+
+        print("🛑 Bot to'xtatildi.")
+
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, SystemExit):
         print("🛑 Stop.")

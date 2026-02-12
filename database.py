@@ -33,6 +33,12 @@ class Database:
                 print(f"❌ Baza ulanishida xatolik: {e}")
                 return False
 
+    async def close(self):
+        """Database pool ni yopish (graceful shutdown uchun)"""
+        if self.pool:
+            await self.pool.close()
+            self.pool = None
+
     async def create_tables(self):
         """Kerakli jadvallarni yaratish (YANGILANGAN ARXITEKTURA)"""
         async with self.pool.acquire() as conn:
