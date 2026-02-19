@@ -238,17 +238,16 @@ class PaymeAPI:
             if existing:
                 if existing['status'] == 'pending':
                     # Tranzaksiya hali pending — xuddi birinchi marta yaratilgandek javob
-                    create_time_ms = int(existing['created_at'].timestamp() * 1000)
+                    # create_time STRICTNO BDdan olinadi (BIGINT ms)
                     return success_response(rpc_id, {
-                        "create_time": create_time_ms,
+                        "create_time": existing['create_time'],
                         "transaction": str(existing['id']),
                         "state": 1
                     })
                 elif existing['status'] == 'completed':
                     # Tranzaksiya allaqachon bajarilgan
-                    create_time_ms = int(existing['created_at'].timestamp() * 1000)
                     return success_response(rpc_id, {
-                        "create_time": create_time_ms,
+                        "create_time": existing['create_time'],
                         "transaction": str(existing['id']),
                         "state": 2
                     })
@@ -305,19 +304,21 @@ class PaymeAPI:
 
             # ——— Yangi tranzaksiya yaratamiz ———
             amount_uzs = Decimal(str(amount)) / 100
+            # create_time BIR MARTA generatsiya qilinadi va BDga BIGINT sifatida saqlanadi
+            create_time_ms = int(time.time() * 1000)
             transaction = await db.create_transaction(
                 user_id=app['user_id'],
                 application_id=app['id'],
                 amount=amount_uzs,
                 trans_type='card_payment',
                 payment_provider='payme',
-                payment_id=payme_id
+                payment_id=payme_id,
+                create_time=create_time_ms
             )
 
-            create_time_ms = int(transaction['created_at'].timestamp() * 1000)
-
+            # BDdan saqlangan qiymatni qaytaramiz (100% sinxron)
             return success_response(rpc_id, {
-                "create_time": create_time_ms,
+                "create_time": transaction['create_time'],
                 "transaction": str(transaction['id']),
                 "state": 1
             })
@@ -333,6 +334,9 @@ class PaymeAPI:
     async def perform_transaction(rpc_id, params: dict) -> dict:
         """
         Tranzaksiyani bajarish (to'lovni tasdiqlash)
+
+        Idempotentlik: agar tranzaksiya allaqachon completed bo'lsa,
+        BDdagi saqlangan perform_time qaytariladi.
         """
         try:
             payme_id = params.get("id")
@@ -345,11 +349,12 @@ class PaymeAPI:
                     "Транзакция не найдена",
                     "Transaction not found")
 
+            # Idempotent: allaqachon bajarilgan — BDdagi vaqtni qaytaramiz
             if transaction['status'] == 'completed':
                 return success_response(rpc_id, {
-                    "perform_time": int(time.time() * 1000),
+                    "perform_time": transaction['perform_time'],
                     "transaction": str(transaction['id']),
-                    "state": 2  # 2 = completed
+                    "state": 2
                 })
 
             if transaction['status'] != 'pending':
@@ -358,8 +363,12 @@ class PaymeAPI:
                     "Транзакция в неверном состоянии",
                     "Transaction in invalid state")
 
-            # Tranzaksiyani "completed" ga o'tkazamiz
-            await db.update_transaction_status(transaction['id'], 'completed', payme_id)
+            # Tranzaksiyani "completed" ga o'tkazamiz — vaqtni BIR MARTA saqlaymiz
+            now_ms = int(time.time() * 1000)
+            updated = await db.update_transaction_status(
+                transaction['id'], 'completed', payme_id,
+                perform_time=now_ms
+            )
 
             # Ariza statusini "paid" ga o'tkazamiz
             if transaction['application_id']:
@@ -368,13 +377,13 @@ class PaymeAPI:
                     await db.update_application_status(app['app_code'], 'paid')
 
                     # Referral reward tekshiramiz
-                    referrer_id = await db.mark_referral_reward(transaction['user_id'])
+                    await db.mark_referral_reward(transaction['user_id'])
 
-            now_ms = int(time.time() * 1000)
+            # STRICTNO BDdan saqlangan perform_time qaytariladi
             return success_response(rpc_id, {
-                "perform_time": now_ms,
-                "transaction": str(transaction['id']),
-                "state": 2  # 2 = completed
+                "perform_time": updated['perform_time'],
+                "transaction": str(updated['id']),
+                "state": 2
             })
 
         except Exception as e:
@@ -388,6 +397,9 @@ class PaymeAPI:
     async def cancel_transaction(rpc_id, params: dict) -> dict:
         """
         Tranzaksiyani bekor qilish
+
+        Idempotentlik: agar tranzaksiya allaqachon cancelled bo'lsa,
+        BDdagi saqlangan cancel_time qaytariladi.
         """
         try:
             payme_id = params.get("id")
@@ -400,34 +412,47 @@ class PaymeAPI:
                     "Транзакция не найдена",
                     "Transaction not found")
 
+            # Idempotent: allaqachon bekor qilingan — BDdagi vaqtni qaytaramiz
             if transaction['status'] == 'cancelled':
+                # state: perform_time bor = -2 (after perform), aks holda -1
+                state = -2 if transaction['perform_time'] else -1
                 return success_response(rpc_id, {
-                    "cancel_time": int(time.time() * 1000),
+                    "cancel_time": transaction['cancel_time'],
                     "transaction": str(transaction['id']),
-                    "state": -1  # -1 = cancelled before perform
+                    "state": state
                 })
 
+            now_ms = int(time.time() * 1000)
+
             if transaction['status'] == 'completed':
-                # Bajarilgan tranzaksiyani bekor qilish
-                await db.update_transaction_status(transaction['id'], 'cancelled', payme_id)
+                # Bajarilgan tranzaksiyani bekor qilish (state = -2)
+                updated = await db.update_transaction_status(
+                    transaction['id'], 'cancelled', payme_id,
+                    cancel_time=now_ms, cancel_reason=reason
+                )
 
                 if transaction['application_id']:
                     app = await db.get_application_by_id(transaction['application_id'])
                     if app:
                         await db.update_application_status(app['app_code'], 'new')
 
+                # STRICTNO BDdan saqlangan cancel_time qaytariladi
                 return success_response(rpc_id, {
-                    "cancel_time": int(time.time() * 1000),
-                    "transaction": str(transaction['id']),
-                    "state": -2  # -2 = cancelled after perform
+                    "cancel_time": updated['cancel_time'],
+                    "transaction": str(updated['id']),
+                    "state": -2
                 })
 
-            # Pending tranzaksiyani bekor qilish
-            await db.update_transaction_status(transaction['id'], 'cancelled', payme_id)
+            # Pending tranzaksiyani bekor qilish (state = -1)
+            updated = await db.update_transaction_status(
+                transaction['id'], 'cancelled', payme_id,
+                cancel_time=now_ms, cancel_reason=reason
+            )
 
+            # STRICTNO BDdan saqlangan cancel_time qaytariladi
             return success_response(rpc_id, {
-                "cancel_time": int(time.time() * 1000),
-                "transaction": str(transaction['id']),
+                "cancel_time": updated['cancel_time'],
+                "transaction": str(updated['id']),
                 "state": -1
             })
 
@@ -442,6 +467,8 @@ class PaymeAPI:
     async def check_transaction(rpc_id, params: dict) -> dict:
         """
         Tranzaksiya holatini tekshirish
+
+        Barcha vaqtlar (create_time, perform_time, cancel_time) BDdan olinadi.
         """
         try:
             payme_id = params.get("id")
@@ -461,15 +488,18 @@ class PaymeAPI:
             }
 
             state = state_map.get(transaction['status'], 1)
-            now_ms = int(time.time() * 1000)
+            # cancelled after perform => state -2
+            if state == -1 and transaction['perform_time']:
+                state = -2
 
+            # Barcha vaqtlar STRICTNO BDdan olinadi (BIGINT ms)
             return success_response(rpc_id, {
-                "create_time": now_ms,
-                "perform_time": now_ms if state == 2 else 0,
-                "cancel_time": now_ms if state < 0 else 0,
+                "create_time": transaction['create_time'],
+                "perform_time": transaction['perform_time'] or 0,
+                "cancel_time": transaction['cancel_time'] or 0,
                 "transaction": str(transaction['id']),
                 "state": state,
-                "reason": None
+                "reason": transaction['cancel_reason']
             })
 
         except Exception as e:

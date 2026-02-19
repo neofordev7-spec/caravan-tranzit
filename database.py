@@ -128,9 +128,19 @@ class Database:
                     status TEXT DEFAULT 'pending',
                     payment_provider TEXT,
                     payment_id TEXT,
+                    perform_time BIGINT,
+                    cancel_time BIGINT,
+                    cancel_reason INTEGER,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
+
+            # Migration: create_time, perform_time, cancel_time, cancel_reason ustunlarini qo'shish
+            for col, col_type in [('create_time', 'BIGINT'), ('perform_time', 'BIGINT'), ('cancel_time', 'BIGINT'), ('cancel_reason', 'INTEGER')]:
+                try:
+                    await conn.execute(f'ALTER TABLE transactions ADD COLUMN IF NOT EXISTS {col} {col_type}')
+                except Exception as e:
+                    print(f"⚠️ Migration warning (transactions.{col}): {e}")
 
             # 6. REFERRALS (Referral tizimi)
             await conn.execute('''
@@ -332,23 +342,36 @@ class Database:
     # =============================================================
     # TRANSACTIONS & PAYMENTS
     # =============================================================
-    async def create_transaction(self, user_id, application_id, amount, trans_type, payment_provider=None, payment_id=None):
-        """Yangi tranzaksiya yaratadi"""
+    async def create_transaction(self, user_id, application_id, amount, trans_type,
+                                payment_provider=None, payment_id=None, create_time=None):
+        """Yangi tranzaksiya yaratadi (create_time BIGINT ms da saqlanadi)"""
         async with self.pool.acquire() as conn:
             return await conn.fetchrow('''
                 INSERT INTO transactions
-                (user_id, application_id, amount, type, payment_provider, payment_id, status)
-                VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+                (user_id, application_id, amount, type, payment_provider, payment_id, status, create_time)
+                VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7)
                 RETURNING *
-            ''', user_id, application_id, amount, trans_type, payment_provider, payment_id)
+            ''', user_id, application_id, amount, trans_type, payment_provider, payment_id, create_time)
 
-    async def update_transaction_status(self, transaction_id, status, payment_id=None):
-        """Tranzaksiya statusini yangilaydi"""
+    async def update_transaction_status(self, transaction_id, status, payment_id=None,
+                                        perform_time=None, cancel_time=None, cancel_reason=None):
+        """
+        Tranzaksiya statusini yangilaydi (perform_time/cancel_time BIGINT ms da saqlanadi).
+
+        MUHIM: COALESCE(perform_time, $4) — mavjud qiymat saqlanadi, faqat NULL bo'lsa yangilanadi.
+        Bu idempotentlikni ta'minlaydi: bir marta yozilgan vaqt HECH QACHON o'zgarmaydi.
+        """
         async with self.pool.acquire() as conn:
-            await conn.execute(
-                'UPDATE transactions SET status = $2, payment_id = $3 WHERE id = $1',
-                transaction_id, status, payment_id
-            )
+            return await conn.fetchrow('''
+                UPDATE transactions
+                SET status = $2,
+                    payment_id = COALESCE($3, payment_id),
+                    perform_time = COALESCE(perform_time, $4),
+                    cancel_time = COALESCE(cancel_time, $5),
+                    cancel_reason = COALESCE(cancel_reason, $6)
+                WHERE id = $1
+                RETURNING *
+            ''', transaction_id, status, payment_id, perform_time, cancel_time, cancel_reason)
 
     async def get_transaction_by_payment_id(self, payment_id):
         """Payme/Click payment ID bo'yicha tranzaksiyani topadi"""
