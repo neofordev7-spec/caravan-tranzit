@@ -87,3 +87,9 @@ class ChatFlow(StatesGroup):
 class AdminState(StatesGroup):
     waiting_for_price = State()      # Narx belgilash
     waiting_for_response = State()   # Javob yozish
+
+# ==========================================================
+# 10. WEB APP HUJJAT YIQISH (Mini App dan keyin)
+# ==========================================================
+class WebAppDocFlow(StatesGroup):
+    collect_docs = State()           # Mini App ariza yuborilgandan keyin hujjatlarni yig'ish

@@ -2,20 +2,26 @@
 WEB APP HANDLERS
 Telegram Web App ma'lumotlarini qabul qilish va qayta ishlash
 10 ta til qo'llab-quvvatlanadi
++ Mini App dan keyin hujjatlarni yig'ish
 """
 import json
 import random
 from datetime import datetime
 from aiogram import Router, F, Bot
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto, InputMediaDocument
+from aiogram.fsm.context import FSMContext
 from database import db
 from strings import TEXTS
+from states import WebAppDocFlow
 import keyboards as kb
 
 router = Router()
 
 # Admin guruh ID
 ADMIN_GROUP_ID = -1003463212374
+
+# Max fayl hajmi
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 # Til xaritasi
 LANG_NAMES = {
@@ -57,7 +63,23 @@ WEBAPP_TEXTS = {
         'actions': '⚙️ Amallar',
         'set_price': '💰 Narx belgilash',
         'reject': '❌ Rad etish',
-        'accept': '✅ Qabul qilish'
+        'accept': '✅ Qabul qilish',
+        'send_docs_prompt': (
+            "📸 **Endi hujjatlaringizni shu yerga yuboring:**\n\n"
+            "• Rasmlar (JPG, PNG)\n"
+            "• PDF fayllar\n"
+            "• Word, Excel fayllar\n\n"
+            "Barcha hujjatlarni yuborganingizdan so'ng ✅ tugmasini bosing."
+        ),
+        'file_received': '✅ {count}-fayl qabul qilindi!',
+        'file_too_big': '⚠️ Fayl juda katta (10MB dan ko\'p). Kichikroq fayl yuklang.',
+        'min_one_file': '⚠️ Kamida 1 ta hujjat yuboring!',
+        'app_sent_success': (
+            "✅ **Ariza muvaffaqiyatli yuborildi!**\n\n"
+            "🆔 Kod: `{code}`\n"
+            "📎 Fayllar: {count} ta\n\n"
+            "⏳ Admin javobini kuting..."
+        ),
     },
     'ru': {
         'app_received': '✅ Заявка успешно принята!',
@@ -83,7 +105,23 @@ WEBAPP_TEXTS = {
         'actions': '⚙️ Действия',
         'set_price': '💰 Установить цену',
         'reject': '❌ Отклонить',
-        'accept': '✅ Принять'
+        'accept': '✅ Принять',
+        'send_docs_prompt': (
+            "📸 **Теперь отправьте ваши документы сюда:**\n\n"
+            "• Фотографии (JPG, PNG)\n"
+            "• PDF файлы\n"
+            "• Word, Excel файлы\n\n"
+            "После отправки всех документов нажмите ✅."
+        ),
+        'file_received': '✅ Файл {count} принят!',
+        'file_too_big': '⚠️ Файл слишком большой (более 10МБ). Отправьте файл поменьше.',
+        'min_one_file': '⚠️ Отправьте хотя бы 1 документ!',
+        'app_sent_success': (
+            "✅ **Заявка успешно отправлена!**\n\n"
+            "🆔 Код: `{code}`\n"
+            "📎 Файлы: {count} шт.\n\n"
+            "⏳ Ожидайте ответа администратора..."
+        ),
     },
     'en': {
         'app_received': '✅ Application received successfully!',
@@ -109,7 +147,23 @@ WEBAPP_TEXTS = {
         'actions': '⚙️ Actions',
         'set_price': '💰 Set Price',
         'reject': '❌ Reject',
-        'accept': '✅ Accept'
+        'accept': '✅ Accept',
+        'send_docs_prompt': (
+            "📸 **Now send your documents here:**\n\n"
+            "• Photos (JPG, PNG)\n"
+            "• PDF files\n"
+            "• Word, Excel files\n\n"
+            "After sending all documents, press ✅."
+        ),
+        'file_received': '✅ File {count} received!',
+        'file_too_big': '⚠️ File too large (over 10MB). Send a smaller file.',
+        'min_one_file': '⚠️ Send at least 1 document!',
+        'app_sent_success': (
+            "✅ **Application sent successfully!**\n\n"
+            "🆔 Code: `{code}`\n"
+            "📎 Files: {count}\n\n"
+            "⏳ Waiting for admin response..."
+        ),
     }
 }
 
@@ -120,7 +174,7 @@ def get_webapp_text(lang: str, key: str) -> str:
 
 
 @router.message(F.web_app_data)
-async def handle_web_app_data(message: Message, bot: Bot):
+async def handle_web_app_data(message: Message, state: FSMContext, bot: Bot):
     """
     Web App dan kelgan ma'lumotlarni qayta ishlash
     """
@@ -132,7 +186,7 @@ async def handle_web_app_data(message: Message, bot: Bot):
         data_type = data.get('type', 'application')
 
         if data_type == 'application':
-            await handle_application_data(message, bot, data)
+            await handle_application_data(message, state, bot, data)
         elif data_type == 'chat_message':
             await handle_chat_message(message, bot, data)
         elif data_type == 'payment_selected':
@@ -144,12 +198,15 @@ async def handle_web_app_data(message: Message, bot: Bot):
         await message.answer("❌ Ma'lumotlarni o'qishda xatolik yuz berdi.")
     except Exception as e:
         print(f"Web App handler error: {e}")
+        import traceback
+        traceback.print_exc()
         await message.answer("❌ Xatolik yuz berdi. Qaytadan urinib ko'ring.")
 
 
-async def handle_application_data(message: Message, bot: Bot, data: dict):
+async def handle_application_data(message: Message, state: FSMContext, bot: Bot, data: dict):
     """
     Ariza ma'lumotlarini qayta ishlash
+    Mini App dan kelgan arizani saqlaydi va foydalanuvchidan hujjatlarni so'raydi
     """
     # Ma'lumotlarni olamiz
     app_code = data.get('code')
@@ -208,7 +265,7 @@ async def handle_application_data(message: Message, bot: Bot, data: dict):
         print(f"Database error: {e}")
         app_record = {'id': 0}
 
-    # Foydalanuvchiga tasdiq xabarini yuboramiz
+    # Foydalanuvchiga tasdiq va hujjat so'rash xabarini yuboramiz
     success_msg = f"""
 {get_webapp_text(lang, 'app_received')}
 
@@ -217,21 +274,230 @@ async def handle_application_data(message: Message, bot: Bot, data: dict):
 {get_webapp_text(lang, 'post')}: {border_post}
 {get_webapp_text(lang, 'destination')}: {destination}
 {get_webapp_text(lang, 'vehicle')}: {vehicle_number}
-{get_webapp_text(lang, 'agent')}: {agent_name}
-
-{get_webapp_text(lang, 'wait_admin')}
-💡 {get_webapp_text(lang, 'wait_time')}
-{get_webapp_text(lang, 'notification')}
 """
 
     await message.answer(
         success_msg,
-        parse_mode="Markdown",
-        reply_markup=kb.get_main_menu(lang) if hasattr(kb, 'get_main_menu') else None
+        parse_mode="Markdown"
     )
 
-    # Admin guruhga xabar yuboramiz
-    await send_to_admin_group(bot, app_code, message.from_user, data, app_record.get('id', 0))
+    # Hujjatlarni so'raymiz - FSM state ga o'tkazamiz
+    await state.update_data(
+        webapp_app_code=app_code,
+        webapp_data=data,
+        webapp_app_id=app_record.get('id', 0) if isinstance(app_record, dict) else 0,
+        photos=[],
+        lang=lang
+    )
+
+    # Hujjat yuborishni so'raymiz
+    await message.answer(
+        get_webapp_text(lang, 'send_docs_prompt'),
+        parse_mode="Markdown",
+        reply_markup=kb.get_done_kb(lang)
+    )
+    await state.set_state(WebAppDocFlow.collect_docs)
+
+
+# =========================================================================
+# WEB APP DOCUMENT COLLECTION (Mini App dan keyin)
+# =========================================================================
+
+@router.message(WebAppDocFlow.collect_docs, F.photo | F.document)
+async def webapp_doc_received(message: Message, state: FSMContext):
+    """
+    Mini App ariza yuborilgandan keyin hujjatlarni qabul qilish
+    Rasmlar, PDF, Word, Excel va boshqa fayllarni qabul qiladi
+    """
+    data = await state.get_data()
+    current_photos = data.get('photos', [])
+    lang = data.get('lang', 'uz')
+
+    file_id = None
+    file_size = 0
+    file_type = 'photo'
+
+    if message.photo:
+        file_id = message.photo[-1].file_id
+        file_size = message.photo[-1].file_size or 0
+        file_type = 'photo'
+    elif message.document:
+        file_id = message.document.file_id
+        file_size = message.document.file_size or 0
+        file_type = 'document'
+
+    if file_size > MAX_FILE_SIZE:
+        await message.reply(get_webapp_text(lang, 'file_too_big'))
+        return
+
+    if file_id:
+        current_photos.append({'file_id': file_id, 'type': file_type})
+        await state.update_data(photos=current_photos)
+        count = len(current_photos)
+        await message.reply(get_webapp_text(lang, 'file_received').format(count=count))
+
+
+@router.message(WebAppDocFlow.collect_docs, F.text)
+async def webapp_docs_done(message: Message, state: FSMContext, bot: Bot):
+    """
+    Hujjatlarni yig'ish tugagach - admin guruhga yuborish
+    """
+    data = await state.get_data()
+    lang = data.get('lang', 'uz')
+
+    # Ortga yoki bekor qilish
+    if message.text.startswith("⬅️") or message.text.startswith("❌"):
+        await state.clear()
+        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(lang))
+        return
+
+    # Yuklab bo'ldim tugmasi (✅ prefix)
+    if message.text.startswith("✅"):
+        photos = data.get('photos', [])
+
+        if not photos:
+            await message.answer(get_webapp_text(lang, 'min_one_file'))
+            return
+
+        # Admin guruhga yuborish
+        app_code = data.get('webapp_app_code')
+        webapp_data = data.get('webapp_data', {})
+
+        await send_webapp_files_to_admin(bot, app_code, message.from_user, webapp_data, photos)
+
+        # Foydalanuvchiga tasdiqlash
+        await message.answer(
+            get_webapp_text(lang, 'app_sent_success').format(code=app_code, count=len(photos)),
+            parse_mode="Markdown",
+            reply_markup=kb.get_main_menu(lang)
+        )
+        await state.clear()
+        await state.update_data(lang=lang)
+
+
+# =========================================================================
+# ADMIN GURUHGA YUBORISH (FAYLLAR BILAN)
+# =========================================================================
+
+async def send_webapp_files_to_admin(bot: Bot, app_code: str, user, data: dict, files: list):
+    """
+    Admin guruhga ariza haqida to'liq xabar + fayllarni yuboradi
+    """
+    try:
+        lang = data.get('language', 'uz')
+        lang_name = LANG_NAMES.get(lang, "O'zbekcha")
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Fayllar sonini hisoblash
+        photo_count = sum(1 for f in files if isinstance(f, dict) and f.get('type') == 'photo')
+        doc_count = sum(1 for f in files if isinstance(f, dict) and f.get('type') == 'document')
+
+        # Xabar matnini tayyorlaymiz
+        msg_text = f"""
+🆕 **YANGI ARIZA** {get_webapp_text('uz', 'via_webapp')}
+
+━━━━━━━━━━━━━━━━━━━━━━
+🆔 **Kod:** `{app_code}`
+━━━━━━━━━━━━━━━━━━━━━━
+
+👤 **Foydalanuvchi:**
+   • Ism: {user.full_name}
+   • Username: @{user.username or "yo'q"}
+   • ID: `{user.id}`
+   • Til: {lang_name}
+
+📋 **Ariza ma'lumotlari:**
+   • Xizmat: {data.get('service_type', 'EPI')}
+   • Post: {data.get('border_post', '-')}
+   • Manzil: {data.get('destination', '-')}
+   • Mashina: {data.get('vehicle_number', '-')}
+   • Mashina turi: {'Yuk' if data.get('vehicle_type') == 'truck' else 'Yengil'}
+   • Agent: {data.get('agent_name', '-')}
+   • Rasmlar: {photo_count} ta
+   • Hujjatlar: {doc_count} ta
+
+⏰ **Vaqt:** {now}
+━━━━━━━━━━━━━━━━━━━━━━
+"""
+
+        # Xabar matnini yuboramiz
+        sent_msg = await bot.send_message(
+            ADMIN_GROUP_ID,
+            msg_text,
+            parse_mode="Markdown"
+        )
+
+        # Fayllarni ajratib yuboramiz
+        photo_ids = []
+        doc_ids = []
+        for f in files:
+            if isinstance(f, dict):
+                if f.get('type') == 'document':
+                    doc_ids.append(f['file_id'])
+                else:
+                    photo_ids.append(f['file_id'])
+
+        # Rasmlarni yuboramiz
+        if len(photo_ids) == 1:
+            await bot.send_photo(ADMIN_GROUP_ID, photo_ids[0])
+        elif len(photo_ids) > 1:
+            for i in range(0, len(photo_ids), 10):
+                chunk = photo_ids[i:i+10]
+                media = [InputMediaPhoto(media=pid) for pid in chunk]
+                await bot.send_media_group(ADMIN_GROUP_ID, media=media)
+
+        # Hujjatlarni yuboramiz (PDF, Word, Excel va boshqalar)
+        if len(doc_ids) == 1:
+            await bot.send_document(ADMIN_GROUP_ID, doc_ids[0])
+        elif len(doc_ids) > 1:
+            for i in range(0, len(doc_ids), 10):
+                chunk = doc_ids[i:i+10]
+                media = [InputMediaDocument(media=did) for did in chunk]
+                await bot.send_media_group(ADMIN_GROUP_ID, media=media)
+
+        # Admin tugmalarini qo'shamiz
+        admin_kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✅ Qabul qilish",
+                    callback_data=f"accept_{app_code}"
+                ),
+                InlineKeyboardButton(
+                    text="💰 Narx belgilash",
+                    callback_data=f"setprice_{app_code}"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="❌ Rad etish",
+                    callback_data=f"reject_{app_code}"
+                ),
+                InlineKeyboardButton(
+                    text="💬 Xabar yuborish",
+                    callback_data=f"message_{user.id}"
+                )
+            ]
+        ])
+
+        await bot.send_message(
+            ADMIN_GROUP_ID,
+            f"⚙️ `{app_code}` - Amallar:",
+            reply_markup=admin_kb,
+            parse_mode="Markdown"
+        )
+
+        # Message ID ni bazaga saqlaymiz
+        try:
+            await db.update_admin_message_id(app_code, sent_msg.message_id)
+        except:
+            pass
+
+        print(f"✅ Admin guruhga fayllar bilan yuborildi: {app_code} ({len(photo_ids)} rasm, {len(doc_ids)} hujjat)")
+
+    except Exception as e:
+        print(f"❌ Admin guruhga yuborishda xatolik: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 async def handle_chat_message(message: Message, bot: Bot, data: dict):
@@ -249,7 +515,7 @@ async def handle_chat_message(message: Message, bot: Bot, data: dict):
 💬 **YANGI XABAR (Mini App)**
 
 👤 Foydalanuvchi: {message.from_user.full_name}
-📱 Username: @{message.from_user.username or 'yo\'q'}
+📱 Username: @{message.from_user.username or "yo'q"}
 🔑 ID: `{message.from_user.id}`
 
 💬 Xabar:
@@ -292,94 +558,6 @@ async def handle_payment_selection(message: Message, bot: Bot, data: dict):
         )
     except Exception as e:
         print(f"Error notifying payment selection: {e}")
-
-
-async def send_to_admin_group(bot: Bot, app_code: str, user, data: dict, app_id: int):
-    """
-    Admin guruhga ariza haqida to'liq xabar yuboradi
-    """
-    try:
-        lang = data.get('language', 'uz')
-        lang_name = LANG_NAMES.get(lang, "O'zbekcha")
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        # Xabar matnini tayyorlaymiz
-        msg_text = f"""
-🆕 **YANGI ARIZA** {get_webapp_text('uz', 'via_webapp')}
-
-━━━━━━━━━━━━━━━━━━━━━━
-🆔 **Kod:** `{app_code}`
-━━━━━━━━━━━━━━━━━━━━━━
-
-👤 **Foydalanuvchi:**
-   • Ism: {user.full_name}
-   • Username: @{user.username or 'yo\'q'}
-   • ID: `{user.id}`
-   • Til: {lang_name}
-
-📋 **Ariza ma'lumotlari:**
-   • Xizmat: {data.get('service_type', 'EPI')}
-   • Post: {data.get('border_post', '-')}
-   • Manzil: {data.get('destination', '-')}
-   • Mashina: {data.get('vehicle_number', '-')}
-   • Mashina turi: {'Yuk' if data.get('vehicle_type') == 'truck' else 'Yengil'}
-   • Agent: {data.get('agent_name', '-')}
-   • Fayllar: {data.get('files_count', 0)} ta
-
-⏰ **Vaqt:** {now}
-
-━━━━━━━━━━━━━━━━━━━━━━
-⚠️ Foydalanuvchiga hujjat rasmlarini
-   alohida yuborishni so'rang!
-━━━━━━━━━━━━━━━━━━━━━━
-"""
-
-        # Admin guruhga yuboramiz
-        sent_msg = await bot.send_message(
-            ADMIN_GROUP_ID,
-            msg_text,
-            parse_mode="Markdown"
-        )
-
-        # Admin tugmalarini qo'shamiz
-        admin_kb = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="✅ Qabul qilish",
-                    callback_data=f"accept_{app_code}"
-                ),
-                InlineKeyboardButton(
-                    text="💰 Narx belgilash",
-                    callback_data=f"setprice_{app_code}"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="❌ Rad etish",
-                    callback_data=f"reject_{app_code}"
-                ),
-                InlineKeyboardButton(
-                    text="💬 Xabar yuborish",
-                    callback_data=f"message_{user.id}"
-                )
-            ]
-        ])
-
-        await bot.send_message(
-            ADMIN_GROUP_ID,
-            f"⚙️ `{app_code}` - Amallar:",
-            reply_markup=admin_kb,
-            parse_mode="Markdown"
-        )
-
-        # Message ID ni bazaga saqlaymiz
-        try:
-            await db.update_admin_message_id(app_code, sent_msg.message_id)
-        except:
-            pass
-
-    except Exception as e:
-        print(f"❌ Admin guruhga yuborishda xatolik: {e}")
 
 
 # =========================================================================

@@ -3,7 +3,7 @@ import re
 import json
 import asyncio
 from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery, InputMediaPhoto, ReplyKeyboardRemove
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaDocument, ReplyKeyboardRemove
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from database import db
@@ -436,21 +436,26 @@ async def epi_photo_received(message: Message, state: FSMContext):
 
     file_id = None
     file_size = 0
+    file_type = 'photo'
 
     if message.photo:
         file_id = message.photo[-1].file_id
-        file_size = message.photo[-1].file_size
+        file_size = message.photo[-1].file_size or 0
+        file_type = 'photo'
     elif message.document:
         file_id = message.document.file_id
-        file_size = message.document.file_size
+        file_size = message.document.file_size or 0
+        file_type = 'document'
 
     if file_size > MAX_FILE_SIZE:
-        await message.reply("⚠️ Fayl juda katta (10MB dan ko'p). Kichikroq rasm yuklang.")
+        await message.reply("⚠️ Fayl juda katta (10MB dan ko'p). Kichikroq fayl yuklang.")
         return
 
     if file_id:
-        current_photos.append(file_id)
+        current_photos.append({'file_id': file_id, 'type': file_type})
         await state.update_data(photos=current_photos)
+        count = len(current_photos)
+        await message.reply(f"✅ {count}-fayl qabul qilindi!")
 
 @router.message(EPIKodFlow.collect_docs, F.text)
 async def epi_docs_done(message: Message, state: FSMContext, bot: Bot):
@@ -590,21 +595,26 @@ async def mb_photo_received(message: Message, state: FSMContext):
 
     file_id = None
     file_size = 0
+    file_type = 'photo'
 
     if message.photo:
         file_id = message.photo[-1].file_id
-        file_size = message.photo[-1].file_size
+        file_size = message.photo[-1].file_size or 0
+        file_type = 'photo'
     elif message.document:
         file_id = message.document.file_id
-        file_size = message.document.file_size
+        file_size = message.document.file_size or 0
+        file_type = 'document'
 
     if file_size > MAX_FILE_SIZE:
-        await message.reply("⚠️ Fayl juda katta (10MB dan ko'p). Kichikroq rasm yuklang.")
+        await message.reply("⚠️ Fayl juda katta (10MB dan ko'p). Kichikroq fayl yuklang.")
         return
 
     if file_id:
-        current_photos.append(file_id)
+        current_photos.append({'file_id': file_id, 'type': file_type})
         await state.update_data(photos=current_photos)
+        count = len(current_photos)
+        await message.reply(f"✅ {count}-fayl qabul qilindi!")
 
 @router.message(MBDeklaratsiyaFlow.collect_docs, F.text)
 async def mb_docs_done(message: Message, state: FSMContext, bot: Bot):
@@ -665,19 +675,44 @@ async def send_to_admin_group(bot: Bot, message: Message, code: str, data: dict,
             f"{route}"
         )
 
-        photos = data.get('photos', [])
-        if not photos:
+        files = data.get('photos', [])
+
+        # Separate photos and documents
+        photo_ids = []
+        doc_ids = []
+        for f in files:
+            if isinstance(f, dict):
+                if f.get('type') == 'document':
+                    doc_ids.append(f['file_id'])
+                else:
+                    photo_ids.append(f['file_id'])
+            else:
+                # Backward compatibility: plain file_id string treated as photo
+                photo_ids.append(f)
+
+        if not photo_ids and not doc_ids:
             await bot.send_message(ADMIN_GROUP_ID, cap, parse_mode="Markdown")
         else:
-            chunked = [photos[i:i+10] for i in range(0, len(photos), 10)]
+            # Send caption as text message first
+            await bot.send_message(ADMIN_GROUP_ID, cap, parse_mode="Markdown")
 
-            for idx, chunk in enumerate(chunked):
-                media = []
-                for pidx, pid in enumerate(chunk):
-                    caption = cap if (idx == 0 and pidx == 0) else None
-                    media.append(InputMediaPhoto(media=pid, caption=caption, parse_mode="Markdown"))
+            # Send photos
+            if len(photo_ids) == 1:
+                await bot.send_photo(ADMIN_GROUP_ID, photo_ids[0])
+            elif len(photo_ids) > 1:
+                for i in range(0, len(photo_ids), 10):
+                    chunk = photo_ids[i:i+10]
+                    media = [InputMediaPhoto(media=pid) for pid in chunk]
+                    await bot.send_media_group(ADMIN_GROUP_ID, media=media)
 
-                await bot.send_media_group(ADMIN_GROUP_ID, media=media)
+            # Send documents (PDFs, Word, Excel, etc.)
+            if len(doc_ids) == 1:
+                await bot.send_document(ADMIN_GROUP_ID, doc_ids[0])
+            elif len(doc_ids) > 1:
+                for i in range(0, len(doc_ids), 10):
+                    chunk = doc_ids[i:i+10]
+                    media = [InputMediaDocument(media=did) for did in chunk]
+                    await bot.send_media_group(ADMIN_GROUP_ID, media=media)
 
         await bot.send_message(ADMIN_GROUP_ID, f"🆔 `{code}` boshqarish:",
                               reply_markup=kb.get_admin_claim_kb(code), parse_mode="Markdown")

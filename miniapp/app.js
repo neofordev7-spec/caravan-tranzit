@@ -592,18 +592,28 @@ function handleFileSelect(event) {
     if (!files || files.length === 0) return;
 
     files.forEach(file => {
-        // Accept images and PDFs (check by extension too for mobile compatibility)
+        // Accept images, PDFs, Word, Excel (check by extension too for mobile compatibility)
         const ext = file.name.toLowerCase().split('.').pop();
         const isImage = file.type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp', 'gif'].includes(ext);
         const isPdf = file.type === 'application/pdf' || ext === 'pdf';
+        const isDoc = ['doc', 'docx', 'xls', 'xlsx'].includes(ext) ||
+                      file.type.includes('word') || file.type.includes('excel') ||
+                      file.type.includes('spreadsheet') || file.type.includes('msword') ||
+                      file.type.includes('officedocument');
 
-        if (isImage || isPdf) {
+        if (isImage || isPdf || isDoc) {
             const reader = new FileReader();
             reader.onload = (e) => {
+                let fileType = file.type;
+                if (!fileType) {
+                    if (isImage) fileType = 'image/jpeg';
+                    else if (isPdf) fileType = 'application/pdf';
+                    else if (isDoc) fileType = 'application/octet-stream';
+                }
                 AppState.uploadedFiles.push({
                     name: file.name,
                     data: e.target.result,
-                    type: file.type || (isImage ? 'image/jpeg' : 'application/pdf'),
+                    type: fileType,
                     size: file.size
                 });
                 updateUploadedPreview();
@@ -638,9 +648,16 @@ function updateUploadedPreview() {
                 <button class="remove-btn" onclick="removeFile(${index})">×</button>
             `;
         } else {
+            // PDF, Word, Excel va boshqa hujjatlar uchun icon
+            const ext = file.name.toLowerCase().split('.').pop();
+            let icon = '📄';
+            if (ext === 'pdf') icon = '📕';
+            else if (['doc', 'docx'].includes(ext)) icon = '📘';
+            else if (['xls', 'xlsx'].includes(ext)) icon = '📗';
             item.innerHTML = `
-                <div style="display:flex;align-items:center;justify-content:center;height:100%;background:#E3F2FD;">
-                    <span style="font-size:24px;">📄</span>
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#E3F2FD;padding:4px;">
+                    <span style="font-size:24px;">${icon}</span>
+                    <span style="font-size:9px;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap;">${file.name}</span>
                 </div>
                 <button class="remove-btn" onclick="removeFile(${index})">×</button>
             `;
