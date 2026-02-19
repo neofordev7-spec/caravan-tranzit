@@ -332,15 +332,15 @@ class Database:
     # =============================================================
     # TRANSACTIONS & PAYMENTS
     # =============================================================
-    async def create_transaction(self, user_id, application_id, amount, trans_type, payment_provider=None):
+    async def create_transaction(self, user_id, application_id, amount, trans_type, payment_provider=None, payment_id=None):
         """Yangi tranzaksiya yaratadi"""
         async with self.pool.acquire() as conn:
             return await conn.fetchrow('''
                 INSERT INTO transactions
-                (user_id, application_id, amount, type, payment_provider, status)
-                VALUES ($1, $2, $3, $4, $5, 'pending')
-                RETURNING id
-            ''', user_id, application_id, amount, trans_type, payment_provider)
+                (user_id, application_id, amount, type, payment_provider, payment_id, status)
+                VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+                RETURNING *
+            ''', user_id, application_id, amount, trans_type, payment_provider, payment_id)
 
     async def update_transaction_status(self, transaction_id, status, payment_id=None):
         """Tranzaksiya statusini yangilaydi"""
@@ -356,6 +356,15 @@ class Database:
             return await conn.fetchrow(
                 'SELECT * FROM transactions WHERE payment_id = $1 ORDER BY created_at DESC LIMIT 1',
                 payment_id
+            )
+
+    async def get_pending_transaction_by_app_id(self, application_id):
+        """Application ID bo'yicha pending tranzaksiyani topadi"""
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow(
+                "SELECT * FROM transactions WHERE application_id = $1 AND status = 'pending' "
+                "AND payment_provider = 'payme' ORDER BY created_at DESC LIMIT 1",
+                application_id
             )
 
     # =============================================================

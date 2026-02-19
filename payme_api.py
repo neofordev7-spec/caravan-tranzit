@@ -219,21 +219,53 @@ class PaymeAPI:
     async def create_transaction(rpc_id, params: dict) -> dict:
         """
         Yangi tranzaksiya yaratish
+
+        Payme spetsifikatsiyasi bo'yicha:
+        1. Agar shu payme_id bilan tranzaksiya allaqachon yaratilgan bo'lsa —
+           idempotent javob qaytariladi (xuddi birinchi marta yaratilgandek).
+        2. Agar bu order_id uchun boshqa pending tranzaksiya mavjud bo'lsa —
+           xatolik qaytariladi (-31099).
         """
         try:
             payme_id = params.get("id")
             account = params.get("account", {})
             order_id = account.get("order_id")
             amount = params.get("amount")
-            create_time = params.get("time")
 
+            # ——— 1-KEIS: Takroriy chaqiruv (idempotentlik) ———
+            # Shu payme_id bilan tranzaksiya allaqachon bormi?
+            existing = await db.get_transaction_by_payment_id(payme_id)
+            if existing:
+                if existing['status'] == 'pending':
+                    # Tranzaksiya hali pending — xuddi birinchi marta yaratilgandek javob
+                    create_time_ms = int(existing['created_at'].timestamp() * 1000)
+                    return success_response(rpc_id, {
+                        "create_time": create_time_ms,
+                        "transaction": str(existing['id']),
+                        "state": 1
+                    })
+                elif existing['status'] == 'completed':
+                    # Tranzaksiya allaqachon bajarilgan
+                    create_time_ms = int(existing['created_at'].timestamp() * 1000)
+                    return success_response(rpc_id, {
+                        "create_time": create_time_ms,
+                        "transaction": str(existing['id']),
+                        "state": 2
+                    })
+                else:
+                    # Tranzaksiya bekor qilingan yoki failed
+                    return error_response(rpc_id, -31008,
+                        "Tranzaksiya bekor qilingan",
+                        "Транзакция отменена",
+                        "Transaction cancelled")
+
+            # ——— Buyurtmani tekshirish ———
             if not order_id:
                 return error_response(rpc_id, -31050,
                     "Buyurtma topilmadi",
                     "Заказ не найден",
                     "Order not found")
 
-            # Arizani tekshiramiz
             app = await db.get_application_by_code(order_id)
             if not app:
                 return error_response(rpc_id, -31050,
@@ -247,30 +279,47 @@ class PaymeAPI:
                     "Заказ уже оплачен",
                     "Order already paid")
 
-            # Bazada tranzaksiya yaratamiz
+            if app['status'] not in ('new', 'priced', 'processing'):
+                return error_response(rpc_id, -31052,
+                    "Buyurtma statusini o'zgartirish mumkin emas",
+                    "Невозможно изменить статус заказа",
+                    "Cannot change order status")
+
+            # Summani tekshiramiz
+            if app['price']:
+                expected_amount = int(Decimal(str(app['price'])) * 100)
+                if amount != expected_amount:
+                    return error_response(rpc_id, -31001,
+                        f"Noto'g'ri summa. Kutilgan: {expected_amount}",
+                        f"Неверная сумма. Ожидалось: {expected_amount}",
+                        f"Invalid amount. Expected: {expected_amount}")
+
+            # ——— 2-KEIS: Bu order uchun boshqa pending tranzaksiya bormi? ———
+            pending = await db.get_pending_transaction_by_app_id(app['id'])
+            if pending:
+                # Boshqa payme_id bilan pending tranzaksiya mavjud — xatolik
+                return error_response(rpc_id, -31099,
+                    "Bu buyurtma uchun to'lov kutilmoqda",
+                    "Ожидается оплата по данному заказу",
+                    "Payment pending for this order")
+
+            # ——— Yangi tranzaksiya yaratamiz ———
             amount_uzs = Decimal(str(amount)) / 100
             transaction = await db.create_transaction(
                 user_id=app['user_id'],
                 application_id=app['id'],
                 amount=amount_uzs,
                 trans_type='card_payment',
-                payment_provider='payme'
+                payment_provider='payme',
+                payment_id=payme_id
             )
 
-            # Payme transaction ID ni saqlaymiz
-            if transaction:
-                await db.update_transaction_status(
-                    transaction['id'],
-                    'pending',
-                    payme_id
-                )
-
-            now_ms = int(time.time() * 1000)
+            create_time_ms = int(transaction['created_at'].timestamp() * 1000)
 
             return success_response(rpc_id, {
-                "create_time": now_ms,
-                "transaction": str(transaction['id'] if transaction else 0),
-                "state": 1  # 1 = created
+                "create_time": create_time_ms,
+                "transaction": str(transaction['id']),
+                "state": 1
             })
 
         except Exception as e:
