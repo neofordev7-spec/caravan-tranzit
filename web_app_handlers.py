@@ -223,11 +223,12 @@ async def handle_application_data(message: Message, state: FSMContext, bot: Bot,
     # Foydalanuvchi ma'lumotlarini olamiz
     user = await db.get_user(message.from_user.id)
     if not user:
-        # Yangi foydalanuvchi yaratamiz
-        await db.create_user(
+        # Yangi foydalanuvchi yaratamiz (add_user with required params)
+        await db.add_user(
             telegram_id=message.from_user.id,
             full_name=message.from_user.full_name,
-            language=lang
+            phone='',
+            lang=lang
         )
         user = await db.get_user(message.from_user.id)
 
@@ -240,29 +241,27 @@ async def handle_application_data(message: Message, state: FSMContext, bot: Bot,
         prefix = service_type if service_type else 'APP'
         app_code = f"{prefix}-{datetime.now().year}-{random.randint(1000, 9999)}"
 
-    # Arizani bazaga saqlaymiz
+    # Arizani bazaga saqlaymiz (positional args matching db.create_application signature)
+    metadata = {
+        'service_type': service_type,
+        'border_post': border_post,
+        'destination': destination,
+        'agent_name': agent_name,
+        'agent_id': agent_id,
+        'vehicle_type': vehicle_type,
+        'files_count': files_count,
+        'language': lang,
+        'via_webapp': True,
+        'status': 'new'
+    }
     try:
         app_record = await db.create_application(
-            app_code=app_code,
-            user_id=message.from_user.id,
-            agent_id=agent_id,
-            post_id=None,  # Postni nomdan topamiz
-            vehicle_number=vehicle_number,
-            vehicle_type=vehicle_type,
-            files={},
-            metadata={
-                'service_type': service_type,
-                'border_post': border_post,
-                'destination': destination,
-                'agent_name': agent_name,
-                'files_count': files_count,
-                'language': lang,
-                'via_webapp': True,
-                'status': 'new'
-            }
+            app_code, message.from_user.id, service_type, vehicle_number or '', metadata
         )
     except Exception as e:
         print(f"Database error: {e}")
+        import traceback
+        traceback.print_exc()
         app_record = {'id': 0}
 
     # Foydalanuvchiga tasdiq va hujjat so'rash xabarini yuboramiz
@@ -363,14 +362,22 @@ async def webapp_docs_done(message: Message, state: FSMContext, bot: Bot):
         app_code = data.get('webapp_app_code')
         webapp_data = data.get('webapp_data', {})
 
-        await send_webapp_files_to_admin(bot, app_code, message.from_user, webapp_data, photos)
+        admin_send_ok = await send_webapp_files_to_admin(bot, app_code, message.from_user, webapp_data, photos)
 
-        # Foydalanuvchiga tasdiqlash
-        await message.answer(
-            get_webapp_text(lang, 'app_sent_success').format(code=app_code, count=len(photos)),
-            parse_mode="Markdown",
-            reply_markup=kb.get_main_menu(lang)
-        )
+        if admin_send_ok:
+            # Foydalanuvchiga tasdiqlash
+            await message.answer(
+                get_webapp_text(lang, 'app_sent_success').format(code=app_code, count=len(photos)),
+                parse_mode="Markdown",
+                reply_markup=kb.get_main_menu(lang)
+            )
+        else:
+            # Xatolik haqida xabar berish
+            await message.answer(
+                f"⚠️ Ariza yuborishda xatolik yuz berdi. Iltimos qaytadan urinib ko'ring yoki admin bilan bog'laning: @CARAVAN_TRANZIT",
+                reply_markup=kb.get_main_menu(lang)
+            )
+
         await state.clear()
         await state.update_data(lang=lang)
 
@@ -378,6 +385,13 @@ async def webapp_docs_done(message: Message, state: FSMContext, bot: Bot):
 # =========================================================================
 # ADMIN GURUHGA YUBORISH (FAYLLAR BILAN)
 # =========================================================================
+
+def _escape_html(text: str) -> str:
+    """Escape HTML special characters in user-provided text"""
+    if not text:
+        return ''
+    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
 
 async def send_webapp_files_to_admin(bot: Bot, app_code: str, user, data: dict, files: list):
     """
@@ -392,39 +406,39 @@ async def send_webapp_files_to_admin(bot: Bot, app_code: str, user, data: dict, 
         photo_count = sum(1 for f in files if isinstance(f, dict) and f.get('type') == 'photo')
         doc_count = sum(1 for f in files if isinstance(f, dict) and f.get('type') == 'document')
 
-        # Xabar matnini tayyorlaymiz
-        msg_text = f"""
-🆕 **YANGI ARIZA** {get_webapp_text('uz', 'via_webapp')}
+        # Escape user-provided data to prevent parse errors (using HTML for safety)
+        safe_name = _escape_html(user.full_name or '')
+        safe_username = _escape_html(user.username or "yo'q")
+        safe_post = _escape_html(data.get('border_post', '-') or '-')
+        safe_dest = _escape_html(data.get('destination', '-') or '-')
+        safe_vehicle = _escape_html(data.get('vehicle_number', '-') or '-')
+        safe_agent = _escape_html(data.get('agent_name', '-') or '-')
 
-━━━━━━━━━━━━━━━━━━━━━━
-🆔 **Kod:** `{app_code}`
-━━━━━━━━━━━━━━━━━━━━━━
-
-👤 **Foydalanuvchi:**
-   • Ism: {user.full_name}
-   • Username: @{user.username or "yo'q"}
-   • ID: `{user.id}`
-   • Til: {lang_name}
-
-📋 **Ariza ma'lumotlari:**
-   • Xizmat: {data.get('service_type', 'EPI')}
-   • Post: {data.get('border_post', '-')}
-   • Manzil: {data.get('destination', '-')}
-   • Mashina: {data.get('vehicle_number', '-')}
-   • Mashina turi: {'Yuk' if data.get('vehicle_type') == 'truck' else 'Yengil'}
-   • Agent: {data.get('agent_name', '-')}
-   • Rasmlar: {photo_count} ta
-   • Hujjatlar: {doc_count} ta
-
-⏰ **Vaqt:** {now}
-━━━━━━━━━━━━━━━━━━━━━━
-"""
+        # Xabar matnini tayyorlaymiz (HTML format - safer with user data)
+        msg_text = (
+            f"🆕 <b>YANGI ARIZA</b> (Mini App orqali)\n\n"
+            f"🆔 <b>Kod:</b> <code>{app_code}</code>\n\n"
+            f"👤 <b>Foydalanuvchi:</b>\n"
+            f"   Ism: {safe_name}\n"
+            f"   Username: @{safe_username}\n"
+            f"   ID: <code>{user.id}</code>\n"
+            f"   Til: {lang_name}\n\n"
+            f"📋 <b>Ariza:</b>\n"
+            f"   Xizmat: {data.get('service_type', 'EPI')}\n"
+            f"   Post: {safe_post}\n"
+            f"   Manzil: {safe_dest}\n"
+            f"   Mashina: {safe_vehicle}\n"
+            f"   Agent: {safe_agent}\n"
+            f"   Rasmlar: {photo_count} ta\n"
+            f"   Hujjatlar: {doc_count} ta\n\n"
+            f"⏰ <b>Vaqt:</b> {now}"
+        )
 
         # Xabar matnini yuboramiz
         sent_msg = await bot.send_message(
             ADMIN_GROUP_ID,
             msg_text,
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
 
         # Fayllarni ajratib yuboramiz
@@ -460,7 +474,7 @@ async def send_webapp_files_to_admin(bot: Bot, app_code: str, user, data: dict, 
             [
                 InlineKeyboardButton(
                     text="✅ Qabul qilish",
-                    callback_data=f"accept_{app_code}"
+                    callback_data=f"claim_{app_code}"
                 ),
                 InlineKeyboardButton(
                     text="💰 Narx belgilash",
@@ -481,9 +495,9 @@ async def send_webapp_files_to_admin(bot: Bot, app_code: str, user, data: dict, 
 
         await bot.send_message(
             ADMIN_GROUP_ID,
-            f"⚙️ `{app_code}` - Amallar:",
+            f"⚙️ <code>{app_code}</code> - Amallar:",
             reply_markup=admin_kb,
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
 
         # Message ID ni bazaga saqlaymiz
@@ -493,11 +507,13 @@ async def send_webapp_files_to_admin(bot: Bot, app_code: str, user, data: dict, 
             pass
 
         print(f"✅ Admin guruhga fayllar bilan yuborildi: {app_code} ({len(photo_ids)} rasm, {len(doc_ids)} hujjat)")
+        return True
 
     except Exception as e:
         print(f"❌ Admin guruhga yuborishda xatolik: {e}")
         import traceback
         traceback.print_exc()
+        return False
 
 
 async def handle_chat_message(message: Message, bot: Bot, data: dict):

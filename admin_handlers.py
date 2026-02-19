@@ -378,9 +378,10 @@ async def admin_group_messages(message: Message, bot: Bot):
                 await message.reply(f"❌ Yuborib bo'lmadi: {e}")
             return
 
-    # 2. EPI kod yoki MB kod bo'yicha qidirish (EPI-12345 yoki MB-12345)
-    epi_match = re.search(r"\b(EPI|MB)-(\d{5})\b", txt.upper())
+    # 2. EPI kod yoki MB kod bo'yicha qidirish (EPI-12345, MB-12345, EPI-2026-1234)
+    epi_match = re.search(r"\b(EPI|MB)-(\d{4,5}(?:-\d{4})?)\b", txt.upper())
     if epi_match:
+        # Reconstruct full code: EPI-12345 or MB-2026-1234
         app_code = f"{epi_match.group(1)}-{epi_match.group(2)}"
         app = await db.get_application_by_code(app_code)
         if app:
