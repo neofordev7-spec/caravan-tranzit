@@ -802,29 +802,28 @@ async function submitApplication() {
         timestamp: now.toISOString()
     };
 
+    // Save application locally BEFORE sendData (sendData closes the Mini App)
+    saveApplicationLocally(applicationData);
+
+    // Send to Telegram bot (this closes the Mini App immediately)
+    if (tg) {
+        try {
+            tg.sendData(JSON.stringify(applicationData));
+            // Note: Mini App closes here, code below won't execute
+        } catch (e) {
+            console.error('Error sending data:', e);
+            tg.MainButton.hideProgress();
+            tg.showAlert('Xatolik yuz berdi. Qaytadan urinib ko\'ring.');
+            return;
+        }
+    }
+
+    // Code below only runs if tg is not available (browser testing)
     // Update waiting screen
     document.getElementById('waitingCode').textContent = appCode;
     document.getElementById('waitingPhotos').textContent = `${AppState.uploadedFiles.length} ta`;
     document.getElementById('waitingTime').textContent = now.toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' });
-
-    // Show waiting screen
     navigateTo('waitingScreen');
-
-    // Send to Telegram bot
-    if (tg) {
-        try {
-            tg.sendData(JSON.stringify(applicationData));
-            tg.MainButton.hideProgress();
-        } catch (e) {
-            console.error('Error sending data:', e);
-            tg.MainButton.hideProgress();
-        }
-    }
-
-    // Save application locally for reference
-    saveApplicationLocally(applicationData);
-
-    // Reset flow state
     resetFlowState();
 }
 
@@ -839,7 +838,7 @@ function saveApplicationLocally(appData) {
 function generateAppCode() {
     const prefix = AppState.serviceType === 'EPI' ? 'EPI' : 'MB';
     const year = new Date().getFullYear();
-    const random = Math.floor(1000 + Math.random() * 9000);
+    const random = Math.floor(100000 + Math.random() * 900000);
     return `${prefix}-${year}-${random}`;
 }
 

@@ -6,6 +6,8 @@ Telegram Web App ma'lumotlarini qabul qilish va qayta ishlash
 """
 import json
 import random
+import re
+import logging
 from datetime import datetime
 from aiogram import Router, F, Bot
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto, InputMediaDocument
@@ -16,6 +18,7 @@ from states import WebAppDocFlow
 import keyboards as kb
 
 router = Router()
+logger = logging.getLogger(__name__)
 
 # Admin guruh ID
 ADMIN_GROUP_ID = -1003463212374
@@ -179,8 +182,11 @@ async def handle_web_app_data(message: Message, state: FSMContext, bot: Bot):
     Web App dan kelgan ma'lumotlarni qayta ishlash
     """
     try:
+        raw_data = message.web_app_data.data
+        logger.info(f"Web App data received from user {message.from_user.id}: {raw_data[:200]}")
+
         # Web App dan kelgan JSON ma'lumotlarni parse qilamiz
-        data = json.loads(message.web_app_data.data)
+        data = json.loads(raw_data)
 
         # Ma'lumot turini tekshiramiz
         data_type = data.get('type', 'application')
@@ -192,14 +198,13 @@ async def handle_web_app_data(message: Message, state: FSMContext, bot: Bot):
         elif data_type == 'payment_selected':
             await handle_payment_selection(message, bot, data)
         else:
-            print(f"Unknown data type: {data_type}")
+            logger.warning(f"Unknown web_app data type: {data_type}")
 
     except json.JSONDecodeError:
+        logger.error(f"Invalid JSON from web_app user {message.from_user.id}: {message.web_app_data.data[:200]}")
         await message.answer("❌ Ma'lumotlarni o'qishda xatolik yuz berdi.")
     except Exception as e:
-        print(f"Web App handler error: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Web App handler error for user {message.from_user.id}: {e}", exc_info=True)
         await message.answer("❌ Xatolik yuz berdi. Qaytadan urinib ko'ring.")
 
 
@@ -220,28 +225,46 @@ async def handle_application_data(message: Message, state: FSMContext, bot: Bot,
     files_count = data.get('files_count', 0)
     lang = data.get('language', 'uz')
 
+    logger.info(f"Mini App ariza: code={app_code}, type={service_type}, "
+                f"user={message.from_user.id}, post={border_post}, dest={destination}")
+
     # Foydalanuvchi ma'lumotlarini olamiz
     user = await db.get_user(message.from_user.id)
     if not user:
-        # Yangi foydalanuvchi yaratamiz (add_user with required params)
-        await db.add_user(
-            telegram_id=message.from_user.id,
-            full_name=message.from_user.full_name,
-            phone='',
-            lang=lang
-        )
-        user = await db.get_user(message.from_user.id)
+        try:
+            await db.add_user(
+                telegram_id=message.from_user.id,
+                full_name=message.from_user.full_name,
+                phone='',
+                lang=lang
+            )
+            user = await db.get_user(message.from_user.id)
+        except Exception as e:
+            logger.error(f"Foydalanuvchi yaratishda xatolik {message.from_user.id}: {e}", exc_info=True)
 
     if not user:
+        logger.error(f"Foydalanuvchi topilmadi va yaratib bo'lmadi: {message.from_user.id}")
         await message.answer(get_webapp_text(lang, 'error_user'))
         return
 
-    # Agar ariza kodi yo'q bo'lsa generatsiya qilamiz
+    # Agar ariza kodi yo'q bo'lsa generatsiya qilamiz (6 xonali tasodifiy)
     if not app_code:
         prefix = service_type if service_type else 'APP'
-        app_code = f"{prefix}-{datetime.now().year}-{random.randint(1000, 9999)}"
+        app_code = f"{prefix}-{datetime.now().year}-{random.randint(100000, 999999)}"
 
-    # Arizani bazaga saqlaymiz (positional args matching db.create_application signature)
+    # MUHIM: FSM state ni BIRINCHI o'rnatamiz - bu hujjat yuklash ishlashi uchun zarur
+    # Agar bu qadamdan keyin xatolik bo'lsa ham, foydalanuvchi hujjat yuborishi mumkin
+    await state.update_data(
+        webapp_app_code=app_code,
+        webapp_data=data,
+        webapp_app_id=0,
+        photos=[],
+        lang=lang
+    )
+    await state.set_state(WebAppDocFlow.collect_docs)
+    logger.info(f"FSM state WebAppDocFlow.collect_docs o'rnatildi: user={message.from_user.id}")
+
+    # Arizani bazaga saqlaymiz (takrorlanishda qayta urinish bilan)
     metadata = {
         'service_type': service_type,
         'border_post': border_post,
@@ -254,48 +277,62 @@ async def handle_application_data(message: Message, state: FSMContext, bot: Bot,
         'via_webapp': True,
         'status': 'new'
     }
+
+    app_record = None
+    for attempt in range(3):
+        try:
+            app_record = await db.create_application(
+                app_code, message.from_user.id, service_type, vehicle_number or '', metadata
+            )
+            if app_record:
+                app_id = app_record['id'] if app_record else 0
+                await state.update_data(webapp_app_id=app_id, webapp_app_code=app_code)
+                logger.info(f"Ariza bazaga saqlandi: {app_code}, id={app_id}")
+            break
+        except Exception as e:
+            error_msg = str(e).lower()
+            if 'unique' in error_msg or 'duplicate' in error_msg:
+                # Ariza kodi takrorlangan - yangi kod bilan qayta urinamiz
+                prefix = service_type if service_type else 'APP'
+                app_code = f"{prefix}-{datetime.now().year}-{random.randint(100000, 999999)}"
+                await state.update_data(webapp_app_code=app_code)
+                logger.warning(f"Ariza kodi takrorlangan, yangi kod: {app_code} (urinish {attempt + 1})")
+            else:
+                logger.error(f"Bazaga saqlashda xatolik: {e}", exc_info=True)
+                break
+
+    # Foydalanuvchiga tasdiq xabarini yuboramiz (HTML format - xavfsizroq)
     try:
-        app_record = await db.create_application(
-            app_code, message.from_user.id, service_type, vehicle_number or '', metadata
+        success_msg = (
+            f"{get_webapp_text(lang, 'app_received')}\n\n"
+            f"{get_webapp_text(lang, 'app_code')}: <code>{_escape_html(app_code)}</code>\n"
+            f"{get_webapp_text(lang, 'service')}: {_escape_html(service_type or '-')}\n"
+            f"{get_webapp_text(lang, 'post')}: {_escape_html(border_post or '-')}\n"
+            f"{get_webapp_text(lang, 'destination')}: {_escape_html(destination or '-')}\n"
+            f"{get_webapp_text(lang, 'vehicle')}: {_escape_html(vehicle_number or '-')}"
+        )
+        await message.answer(success_msg, parse_mode="HTML")
+    except Exception as e:
+        logger.error(f"Tasdiq xabar yuborishda xatolik: {e}", exc_info=True)
+
+    # Hujjat yuborishni so'raymiz (HTML format)
+    try:
+        doc_prompt = get_webapp_text(lang, 'send_docs_prompt')
+        # **text** ni <b>text</b> ga aylantiramiz
+        doc_prompt_html = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', doc_prompt)
+        await message.answer(
+            doc_prompt_html,
+            parse_mode="HTML",
+            reply_markup=kb.get_done_kb(lang)
         )
     except Exception as e:
-        print(f"Database error: {e}")
-        import traceback
-        traceback.print_exc()
-        app_record = {'id': 0}
-
-    # Foydalanuvchiga tasdiq va hujjat so'rash xabarini yuboramiz
-    success_msg = f"""
-{get_webapp_text(lang, 'app_received')}
-
-{get_webapp_text(lang, 'app_code')}: `{app_code}`
-{get_webapp_text(lang, 'service')}: {service_type}
-{get_webapp_text(lang, 'post')}: {border_post}
-{get_webapp_text(lang, 'destination')}: {destination}
-{get_webapp_text(lang, 'vehicle')}: {vehicle_number}
-"""
-
-    await message.answer(
-        success_msg,
-        parse_mode="Markdown"
-    )
-
-    # Hujjatlarni so'raymiz - FSM state ga o'tkazamiz
-    await state.update_data(
-        webapp_app_code=app_code,
-        webapp_data=data,
-        webapp_app_id=app_record.get('id', 0) if isinstance(app_record, dict) else 0,
-        photos=[],
-        lang=lang
-    )
-
-    # Hujjat yuborishni so'raymiz
-    await message.answer(
-        get_webapp_text(lang, 'send_docs_prompt'),
-        parse_mode="Markdown",
-        reply_markup=kb.get_done_kb(lang)
-    )
-    await state.set_state(WebAppDocFlow.collect_docs)
+        logger.error(f"Hujjat so'rash xabar yuborishda xatolik: {e}", exc_info=True)
+        # Fallback - formatsiz yuboramiz
+        try:
+            doc_prompt_plain = get_webapp_text(lang, 'send_docs_prompt').replace('**', '')
+            await message.answer(doc_prompt_plain, reply_markup=kb.get_done_kb(lang))
+        except Exception as e2:
+            logger.error(f"Fallback xabar ham yuborib bo'lmadi: {e2}", exc_info=True)
 
 
 # =========================================================================
@@ -325,6 +362,8 @@ async def webapp_doc_received(message: Message, state: FSMContext):
         file_size = message.document.file_size or 0
         file_type = 'document'
 
+    logger.info(f"Hujjat qabul qilindi: user={message.from_user.id}, type={file_type}, size={file_size}")
+
     if file_size > MAX_FILE_SIZE:
         await message.reply(get_webapp_text(lang, 'file_too_big'))
         return
@@ -334,6 +373,7 @@ async def webapp_doc_received(message: Message, state: FSMContext):
         await state.update_data(photos=current_photos)
         count = len(current_photos)
         await message.reply(get_webapp_text(lang, 'file_received').format(count=count))
+        logger.info(f"Fayl saqlandi: user={message.from_user.id}, jami={count}")
 
 
 @router.message(WebAppDocFlow.collect_docs, F.text)
@@ -362,16 +402,34 @@ async def webapp_docs_done(message: Message, state: FSMContext, bot: Bot):
         app_code = data.get('webapp_app_code')
         webapp_data = data.get('webapp_data', {})
 
+        logger.info(f"Ariza yuborilmoqda: code={app_code}, user={message.from_user.id}, "
+                    f"fayllar={len(photos)}")
+
         admin_send_ok = await send_webapp_files_to_admin(bot, app_code, message.from_user, webapp_data, photos)
 
         if admin_send_ok:
-            # Foydalanuvchiga tasdiqlash
-            await message.answer(
-                get_webapp_text(lang, 'app_sent_success').format(code=app_code, count=len(photos)),
-                parse_mode="Markdown",
-                reply_markup=kb.get_main_menu(lang)
-            )
+            # Foydalanuvchiga tasdiqlash (HTML format)
+            try:
+                success_text = get_webapp_text(lang, 'app_sent_success').format(code=app_code, count=len(photos))
+                # **text** ni <b>text</b> ga aylantiramiz
+                success_html = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', success_text)
+                # `text` ni <code>text</code> ga aylantiramiz
+                success_html = re.sub(r'`(.+?)`', r'<code>\1</code>', success_html)
+                await message.answer(
+                    success_html,
+                    parse_mode="HTML",
+                    reply_markup=kb.get_main_menu(lang)
+                )
+            except Exception as e:
+                logger.error(f"Tasdiqlash xabari yuborishda xatolik: {e}", exc_info=True)
+                # Fallback - formatsiz
+                await message.answer(
+                    get_webapp_text(lang, 'app_sent_success').format(code=app_code, count=len(photos)).replace('**', '').replace('`', ''),
+                    reply_markup=kb.get_main_menu(lang)
+                )
+            logger.info(f"Ariza muvaffaqiyatli yuborildi: {app_code}")
         else:
+            logger.error(f"Admin guruhga yuborishda xatolik: {app_code}")
             # Xatolik haqida xabar berish
             await message.answer(
                 f"⚠️ Ariza yuborishda xatolik yuz berdi. Iltimos qaytadan urinib ko'ring yoki admin bilan bog'laning: @CARAVAN_TRANZIT",
@@ -503,16 +561,14 @@ async def send_webapp_files_to_admin(bot: Bot, app_code: str, user, data: dict, 
         # Message ID ni bazaga saqlaymiz
         try:
             await db.update_admin_message_id(app_code, sent_msg.message_id)
-        except:
-            pass
+        except Exception as e:
+            logger.error(f"Admin message ID saqlanmadi ({app_code}): {e}")
 
-        print(f"✅ Admin guruhga fayllar bilan yuborildi: {app_code} ({len(photo_ids)} rasm, {len(doc_ids)} hujjat)")
+        logger.info(f"Admin guruhga fayllar bilan yuborildi: {app_code} ({len(photo_ids)} rasm, {len(doc_ids)} hujjat)")
         return True
 
     except Exception as e:
-        print(f"❌ Admin guruhga yuborishda xatolik: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Admin guruhga yuborishda xatolik ({app_code}): {e}", exc_info=True)
         return False
 
 
@@ -553,7 +609,7 @@ async def handle_chat_message(message: Message, bot: Bot, data: dict):
         )
 
     except Exception as e:
-        print(f"Error forwarding chat message: {e}")
+        logger.error(f"Error forwarding chat message: {e}", exc_info=True)
 
 
 async def handle_payment_selection(message: Message, bot: Bot, data: dict):
@@ -573,7 +629,7 @@ async def handle_payment_selection(message: Message, bot: Bot, data: dict):
             parse_mode="Markdown"
         )
     except Exception as e:
-        print(f"Error notifying payment selection: {e}")
+        logger.error(f"Error notifying payment selection: {e}", exc_info=True)
 
 
 # =========================================================================
