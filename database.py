@@ -128,9 +128,19 @@ class Database:
                     status TEXT DEFAULT 'pending',
                     payment_provider TEXT,
                     payment_id TEXT,
+                    perform_time BIGINT,
+                    cancel_time BIGINT,
+                    cancel_reason INTEGER,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
+
+            # Migration: perform_time, cancel_time, cancel_reason ustunlarini qo'shish
+            for col, col_type in [('perform_time', 'BIGINT'), ('cancel_time', 'BIGINT'), ('cancel_reason', 'INTEGER')]:
+                try:
+                    await conn.execute(f'ALTER TABLE transactions ADD COLUMN IF NOT EXISTS {col} {col_type}')
+                except Exception as e:
+                    print(f"⚠️ Migration warning (transactions.{col}): {e}")
 
             # 6. REFERRALS (Referral tizimi)
             await conn.execute('''
@@ -342,13 +352,19 @@ class Database:
                 RETURNING *
             ''', user_id, application_id, amount, trans_type, payment_provider, payment_id)
 
-    async def update_transaction_status(self, transaction_id, status, payment_id=None):
-        """Tranzaksiya statusini yangilaydi"""
+    async def update_transaction_status(self, transaction_id, status, payment_id=None,
+                                        perform_time=None, cancel_time=None, cancel_reason=None):
+        """Tranzaksiya statusini yangilaydi (perform_time/cancel_time BIGINT ms da saqlanadi)"""
         async with self.pool.acquire() as conn:
-            await conn.execute(
-                'UPDATE transactions SET status = $2, payment_id = $3 WHERE id = $1',
-                transaction_id, status, payment_id
-            )
+            await conn.execute('''
+                UPDATE transactions
+                SET status = $2,
+                    payment_id = COALESCE($3, payment_id),
+                    perform_time = COALESCE($4, perform_time),
+                    cancel_time = COALESCE($5, cancel_time),
+                    cancel_reason = COALESCE($6, cancel_reason)
+                WHERE id = $1
+            ''', transaction_id, status, payment_id, perform_time, cancel_time, cancel_reason)
 
     async def get_transaction_by_payment_id(self, payment_id):
         """Payme/Click payment ID bo'yicha tranzaksiyani topadi"""
