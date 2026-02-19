@@ -1,6 +1,9 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+import os
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from strings import TEXTS
+
+WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://caravan-tranzit-production.up.railway.app/miniapp/')
 
 # =========================================================
 # 1. POSTLAR RO'YXATI (REYTING BO'YICHA: TOP -> PASTGA) 🔥
@@ -169,7 +172,7 @@ def get_main_menu(lang='uz'):
          KeyboardButton(text="🎫 " + t.get('menu_apps', 'ARIZALARIM'))],
         [KeyboardButton(text="⚙️ " + t.get('menu_settings', 'SOZLAMALAR')),
          KeyboardButton(text="💰 " + t.get('menu_prices', 'NARXLAR KATALOGI'))],
-        [KeyboardButton(text="📱 " + t.get('menu_app', 'DASTURNI YUKLAB OLING')),
+        [KeyboardButton(text="📱 " + t.get('menu_app', 'MINI APP'), web_app=WebAppInfo(url=WEBAPP_URL)),
          KeyboardButton(text="🚚 " + t.get('menu_kgd', 'KGD(E-TRANZIT) KORISH'))],
         [KeyboardButton(text="📜 " + t.get('menu_gabarit', 'GABARIT RUXSATNOMA OLISH')),
          KeyboardButton(text="🛡 " + t.get('menu_sugurta', 'SUGURTA'))],

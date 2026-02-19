@@ -37,15 +37,15 @@ async def main():
         print(f"❌ Baza xatosi: {e}")
         return
 
-    # Start web server for Mini App
+    bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
+
+    # Start web server for Mini App (pass bot for API endpoint)
     try:
-        web_runner = await start_web_server()
+        web_runner = await start_web_server(bot)
         print("✅ Web server Mini App uchun ishga tushdi!")
         print(f"📱 Mini App URL: https://caravan-tranzit-production.up.railway.app/miniapp/")
     except Exception as e:
         print(f"⚠️ Web server xatosi (bot ishlaydi): {e}")
-
-    bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(payment_router)  # Payment handlers (birinchi o'rinda)

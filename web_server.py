@@ -5,16 +5,25 @@ Serves Mini App static files alongside the Telegram bot
 + Click API endpoint
 """
 import os
+import json
+import random
+from datetime import datetime
 from aiohttp import web
 import logging
 from payme_api import PaymeAPI
 from click_api import ClickAPI
+from database import db
 
 logger = logging.getLogger(__name__)
 
-async def create_web_app():
+# Admin group ID (same as in handlers)
+ADMIN_GROUP_ID = -1003463212374
+
+
+async def create_web_app(bot=None):
     """Create aiohttp web application for serving static files"""
     app = web.Application()
+    app['bot'] = bot  # Store bot instance for API endpoints
 
     # Get port from environment (Railway provides PORT env variable)
     port = int(os.getenv('PORT', 8080))
@@ -45,15 +54,77 @@ async def create_web_app():
         else:
             return web.Response(text='Mini App not found', status=404)
 
-    # API endpoint for Mini App submissions (placeholder)
+    # API endpoint for Mini App submissions (fallback when sendData() fails)
     async def miniapp_api_submit(request):
         try:
             data = await request.json()
-            # Here you would process the application
-            # For now, just return success
-            app_code = f"{data.get('service_type', 'EP')}-{os.urandom(3).hex().upper()}"
+            app_code = data.get('code')
+            service_type = data.get('service_type', 'EPI')
+            user_id = data.get('user_id')
+            vehicle_number = data.get('vehicle_number', '')
+            border_post = data.get('border_post', '-')
+            destination = data.get('destination', '-')
+            user_name = data.get('user_name', 'Unknown')
+            lang = data.get('language', 'uz')
 
-            logger.info(f"Mini App submission: {data}")
+            # Generate code if not provided
+            if not app_code:
+                app_code = f"{service_type}-{datetime.now().year}-{random.randint(1000, 9999)}"
+
+            logger.info(f"Mini App API submission: {app_code} from user {user_id}")
+
+            # Save to database
+            metadata = {
+                'service_type': service_type,
+                'border_post': border_post,
+                'destination': destination,
+                'agent_name': data.get('agent_name', '-'),
+                'vehicle_type': data.get('vehicle_type', 'truck'),
+                'files_count': data.get('files_count', 0),
+                'language': lang,
+                'via_webapp': True,
+                'via_api': True,
+                'status': 'new'
+            }
+
+            try:
+                if user_id:
+                    await db.create_application(
+                        app_code, int(user_id), service_type, vehicle_number, metadata
+                    )
+            except Exception as db_err:
+                logger.error(f"DB save error: {db_err}")
+
+            # Send notification to admin group via bot
+            bot_instance = request.app.get('bot')
+            if bot_instance and user_id:
+                try:
+                    admin_msg = (
+                        f"🆕 <b>YANGI ARIZA</b> (Mini App API)\n\n"
+                        f"🆔 <b>Kod:</b> <code>{app_code}</code>\n"
+                        f"👤 Foydalanuvchi: {user_name}\n"
+                        f"🔑 ID: <code>{user_id}</code>\n"
+                        f"📋 Xizmat: {service_type}\n"
+                        f"📍 Post: {border_post}\n"
+                        f"📍 Manzil: {destination}\n"
+                        f"🚛 Mashina: {vehicle_number}\n\n"
+                        f"⚠️ <i>Hujjatlar hali yuborilmagan. Foydalanuvchidan kutilmoqda.</i>"
+                    )
+                    await bot_instance.send_message(
+                        ADMIN_GROUP_ID, admin_msg, parse_mode="HTML"
+                    )
+
+                    # Tell the user to upload files in bot chat
+                    await bot_instance.send_message(
+                        int(user_id),
+                        f"✅ Ariza qabul qilindi!\n\n"
+                        f"🆔 Kod: `{app_code}`\n\n"
+                        f"📸 **Endi hujjatlaringizni shu yerga yuboring:**\n"
+                        f"Rasmlar, PDF, Word fayllarni yuboring va ✅ tugmasini bosing.",
+                        parse_mode="Markdown"
+                    )
+                except Exception as bot_err:
+                    logger.error(f"Bot send error: {bot_err}")
 
             return web.json_response({
                 'success': True,
@@ -62,6 +133,8 @@ async def create_web_app():
             })
         except Exception as e:
             logger.error(f"API error: {e}")
+            import traceback
+            traceback.print_exc()
             return web.json_response({
                 'success': False,
                 'error': str(e)
@@ -127,9 +200,9 @@ async def create_web_app():
 
     return app, port
 
-async def start_web_server():
+async def start_web_server(bot=None):
     """Start the web server"""
-    app, port = await create_web_app()
+    app, port = await create_web_app(bot)
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', port)
@@ -139,7 +212,7 @@ async def start_web_server():
 
 if __name__ == '__main__':
     async def run():
-        app, port = await create_web_app()
+        app, port = await create_web_app(bot=None)
         return app
 
     logging.basicConfig(level=logging.INFO)

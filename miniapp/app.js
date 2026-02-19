@@ -810,14 +810,40 @@ async function submitApplication() {
     // Show waiting screen
     navigateTo('waitingScreen');
 
-    // Send to Telegram bot
+    // Send to Telegram bot via sendData (works when opened via WebAppInfo button)
+    let sendSuccess = false;
     if (tg) {
         try {
             tg.sendData(JSON.stringify(applicationData));
+            sendSuccess = true;
             tg.MainButton.hideProgress();
         } catch (e) {
-            console.error('Error sending data:', e);
+            console.error('sendData failed, trying API fallback:', e);
             tg.MainButton.hideProgress();
+        }
+    }
+
+    // API fallback: if sendData didn't work (e.g., opened via direct URL)
+    if (!sendSuccess) {
+        try {
+            const response = await fetch('/api/applications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(applicationData)
+            });
+            const result = await response.json();
+            if (result.success) {
+                console.log('Application submitted via API:', result);
+                // Update waiting screen with message about uploading files in bot
+                const statusEl = document.getElementById('waitingStatus');
+                if (statusEl) {
+                    statusEl.innerHTML = `<span style="color:#FF9800;">⚠️ ${t('upload_in_bot') || 'Botga qaytib, hujjatlarni yuboring!'}</span>`;
+                }
+            } else {
+                console.error('API submission failed:', result);
+            }
+        } catch (apiError) {
+            console.error('API fallback also failed:', apiError);
         }
     }
 
