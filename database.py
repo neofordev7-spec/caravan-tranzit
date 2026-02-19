@@ -390,6 +390,19 @@ class Database:
                 application_id
             )
 
+    async def get_transactions_by_time_range(self, from_time: int, to_time: int):
+        """Payme GetStatement: vaqt oralig'idagi tranzaksiyalar (app_code bilan)"""
+        async with self.pool.acquire() as conn:
+            return await conn.fetch('''
+                SELECT t.*, a.app_code
+                FROM transactions t
+                LEFT JOIN applications a ON t.application_id = a.id
+                WHERE t.payment_provider = 'payme'
+                  AND t.create_time >= $1
+                  AND t.create_time <= $2
+                ORDER BY t.create_time ASC
+            ''', from_time, to_time)
+
     # =============================================================
     # REFERRALS & GAMIFICATION
     # =============================================================

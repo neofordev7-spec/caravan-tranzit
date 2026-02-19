@@ -513,12 +513,44 @@ class PaymeAPI:
     async def get_statement(rpc_id, params: dict) -> dict:
         """
         Belgilangan vaqt oralig'idagi tranzaksiyalar ro'yxati
+
+        Payme from/to parametrlarini millisekund (BIGINT) sifatida yuboradi.
+        Har bir tranzaksiya Payme spetsifikatsiyasiga mos formatda qaytariladi.
         """
         try:
-            # Hozircha bo'sh ro'yxat qaytaramiz
-            return success_response(rpc_id, {
-                "transactions": []
-            })
+            from_time = params.get("from")
+            to_time = params.get("to")
+
+            rows = await db.get_transactions_by_time_range(from_time, to_time)
+
+            state_map = {
+                'pending': 1,
+                'completed': 2,
+                'cancelled': -1,
+                'failed': -1,
+            }
+
+            transactions = []
+            for row in rows:
+                state = state_map.get(row['status'], 1)
+                if state == -1 and row['perform_time']:
+                    state = -2
+
+                transactions.append({
+                    "id": row['payment_id'],
+                    "time": row['create_time'],
+                    "amount": int(row['amount'] * 100),
+                    "account": {"order_id": row['app_code']},
+                    "create_time": row['create_time'],
+                    "perform_time": row['perform_time'] or 0,
+                    "cancel_time": row['cancel_time'] or 0,
+                    "transaction": str(row['id']),
+                    "state": state,
+                    "reason": row['cancel_reason'],
+                })
+
+            return success_response(rpc_id, {"transactions": transactions})
+
         except Exception as e:
             logger.error(f"GetStatement error: {e}")
             return error_response(rpc_id, -31099,
