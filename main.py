@@ -16,8 +16,8 @@ from payment_handlers import router as payment_router
 from database import db
 from web_server import start_web_server
 
+# Loglarni sozlash
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-
 
 async def main():
     load_dotenv()
@@ -28,6 +28,7 @@ async def main():
 
     web_runner = None
 
+    # 1. Ma'lumotlar bazasiga ulanish
     try:
         await db.connect()
         await db.seed_customs_posts()
@@ -37,7 +38,7 @@ async def main():
         print(f"❌ Baza xatosi: {e}")
         return
 
-    # Start web server for Mini App
+    # 2. Web serverni Mini App uchun ishga tushirish
     try:
         web_runner = await start_web_server()
         print("✅ Web server Mini App uchun ishga tushdi!")
@@ -45,18 +46,29 @@ async def main():
     except Exception as e:
         print(f"⚠️ Web server xatosi (bot ishlaydi): {e}")
 
+    # 3. Bot va Dispatcher obyektlarini yaratish
     bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
-
     dp = Dispatcher(storage=MemoryStorage())
-    dp.include_router(payment_router)  # Payment handlers (birinchi o'rinda)
-    dp.include_router(admin_router)     # Admin handlers
-    dp.include_router(webapp_router)    # Web App handlers
-    dp.include_router(router)           # Boshqa handlerlar
 
-    print("🚀 Bot ishga tushdi!")
+    # Routerlarni ulash
+    dp.include_router(payment_router)  # To'lov handlerlari
+    dp.include_router(admin_router)    # Admin handlerlari
+    dp.include_router(webapp_router)   # Web App handlerlari
+    dp.include_router(router)          # Boshqa asosiy handlerlar
+
+    # --- KONFLIKTNI OLIDINI OLISH (REDKSIYA) ---
+    # 4. Eski webhook/sessiyalarni majburiy tozalash
+    await bot.delete_webhook(drop_pending_updates=True)
+    
+    # 5. Telegram serveriga eski ulanishni yopish uchun 5 soniya vaqt beramiz
+    print("⏳ Conflict xatosini oldini olish uchun 5 soniya kutilmoqda...")
+    await asyncio.sleep(5) 
+    # ------------------------------------------
+
+    print("🚀 Bot polling rejimida ishga tushdi!")
 
     try:
-        await bot.delete_webhook(drop_pending_updates=True)
+        # Pollingni boshlash
         await dp.start_polling(bot)
     finally:
         # Graceful shutdown: barcha resurslarni tozalash
@@ -73,7 +85,6 @@ async def main():
         print("✅ Bot session yopildi.")
 
         print("🛑 Bot to'xtatildi.")
-
 
 if __name__ == "__main__":
     try:
