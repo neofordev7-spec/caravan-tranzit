@@ -8,45 +8,54 @@ from database import db
 
 logger = logging.getLogger(__name__)
 
-# 1. DOIMIY MA'LUMOTLAR
+# 1. KONFIGURATSIYA (Railway Variables'dan olinadi)
 PAYME_MERCHANT_ID = os.getenv("PAYME_MERCHANT_ID", "")
 PAYME_MERCHANT_KEY = os.getenv("PAYME_MERCHANT_KEY", "")
-PAYME_CHECKOUT_URL = "https://checkout.payme.uz" # URL to'g'irlandi
+PAYME_CHECKOUT_URL = "https://checkout.payme.uz"
 
 def generate_checkout_url(order_id: str, amount_uzs: Decimal) -> str:
+    """Payme uchun to'lov havolasini yaratish"""
     amount_tiyin = int(amount_uzs * 100)
     params = f"m={PAYME_MERCHANT_ID};ac.order_id={order_id};a={amount_tiyin}"
     encoded = base64.b64encode(params.encode()).decode()
     return f"{PAYME_CHECKOUT_URL}/{encoded}"
 
 def verify_auth(request) -> bool:
+    """Autentifikatsiyani tekshirish (Basic Auth)"""
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Basic "):
         return False
     try:
         decoded = base64.b64decode(auth_header[6:]).decode()
         login, password = decoded.split(":", 1)
-        # Payme ba'zan "Paycom" yoki "Payme" yuboradi, shuning uchun ehtiyotkorlik bilan tekshiramiz
+        # Payme 'payme' yoki 'paycom' loginini yuborishi mumkin
         return login.lower() in ["paycom", "payme"] and password == PAYME_MERCHANT_KEY
     except Exception:
         return False
 
 def error_response(rpc_id, code: int, message_uz: str, message_ru: str = "", message_en: str = ""):
+    """Xato javobi formati"""
     return {
         "jsonrpc": "2.0",
         "id": rpc_id,
         "error": {
             "code": code,
-            "message": {"uz": message_uz, "ru": message_ru or message_uz, "en": message_en or message_uz}
+            "message": {
+                "uz": message_uz,
+                "ru": message_ru or message_uz,
+                "en": message_en or message_uz
+            }
         }
     }
 
 def success_response(rpc_id, result: dict):
+    """Muvaffaqiyatli javob formati"""
     return {"jsonrpc": "2.0", "id": rpc_id, "result": result}
 
 class PaymeAPI:
     @staticmethod
     async def handle_request(request: web.Request) -> web.Response:
+        """Kelgan barcha so'rovlarni markaziy boshqarish"""
         if not verify_auth(request):
             return web.json_response(error_response(None, -32504, "Autentifikatsiya xatosi"), status=200)
 
@@ -77,6 +86,7 @@ class PaymeAPI:
 
     @staticmethod
     async def check_perform_transaction(rpc_id, params: dict) -> dict:
+        """To'lovni amalga oshirish mumkinligini tekshirish"""
         try:
             account = params.get("account", {})
             order_id = account.get("order_id")
@@ -96,20 +106,20 @@ class PaymeAPI:
             return success_response(rpc_id, {"allow": True})
         except Exception as e:
             logger.error(f"CheckPerform error: {e}")
-            return error_response(rpc_id, -31099, "Server xatosi")
+            return error_response(rpc_id, -31099, "Serverda xatolik")
 
     @staticmethod
     async def create_transaction(rpc_id, params: dict) -> dict:
+        """Yangi tranzaksiya yaratish (Idempotent)"""
         try:
             payme_id = params.get("id")
-            payme_time = int(params.get("time")) # Payme yuborgan vaqt (MILLISEKUND)
+            payme_time = int(params.get("time")) # Payme yuborgan vaqtni saqlaymiz
             account = params.get("account", {})
             order_id = account.get("order_id")
             amount = params.get("amount")
 
             existing = await db.get_transaction_by_payment_id(payme_id)
             if existing:
-                # Idempotentlik: Bazadagi holatni qaytaramiz
                 state = 1 if existing['status'] == 'pending' else 2
                 return success_response(rpc_id, {
                     "create_time": int(existing['create_time']),
@@ -119,9 +129,9 @@ class PaymeAPI:
 
             app = await db.get_application_by_code(order_id)
             if not app or app['status'] == 'paid':
-                return error_response(rpc_id, -31050, "Buyurtma topilmadi yoki to'langan")
+                return error_response(rpc_id, -31050, "Buyurtma topilmadi yoki allaqachon to'langan")
 
-            # MUHIM: Payme yuborgan 'time'ni bazaga saqlaymiz!
+            # Yangi tranzaksiya yaratishda Payme vaqtidan foydalanamiz
             transaction = await db.create_transaction(
                 user_id=app['user_id'],
                 application_id=app['id'],
@@ -129,7 +139,7 @@ class PaymeAPI:
                 trans_type='card_payment',
                 payment_provider='payme',
                 payment_id=payme_id,
-                create_time=payme_time # O'zimizning vaqt emas!
+                create_time=payme_time
             )
 
             return success_response(rpc_id, {
@@ -139,10 +149,11 @@ class PaymeAPI:
             })
         except Exception as e:
             logger.error(f"Create error: {e}")
-            return error_response(rpc_id, -31099, "Server xatosi")
+            return error_response(rpc_id, -31099, "Serverda xatolik")
 
     @staticmethod
     async def perform_transaction(rpc_id, params: dict) -> dict:
+        """To'lovni muvaffaqiyatli yakunlash"""
         try:
             payme_id = params.get("id")
             transaction = await db.get_transaction_by_payment_id(payme_id)
@@ -158,16 +169,21 @@ class PaymeAPI:
                 })
 
             if transaction['status'] != 'pending':
-                return error_response(rpc_id, -31004, "Holat noto'g'ri")
+                return error_response(rpc_id, -31004, "Tranzaksiya holati noto'g'ri")
 
-            # To'lov vaqtini generatsiya qilamiz (bir marta)
+            # 1. ARIZANI BAZADAN OLAMIZ (app_code xatosini oldini olish uchun)
+            app = await db.get_application_by_id(transaction['application_id'])
+            if not app:
+                return error_response(rpc_id, -31050, "Buyurtma topilmadi")
+
+            # 2. To'lov yakunlangan vaqtni (ms) saqlaymiz
             now_ms = int(time.time() * 1000)
             updated = await db.update_transaction_status(
                 transaction['id'], 'completed', payme_id, perform_time=now_ms
             )
 
-            # Ariza holatini yangilash
-            await db.update_application_status(transaction['app_code'], 'paid')
+            # 3. Arizani 'paid' holatiga o'tkazamiz
+            await db.update_application_status(app['app_code'], 'paid')
 
             return success_response(rpc_id, {
                 "perform_time": int(updated['perform_time']),
@@ -176,10 +192,11 @@ class PaymeAPI:
             })
         except Exception as e:
             logger.error(f"Perform error: {e}")
-            return error_response(rpc_id, -31099, "Server xatosi")
+            return error_response(rpc_id, -31099, "Serverda xatolik")
 
     @staticmethod
     async def cancel_transaction(rpc_id, params: dict) -> dict:
+        """Tranzaksiyani bekor qilish"""
         try:
             payme_id = params.get("id")
             reason = params.get("reason")
@@ -210,10 +227,11 @@ class PaymeAPI:
             })
         except Exception as e:
             logger.error(f"Cancel error: {e}")
-            return error_response(rpc_id, -31099, "Server xatosi")
+            return error_response(rpc_id, -31099, "Serverda xatolik")
 
     @staticmethod
     async def check_transaction(rpc_id, params: dict) -> dict:
+        """Tranzaksiya holatini tekshirish"""
         try:
             payme_id = params.get("id")
             tr = await db.get_transaction_by_payment_id(payme_id)
@@ -225,7 +243,6 @@ class PaymeAPI:
             state = state_map.get(tr['status'], 1)
             if state == -1 and tr['perform_time']: state = -2
 
-            # FAQAT bazadagi vaqtlarni qaytaramiz (int64 formatida)
             return success_response(rpc_id, {
                 "create_time": int(tr['create_time']),
                 "perform_time": int(tr['perform_time'] or 0),
@@ -234,11 +251,12 @@ class PaymeAPI:
                 "state": state,
                 "reason": tr['cancel_reason']
             })
-        except Exception as e:
-            return error_response(rpc_id, -31099, "Server xatosi")
+        except Exception:
+            return error_response(rpc_id, -31099, "Serverda xatolik")
 
     @staticmethod
     async def get_statement(rpc_id, params: dict) -> dict:
+        """Vaqt oralig'i bo'yicha tranzaksiyalar ro'yxati"""
         try:
             rows = await db.get_transactions_by_time_range(params.get("from"), params.get("to"))
             transactions = []
@@ -260,4 +278,4 @@ class PaymeAPI:
                 })
             return success_response(rpc_id, {"transactions": transactions})
         except Exception:
-            return error_response(rpc_id, -31099, "Server xatosi")
+            return error_response(rpc_id, -31099, "Serverda xatolik")
