@@ -28,7 +28,7 @@ PAYME_MERCHANT_ID = os.getenv("PAYME_MERCHANT_ID", "")
 PAYME_MERCHANT_KEY = os.getenv("PAYME_MERCHANT_KEY", "")
 
 # Payme URLs
-PAYME_CHECKOUT_URL = "https://checkout.paycom.uz"
+PAYME_CHECKOUT_URL = "https://checkout.payme.uz"
 
 # Payme error codes
 PAYME_ERRORS = {
