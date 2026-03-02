@@ -6,45 +6,34 @@ from decimal import Decimal
 from aiohttp import web
 from database import db
 
+# Loglarni sozlash
 logger = logging.getLogger(__name__)
 
 # 1. KONFIGURATSIYA (Railway Variables'dan olinadi)
-PAYME_MERCHANT_ID = os.getenv("PAYME_MERCHANT_ID", "")
 PAYME_MERCHANT_KEY = os.getenv("PAYME_MERCHANT_KEY", "")
-PAYME_CHECKOUT_URL = "https://checkout.payme.uz"
-
-def generate_checkout_url(order_id: str, amount_uzs: Decimal) -> str:
-    """Payme uchun to'lov havolasini yaratish"""
-    amount_tiyin = int(amount_uzs * 100)
-    params = f"m={PAYME_MERCHANT_ID};ac.order_id={order_id};a={amount_tiyin}"
-    encoded = base64.b64encode(params.encode()).decode()
-    return f"{PAYME_CHECKOUT_URL}/{encoded}"
+ADMIN_GROUP_ID = os.getenv("ADMIN_GROUP_ID") # Admin guruh ID raqami
 
 def verify_auth(request) -> bool:
-    """Autentifikatsiyani tekshirish (Basic Auth)"""
+    """Payme autentifikatsiyasini tekshirish (Basic Auth)"""
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Basic "):
         return False
     try:
         decoded = base64.b64decode(auth_header[6:]).decode()
         login, password = decoded.split(":", 1)
-        # Payme 'payme' yoki 'paycom' loginini yuborishi mumkin
+        # Payme 'paycom' loginini ishlatadi
         return login.lower() in ["paycom", "payme"] and password == PAYME_MERCHANT_KEY
     except Exception:
         return False
 
-def error_response(rpc_id, code: int, message_uz: str, message_ru: str = "", message_en: str = ""):
+def error_response(rpc_id, code: int, message_uz: str):
     """Xato javobi formati"""
     return {
         "jsonrpc": "2.0",
         "id": rpc_id,
         "error": {
             "code": code,
-            "message": {
-                "uz": message_uz,
-                "ru": message_ru or message_uz,
-                "en": message_en or message_uz
-            }
+            "message": {"uz": message_uz, "ru": message_uz, "en": message_uz}
         }
     }
 
@@ -55,7 +44,7 @@ def success_response(rpc_id, result: dict):
 class PaymeAPI:
     @staticmethod
     async def handle_request(request: web.Request) -> web.Response:
-        """Kelgan barcha so'rovlarni markaziy boshqarish"""
+        """Payme'dan kelgan so'rovlarni qabul qilish"""
         if not verify_auth(request):
             return web.json_response(error_response(None, -32504, "Autentifikatsiya xatosi"), status=200)
 
@@ -86,75 +75,70 @@ class PaymeAPI:
 
     @staticmethod
     async def check_perform_transaction(rpc_id, params: dict) -> dict:
-        """To'lovni amalga oshirish mumkinligini tekshirish"""
-        try:
-            account = params.get("account", {})
-            order_id = account.get("order_id")
-            amount = params.get("amount")
+        """To'lov qilish mumkinligini tekshirish"""
+        account = params.get("account", {})
+        order_id = account.get("order_id")
+        amount = params.get("amount")
 
-            app = await db.get_application_by_code(order_id)
-            if not app:
-                return error_response(rpc_id, -31050, "Buyurtma topilmadi")
+        app = await db.get_application_by_code(order_id)
+        if not app:
+            return error_response(rpc_id, -31050, "Ariza topilmadi")
+        
+        if app['status'] == 'paid':
+            return error_response(rpc_id, -31052, "Ariza allaqachon to'langan")
 
-            if app['status'] == 'paid':
-                return error_response(rpc_id, -31052, "Buyurtma allaqachon to'langan")
+        # Summani solishtirish (tiyinlarda)
+        expected_amount = int(Decimal(str(app['price'])) * 100)
+        if amount != expected_amount:
+            return error_response(rpc_id, -31001, "Noto'g'ri summa")
 
-            expected_amount = int(Decimal(str(app['price'])) * 100)
-            if amount != expected_amount:
-                return error_response(rpc_id, -31001, f"Noto'g'ri summa. Kutilgan: {expected_amount}")
-
-            return success_response(rpc_id, {"allow": True})
-        except Exception as e:
-            logger.error(f"CheckPerform error: {e}")
-            return error_response(rpc_id, -31099, "Serverda xatolik")
+        return success_response(rpc_id, {"allow": True})
 
     @staticmethod
     async def create_transaction(rpc_id, params: dict) -> dict:
-        """Yangi tranzaksiya yaratish (Idempotent)"""
-        try:
-            payme_id = params.get("id")
-            payme_time = int(params.get("time")) # Payme yuborgan vaqtni saqlaymiz
-            account = params.get("account", {})
-            order_id = account.get("order_id")
-            amount = params.get("amount")
+        """Yangi tranzaksiya yaratish"""
+        payme_id = params.get("id")
+        payme_time = int(params.get("time"))
+        account = params.get("account", {})
+        order_id = account.get("order_id")
+        amount = params.get("amount")
 
-            existing = await db.get_transaction_by_payment_id(payme_id)
-            if existing:
-                state = 1 if existing['status'] == 'pending' else 2
-                return success_response(rpc_id, {
-                    "create_time": int(existing['create_time']),
-                    "transaction": str(existing['id']),
-                    "state": state
-                })
-
-            app = await db.get_application_by_code(order_id)
-            if not app or app['status'] == 'paid':
-                return error_response(rpc_id, -31050, "Buyurtma topilmadi yoki allaqachon to'langan")
-
-            # Yangi tranzaksiya yaratishda Payme vaqtidan foydalanamiz
-            transaction = await db.create_transaction(
-                user_id=app['user_id'],
-                application_id=app['id'],
-                amount=Decimal(str(amount)) / 100,
-                trans_type='card_payment',
-                payment_provider='payme',
-                payment_id=payme_id,
-                create_time=payme_time
-            )
-
+        existing = await db.get_transaction_by_payment_id(payme_id)
+        if existing:
+            state = 1 if existing['status'] == 'pending' else 2
             return success_response(rpc_id, {
-                "create_time": int(transaction['create_time']),
-                "transaction": str(transaction['id']),
-                "state": 1
+                "create_time": int(existing['create_time']),
+                "transaction": str(existing['id']),
+                "state": state
             })
-        except Exception as e:
-            logger.error(f"Create error: {e}")
-            return error_response(rpc_id, -31099, "Serverda xatolik")
+
+        app = await db.get_application_by_code(order_id)
+        if not app:
+            return error_response(rpc_id, -31050, "Ariza topilmadi")
+
+        transaction = await db.create_transaction(
+            user_id=app['user_id'],
+            application_id=app['id'],
+            amount=Decimal(str(amount)) / 100,
+            trans_type='card_payment',
+            payment_provider='payme',
+            payment_id=payme_id,
+            create_time=payme_time
+        )
+
+        return success_response(rpc_id, {
+            "create_time": int(transaction['create_time']),
+            "transaction": str(transaction['id']),
+            "state": 1
+        })
 
     @staticmethod
     async def perform_transaction(rpc_id, params: dict) -> dict:
-        """To'lovni muvaffaqiyatli yakunlash"""
+        """To'lovni yakunlash va BOTDA AVTOMATIK XABAR BERISH"""
         try:
+            # Botni main faylidan import qilamiz
+            from main import bot 
+
             payme_id = params.get("id")
             transaction = await db.get_transaction_by_payment_id(payme_id)
 
@@ -168,22 +152,38 @@ class PaymeAPI:
                     "state": 2
                 })
 
-            if transaction['status'] != 'pending':
-                return error_response(rpc_id, -31004, "Tranzaksiya holati noto'g'ri")
-
-            # 1. ARIZANI BAZADAN OLAMIZ (app_code xatosini oldini olish uchun)
-            app = await db.get_application_by_id(transaction['application_id'])
-            if not app:
-                return error_response(rpc_id, -31050, "Buyurtma topilmadi")
-
-            # 2. To'lov yakunlangan vaqtni (ms) saqlaymiz
+            # 1. Bazani yangilash
             now_ms = int(time.time() * 1000)
             updated = await db.update_transaction_status(
                 transaction['id'], 'completed', payme_id, perform_time=now_ms
             )
-
-            # 3. Arizani 'paid' holatiga o'tkazamiz
+            app = await db.get_application_by_id(transaction['application_id'])
             await db.update_application_status(app['app_code'], 'paid')
+
+            # 2. 🔥 FOYDALANUVCHIGA AVTOMATIK XABAR
+            user_msg = (
+                f"✅ **To'lov muvaffaqiyatli qabul qilindi!**\n\n"
+                f"📝 Ariza raqami: `{app['app_code']}`\n"
+                f"💰 To'langan summa: {transaction['amount']} so'm\n"
+                f"📊 Holati: **To'langan**"
+            )
+            try:
+                await bot.send_message(chat_id=app['user_id'], text=user_msg)
+            except Exception as e:
+                logger.error(f"Userga xabar ketmadi: {e}")
+
+            # 3. 🔥 ADMINGA AVTOMATIK XABAR
+            if ADMIN_GROUP_ID:
+                admin_msg = (
+                    f"💰 **Yangi to'lov kelib tushdi!**\n\n"
+                    f"📌 Ariza: `{app['app_code']}`\n"
+                    f"💵 Summa: {transaction['amount']} so'm\n"
+                    f"👤 Foydalanuvchi ID: `{app['user_id']}`"
+                )
+                try:
+                    await bot.send_message(chat_id=ADMIN_GROUP_ID, text=admin_msg)
+                except Exception as e:
+                    logger.error(f"Adminga xabar ketmadi: {e}")
 
             return success_response(rpc_id, {
                 "perform_time": int(updated['perform_time']),
@@ -197,85 +197,75 @@ class PaymeAPI:
     @staticmethod
     async def cancel_transaction(rpc_id, params: dict) -> dict:
         """Tranzaksiyani bekor qilish"""
-        try:
-            payme_id = params.get("id")
-            reason = params.get("reason")
-            transaction = await db.get_transaction_by_payment_id(payme_id)
+        payme_id = params.get("id")
+        reason = params.get("reason")
+        transaction = await db.get_transaction_by_payment_id(payme_id)
 
-            if not transaction:
-                return error_response(rpc_id, -31003, "Tranzaksiya topilmadi")
+        if not transaction:
+            return error_response(rpc_id, -31003, "Tranzaksiya topilmadi")
 
-            if transaction['status'] == 'cancelled':
-                state = -2 if transaction['perform_time'] else -1
-                return success_response(rpc_id, {
-                    "cancel_time": int(transaction['cancel_time']),
-                    "transaction": str(transaction['id']),
-                    "state": state
-                })
-
-            now_ms = int(time.time() * 1000)
-            updated = await db.update_transaction_status(
-                transaction['id'], 'cancelled', payme_id, 
-                cancel_time=now_ms, cancel_reason=reason
-            )
-
-            state = -2 if transaction['status'] == 'completed' else -1
+        if transaction['status'] == 'cancelled':
+            state = -2 if transaction['perform_time'] else -1
             return success_response(rpc_id, {
-                "cancel_time": int(updated['cancel_time']),
-                "transaction": str(updated['id']),
+                "cancel_time": int(transaction['cancel_time']),
+                "transaction": str(transaction['id']),
                 "state": state
             })
-        except Exception as e:
-            logger.error(f"Cancel error: {e}")
-            return error_response(rpc_id, -31099, "Serverda xatolik")
+
+        now_ms = int(time.time() * 1000)
+        updated = await db.update_transaction_status(
+            transaction['id'], 'cancelled', payme_id, 
+            cancel_time=now_ms, cancel_reason=reason
+        )
+
+        state = -2 if transaction['status'] == 'completed' else -1
+        return success_response(rpc_id, {
+            "cancel_time": int(updated['cancel_time']),
+            "transaction": str(updated['id']),
+            "state": state
+        })
 
     @staticmethod
     async def check_transaction(rpc_id, params: dict) -> dict:
         """Tranzaksiya holatini tekshirish"""
-        try:
-            payme_id = params.get("id")
-            tr = await db.get_transaction_by_payment_id(payme_id)
+        payme_id = params.get("id")
+        tr = await db.get_transaction_by_payment_id(payme_id)
 
-            if not tr:
-                return error_response(rpc_id, -31003, "Tranzaksiya topilmadi")
+        if not tr:
+            return error_response(rpc_id, -31003, "Tranzaksiya topilmadi")
 
-            state_map = {'pending': 1, 'completed': 2, 'cancelled': -1, 'failed': -1}
-            state = state_map.get(tr['status'], 1)
-            if state == -1 and tr['perform_time']: state = -2
+        state_map = {'pending': 1, 'completed': 2, 'cancelled': -1}
+        state = state_map.get(tr['status'], 1)
+        if state == -1 and tr['perform_time']: state = -2
 
-            return success_response(rpc_id, {
-                "create_time": int(tr['create_time']),
-                "perform_time": int(tr['perform_time'] or 0),
-                "cancel_time": int(tr['cancel_time'] or 0),
-                "transaction": str(tr['id']),
-                "state": state,
-                "reason": tr['cancel_reason']
-            })
-        except Exception:
-            return error_response(rpc_id, -31099, "Serverda xatolik")
+        return success_response(rpc_id, {
+            "create_time": int(tr['create_time']),
+            "perform_time": int(tr['perform_time'] or 0),
+            "cancel_time": int(tr['cancel_time'] or 0),
+            "transaction": str(tr['id']),
+            "state": state,
+            "reason": tr['cancel_reason']
+        })
 
     @staticmethod
     async def get_statement(rpc_id, params: dict) -> dict:
-        """Vaqt oralig'i bo'yicha tranzaksiyalar ro'yxati"""
-        try:
-            rows = await db.get_transactions_by_time_range(params.get("from"), params.get("to"))
-            transactions = []
-            for r in rows:
-                state = 1 if r['status'] == 'pending' else 2
-                if r['status'] == 'cancelled': state = -2 if r['perform_time'] else -1
-                
-                transactions.append({
-                    "id": r['payment_id'],
-                    "time": int(r['create_time']),
-                    "amount": int(r['amount'] * 100),
-                    "account": {"order_id": r['app_code']},
-                    "create_time": int(r['create_time']),
-                    "perform_time": int(r['perform_time'] or 0),
-                    "cancel_time": int(r['cancel_time'] or 0),
-                    "transaction": str(r['id']),
-                    "state": state,
-                    "reason": r['cancel_reason'],
-                })
-            return success_response(rpc_id, {"transactions": transactions})
-        except Exception:
-            return error_response(rpc_id, -31099, "Serverda xatolik")
+        """Vaqt oralig'i bo'yicha hisobot"""
+        rows = await db.get_transactions_by_time_range(params.get("from"), params.get("to"))
+        transactions = []
+        for r in rows:
+            state = 1 if r['status'] == 'pending' else 2
+            if r['status'] == 'cancelled': state = -2 if r['perform_time'] else -1
+            
+            transactions.append({
+                "id": r['payment_id'],
+                "time": int(r['create_time']),
+                "amount": int(r['amount'] * 100),
+                "account": {"order_id": r['app_code']},
+                "create_time": int(r['create_time']),
+                "perform_time": int(r['perform_time'] or 0),
+                "cancel_time": int(r['cancel_time'] or 0),
+                "transaction": str(r['id']),
+                "state": state,
+                "reason": r['cancel_reason'],
+            })
+        return success_response(rpc_id, {"transactions": transactions})
