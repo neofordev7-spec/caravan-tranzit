@@ -23,10 +23,11 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 # 2. KONFIGURATSIYA
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = os.getenv("ADMIN_ID") # O'zingizning shaxsiy ID-ingiz (masalan: 3463212374)
+# ID raqami kodda yozilmagan, u faqat Railway Variables'dan olinadi
+ADMIN_ID = os.getenv("ADMIN_ID") 
 
 if not BOT_TOKEN:
-    logging.error("❌ BOT_TOKEN environment variable is not set!")
+    logging.error("❌ BOT_TOKEN topilmadi!")
     sys.exit(1)
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
@@ -42,11 +43,15 @@ class AdminAccessMiddleware(BaseMiddleware):
     ) -> Any:
         user = data.get("event_from_user")
         
-        # Admin ID ni tekshirish (Faqat siz kira olasiz)
+        # Muhim: ADMIN_ID Railway'da o'rnatilganligini tekshiramiz
+        if not ADMIN_ID:
+            logging.warning("⚠️ ADMIN_ID o'zgaruvchisi o'rnatilmagan!")
+        
+        # Faqat ADMIN_ID ga mos keladigan foydalanuvchini o'tkazadi
         if user and str(user.id) != str(ADMIN_ID):
             if isinstance(event, types.Message):
-                await event.answer("⚠️ **Kirish taqiqlangan!**\nBu bo'lim faqat asosiy admin uchun.")
-            return # Handlerga o'tkazmasdan to'xtatadi
+                await event.answer("⚠️ **Kirish taqiqlangan!**\nSizda admin huquqlari yo'q.")
+            return 
             
         return await handler(event, data)
 # --------------------------------------------
@@ -54,40 +59,37 @@ class AdminAccessMiddleware(BaseMiddleware):
 async def main():
     web_runner = None
 
-    # 4. MA'LUMOTLAR BAZASIGA ULANISH
+    # 4. BAZA VA SERVER
     try:
         await db.connect()
         await db.seed_customs_posts()
-        await db.seed_test_agents()
         print("✅ Baza ulandi!")
     except Exception as e:
         print(f"❌ Baza xatosi: {e}")
         return
 
-    # 5. WEB SERVER (Mini App va To'lovlar)
     try:
         web_runner = await start_web_server()
         print("✅ Web server ishga tushdi!")
     except Exception as e:
         print(f"⚠️ Web server xatosi: {e}")
 
-    # --- 6. MIDDLEWARENI FAQAT ADMIN ROUTERGA ULASH ---
-    # Shunda oddiy foydalanuvchilar botning boshqa qismlaridan bemalol foydalana oladi
+    # --- 5. MIDDLEWARE ULASH ---
     admin_router.message.middleware(AdminAccessMiddleware())
     admin_router.callback_query.middleware(AdminAccessMiddleware())
 
-    # Routerlarni ulash
+    # Routerlar
     dp.include_router(payment_router)
     dp.include_router(admin_router)
     dp.include_router(webapp_router)
     dp.include_router(router)
 
-    # 7. KONFLIKTNI OLDINI OLISH
+    # 6. KONFLIKT VA POLLING
     await bot.delete_webhook(drop_pending_updates=True)
     print("⏳ Conflict oldini olish uchun 5 soniya kutilmoqda...")
     await asyncio.sleep(5)
 
-    print("🚀 Bot polling rejimida ishga tushdi!")
+    print(f"🚀 Bot polling rejimida ishga tushdi!")
 
     try:
         await dp.start_polling(bot)
@@ -98,7 +100,7 @@ async def main():
         await db.close()
         if bot.session:
             await bot.session.close()
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(0.2) # Sessiyani tozalash uchun pauza
         print("🛑 Bot to'xtatildi.")
 
 if __name__ == "__main__":
