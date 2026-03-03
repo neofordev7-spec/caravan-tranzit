@@ -15,22 +15,22 @@ async def create_web_app():
     # Mini App fayllari joylashgan papka manzili
     miniapp_path = os.path.join(os.path.dirname(__file__), 'miniapp')
 
-    # 1. ROOT HANDLER (Railway sog'lomlikni tekshirishi uchun 200 OK qaytaradi)
+    # 1. ROOT HANDLER (Asosiy linkka kirganda avtomatik Mini Appni ochadi)
     async def root_handler(request):
-        return web.Response(text="🚀 Caravan Tranzit Bot and Mini App are running smoothly!", status=200)
+        # Foydalanuvchini / dan /miniapp/ ga yo'naltiramiz (302 Redirect)
+        return web.HTTPFound('/miniapp/')
 
-    # 2. HEALTH CHECK (Tizim holati uchun JSON)
+    # 2. HEALTH CHECK (Railway uchun status)
     async def health_check(request):
         return web.json_response({'status': 'ok', 'server': 'CaravanTranzit'})
 
-    # 3. MINI APP HANDLERS
+    # 3. MINI APP INDEX HANDLER (index.html faylini xavfsiz o'qish)
     async def miniapp_index(request):
         """Mini Appning asosiy sahifasini (index.html) ko'rsatish"""
         index_path = os.path.join(miniapp_path, 'index.html')
         if os.path.exists(index_path):
-            with open(index_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            return web.Response(text=content, content_type='text/html')
+            # web.FileResponse - faylni o'qib, brauzerga to'g'ri formatda uzatadi
+            return web.FileResponse(index_path)
         else:
             logger.error(f"❌ Mini App topilmadi: {index_path}")
             return web.Response(text='Mini App topilmadi (index.html missing)', status=404)
@@ -39,7 +39,6 @@ async def create_web_app():
         """Mini Appdan kelgan ariza ma'lumotlarini qabul qilish"""
         try:
             data = await request.json()
-            # Tasodifiy ariza kodi yaratish
             import os as os_lib
             app_code = f"{data.get('service_type', 'EP')}-{os_lib.urandom(3).hex().upper()}"
             logger.info(f"🆕 Mini App submission: {data}")
@@ -48,31 +47,30 @@ async def create_web_app():
             logger.error(f"❌ Mini App submission xatosi: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=400)
 
-    # --- ROUTES (YO'NALISHLAR) ---
+    # --- ROUTES (YO'NALISHLAR) - Tartib juda muhim! ---
     
-    # Asosiy va Health Check
+    # 1. Avval asosiy yo'naltirish (Redirect)
     app.router.add_get('/', root_handler)
+    
+    # 2. Health check
     app.router.add_get('/health', health_check)
     
-    # Mini App sahifalari
+    # 3. Mini App Index (Slash bilan va slashsiz)
     app.router.add_get('/miniapp', miniapp_index)
     app.router.add_get('/miniapp/', miniapp_index)
     
-    # API: Arizalar
+    # 4. API Endpoints
     app.router.add_post('/api/applications', miniapp_api_submit)
-    
-    # 💰 TO'LOV TIZIMLARI (Secure Endpoints)
-    # Payme so'rovlarini qabul qilish
     app.router.add_post('/api/payme', PaymeAPI.handle_request)
-    # Click so'rovlarini qabul qilish (YANGI QO'SHILDI)
     app.router.add_post('/api/click', ClickAPI.handle_request)
     
-    # Mini App uchun statik fayllar (CSS, JS, Images)
+    # 5. Statik fayllar (CSS, JS, Images) - Oxirida bo'lishi shart!
     if os.path.exists(miniapp_path):
+        # Bu qator style.css, app.js kabi fayllarni avtomatik topishga yordam beradi
         app.router.add_static('/miniapp/', miniapp_path, name='miniapp_static')
         logger.info(f"📁 Statik fayllar yo'li: {miniapp_path}")
 
-    logger.info(f"✅ Web server 8080-portda (v{port}) muvaffaqiyatli sozlandi.")
+    logger.info(f"✅ Web server {port}-portda muvaffaqiyatli sozlandi.")
     return app, port
 
 async def start_web_server():
@@ -81,7 +79,7 @@ async def start_web_server():
     runner = web.AppRunner(app)
     await runner.setup()
     
-    # '0.0.0.0' Railway konteynerlari uchun majburiy (tashqi dunyo ulanishi uchun)
+    # '0.0.0.0' Railway konteynerlari uchun majburiy
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
     
