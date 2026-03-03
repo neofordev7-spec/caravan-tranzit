@@ -20,8 +20,7 @@ from web_server import start_web_server
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 # 2. KONFIGURATSIYANI YUKLASH VA BOTNI GLOBAL QILISH
-# load_dotenv() va bot obyektini funksiyadan tashqarida yaratish 
-# boshqa fayllar (payme_api.py) botdan foydalanishi uchun shart
+# Bu qism payme_api.py avtomatik xabar yuborishi uchun juda muhim
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
@@ -29,7 +28,7 @@ if not BOT_TOKEN:
     logging.error("❌ BOT_TOKEN environment variable is not set!")
     sys.exit(1)
 
-# Bot va Dispatcher obyektlarini yaratish
+# Bot va Dispatcher obyektlarini global darajada yaratish
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 dp = Dispatcher(storage=MemoryStorage())
 
@@ -39,7 +38,7 @@ async def main():
     # 3. MA'LUMOTLAR BAZASIGA ULANISH
     try:
         await db.connect() # Railway Postgres bazasiga ulanish
-        await db.seed_customs_posts() # Baza jadvallarini tekshirish/yaratish
+        await db.seed_customs_posts() # Baza jadvallarini tekshirish
         await db.seed_test_agents()
         print("✅ Baza ulandi va seed data yuklandi!")
     except Exception as e:
@@ -48,7 +47,6 @@ async def main():
 
     # 4. WEB SERVERNI ISHGA TUSHIRISH (Mini App va To'lovlar uchun)
     try:
-        # Port 8080 da ishga tushadi
         web_runner = await start_web_server() 
         print("✅ Web server Mini App uchun ishga tushdi!")
         print(f"📱 Mini App URL: https://caravan-tranzit-production.up.railway.app/miniapp/")
@@ -56,27 +54,24 @@ async def main():
         print(f"⚠️ Web server xatosi (bot ishlaydi): {e}")
 
     # 5. ROUTERLARNI ULASH
-    dp.include_router(payment_router)  # Payme/Click handlerlari
-    dp.include_router(admin_router)    # Admin boshqaruvi
-    dp.include_router(webapp_router)   # Mini App handlerlari
-    dp.include_router(router)          # Umumiy handlerlar
+    dp.include_router(payment_router)  # Payme/Click
+    dp.include_router(admin_router)    # Admin
+    dp.include_router(webapp_router)   # Web App
+    dp.include_router(router)          # Asosiy handlerlar
 
-    # 6. KONFLIKTNI OLDINI OLISH (Railway va Telegram ulanishi uchun)
-    # Avval barcha eski webhook/sessiyalarni majburiy tozalaymiz
+    # 6. KONFLIKTNI OLDINI OLISH
+    # Railway'da eski konteyner o'chishiga ulgurishi uchun webhookni o'chirib 5 soniya kutamiz
     await bot.delete_webhook(drop_pending_updates=True)
-    
-    # Railway'da eski konteyner to'liq yopilishi uchun 5 soniya pauza beramiz
-    print("⏳ Conflict (to'qnashuv) xatosini oldini olish uchun 5 soniya kutilmoqda...")
-    await asyncio.sleep(5) 
+    print("⏳ Conflict oldini olish uchun 5 soniya kutilmoqda...")
+    await asyncio.sleep(5)
 
     print("🚀 Bot polling rejimida ishga tushdi!")
 
     try:
-        # Telegramdan yangilanishlarni qabul qilishni boshlash
+        # Pollingni boshlash
         await dp.start_polling(bot)
     finally:
         # 7. GRACEFUL SHUTDOWN (Madaniyatli yopilish)
-        # Barcha resurslarni xavfsiz va tartibli yopamiz
         print("🛑 Graceful shutdown boshlandi...")
 
         if web_runner:
@@ -86,8 +81,12 @@ async def main():
         await db.close()
         print("✅ Database pool yopildi.")
 
-        await bot.session.close()
-        print("✅ Bot session yopildi.")
+        # BOT SESSIYASINI TOZA YOPISH
+        if bot.session:
+            await bot.session.close()
+            # SIZ SO'RAGAN MUHIM PAUZA:
+            await asyncio.sleep(0.2) 
+            print("✅ Bot session va tarmoq ulanishlari yopildi.")
 
         print("🛑 Bot to'xtatildi.")
 
