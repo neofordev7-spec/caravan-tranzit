@@ -2,13 +2,14 @@ import asyncio
 import logging
 import sys
 import os
-from aiogram import Bot, Dispatcher
+from typing import Any, Callable, Dict, Awaitable
+from aiogram import Bot, Dispatcher, types, BaseMiddleware
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
 
-# Loyiha modullari (Routerlar va Database)
+# Loyiha modullari
 from handlers import router
 from web_app_handlers import router as webapp_router
 from admin_handlers import router as admin_router
@@ -19,48 +20,69 @@ from web_server import start_web_server
 # 1. LOGLARNI SOZLASH
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
-# 2. KONFIGURATSIYANI YUKLASH VA BOTNI GLOBAL QILISH
-# Bu qism payme_api.py avtomatik xabar yuborishi uchun juda muhim
+# 2. KONFIGURATSIYA
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_ID = os.getenv("ADMIN_ID") # O'zingizning shaxsiy ID-ingiz (masalan: 3463212374)
 
 if not BOT_TOKEN:
     logging.error("❌ BOT_TOKEN environment variable is not set!")
     sys.exit(1)
 
-# Bot va Dispatcher obyektlarini global darajada yaratish
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 dp = Dispatcher(storage=MemoryStorage())
+
+# --- 3. KIBERXAVFSIZLIK: ADMIN MIDDLEWARE ---
+class AdminAccessMiddleware(BaseMiddleware):
+    async def __call__(
+        self,
+        handler: Callable[[types.TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: types.TelegramObject,
+        data: Dict[str, Any]
+    ) -> Any:
+        user = data.get("event_from_user")
+        
+        # Admin ID ni tekshirish (Faqat siz kira olasiz)
+        if user and str(user.id) != str(ADMIN_ID):
+            if isinstance(event, types.Message):
+                await event.answer("⚠️ **Kirish taqiqlangan!**\nBu bo'lim faqat asosiy admin uchun.")
+            return # Handlerga o'tkazmasdan to'xtatadi
+            
+        return await handler(event, data)
+# --------------------------------------------
 
 async def main():
     web_runner = None
 
-    # 3. MA'LUMOTLAR BAZASIGA ULANISH
+    # 4. MA'LUMOTLAR BAZASIGA ULANISH
     try:
-        await db.connect() # Railway Postgres bazasiga ulanish
-        await db.seed_customs_posts() # Baza jadvallarini tekshirish
+        await db.connect()
+        await db.seed_customs_posts()
         await db.seed_test_agents()
-        print("✅ Baza ulandi va seed data yuklandi!")
+        print("✅ Baza ulandi!")
     except Exception as e:
         print(f"❌ Baza xatosi: {e}")
         return
 
-    # 4. WEB SERVERNI ISHGA TUSHIRISH (Mini App va To'lovlar uchun)
+    # 5. WEB SERVER (Mini App va To'lovlar)
     try:
-        web_runner = await start_web_server() 
-        print("✅ Web server Mini App uchun ishga tushdi!")
-        print(f"📱 Mini App URL: https://caravan-tranzit-production.up.railway.app/miniapp/")
+        web_runner = await start_web_server()
+        print("✅ Web server ishga tushdi!")
     except Exception as e:
-        print(f"⚠️ Web server xatosi (bot ishlaydi): {e}")
+        print(f"⚠️ Web server xatosi: {e}")
 
-    # 5. ROUTERLARNI ULASH
-    dp.include_router(payment_router)  # Payme/Click
-    dp.include_router(admin_router)    # Admin
-    dp.include_router(webapp_router)   # Web App
-    dp.include_router(router)          # Asosiy handlerlar
+    # --- 6. MIDDLEWARENI FAQAT ADMIN ROUTERGA ULASH ---
+    # Shunda oddiy foydalanuvchilar botning boshqa qismlaridan bemalol foydalana oladi
+    admin_router.message.middleware(AdminAccessMiddleware())
+    admin_router.callback_query.middleware(AdminAccessMiddleware())
 
-    # 6. KONFLIKTNI OLDINI OLISH
-    # Railway'da eski konteyner o'chishiga ulgurishi uchun webhookni o'chirib 5 soniya kutamiz
+    # Routerlarni ulash
+    dp.include_router(payment_router)
+    dp.include_router(admin_router)
+    dp.include_router(webapp_router)
+    dp.include_router(router)
+
+    # 7. KONFLIKTNI OLDINI OLISH
     await bot.delete_webhook(drop_pending_updates=True)
     print("⏳ Conflict oldini olish uchun 5 soniya kutilmoqda...")
     await asyncio.sleep(5)
@@ -68,26 +90,15 @@ async def main():
     print("🚀 Bot polling rejimida ishga tushdi!")
 
     try:
-        # Pollingni boshlash
         await dp.start_polling(bot)
     finally:
-        # 7. GRACEFUL SHUTDOWN (Madaniyatli yopilish)
         print("🛑 Graceful shutdown boshlandi...")
-
         if web_runner:
             await web_runner.cleanup()
-            print("✅ Web server yopildi.")
-
         await db.close()
-        print("✅ Database pool yopildi.")
-
-        # BOT SESSIYASINI TOZA YOPISH
         if bot.session:
             await bot.session.close()
-            # SIZ SO'RAGAN MUHIM PAUZA:
-            await asyncio.sleep(0.2) 
-            print("✅ Bot session va tarmoq ulanishlari yopildi.")
-
+            await asyncio.sleep(0.2)
         print("🛑 Bot to'xtatildi.")
 
 if __name__ == "__main__":
