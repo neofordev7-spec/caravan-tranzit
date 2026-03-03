@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Loglarni sozlash (Xavfsizlik uchun print o'rniga logging ishlatamiz)
+# Loglarni sozlash
 logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -17,14 +17,12 @@ class Database:
         self.pool = None
 
     async def connect(self):
-        """Baza bilan pool ulanishini hosil qilish (Xavfsiz ulanish)"""
+        """Baza bilan pool ulanishini hosil qilish"""
         if not self.pool:
             if not DATABASE_URL:
-                logger.error("❌ DATABASE_URL topilmadi! Railway Variablesni tekshiring.")
+                logger.error("❌ DATABASE_URL topilmadi!")
                 return False
-
             try:
-                # SSL ulanishni Railway uchun avtomatik sozlash (agar kerak bo'lsa)
                 self.pool = await asyncpg.create_pool(
                     DATABASE_URL,
                     min_size=5,
@@ -39,15 +37,15 @@ class Database:
                 return False
 
     async def close(self):
-        """Database pool ni yopish (Graceful shutdown)"""
+        """Database pool ni yopish"""
         if self.pool:
             await self.pool.close()
             self.pool = None
 
     async def create_tables(self):
-        """Jadvallarni yaratish (SQL Injection'dan xoli qattiq kodlangan so'rovlar)"""
+        """Jadvallarni kiberxavfsizlikka muvofiq yaratish"""
         async with self.pool.acquire() as conn:
-            # 1. Bojxona postlari
+            # 1. Customs Posts
             await conn.execute('''
                 CREATE TABLE IF NOT EXISTS customs_posts (
                     id SERIAL PRIMARY KEY,
@@ -56,8 +54,7 @@ class Database:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-
-            # 2. Foydalanuvchilar
+            # 2. Users
             await conn.execute('''
                 CREATE TABLE IF NOT EXISTS users (
                     telegram_id BIGINT PRIMARY KEY,
@@ -71,8 +68,7 @@ class Database:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-
-            # 3. Agentlar
+            # 3. Agents
             await conn.execute('''
                 CREATE TABLE IF NOT EXISTS agents (
                     id SERIAL PRIMARY KEY,
@@ -84,8 +80,7 @@ class Database:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-
-            # 4. Arizalar (Caravan Tranzit asosiy workflow)
+            # 4. Applications
             await conn.execute('''
                 CREATE TABLE IF NOT EXISTS applications (
                     id SERIAL PRIMARY KEY,
@@ -105,8 +100,7 @@ class Database:
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-
-            # 5. To'lovlar (Tranzaksiyalar)
+            # 5. Transactions
             await conn.execute('''
                 CREATE TABLE IF NOT EXISTS transactions (
                     id SERIAL PRIMARY KEY,
@@ -124,8 +118,7 @@ class Database:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-
-            # 6. Referral tizimi
+            # 6. Referrals
             await conn.execute('''
                 CREATE TABLE IF NOT EXISTS referrals (
                     id SERIAL PRIMARY KEY,
@@ -135,8 +128,7 @@ class Database:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-
-            # 7. Hujjatlar keshi
+            # 7. Saved Docs
             await conn.execute('''
                 CREATE TABLE IF NOT EXISTS saved_docs (
                     user_id BIGINT,
@@ -146,13 +138,54 @@ class Database:
                     PRIMARY KEY (user_id, car_number)
                 )
             ''')
-            logger.info("📊 Baza jadvallari tekshirildi va kiberxavfsizlikka muvofiq yangilandi.")
+            logger.info("📊 Baza jadvallari kiberxavfsizlikka muvofiq yangilandi.")
 
-    # =============================================================
-    # XAVFSIZ USER METODLARI ($1, $2 kabi parametrlar bilan)
-    # =============================================================
+    # --- MAIN.PY QIDIRAYOTGAN FUNKSIYALAR (QAYTARILDI) ---
+
+    async def seed_customs_posts(self):
+        """Bojxona postlarini bazaga kiritadi"""
+        async with self.pool.acquire() as conn:
+            count = await conn.fetchval('SELECT COUNT(*) FROM customs_posts')
+            if count > 0:
+                return
+            posts_data = [
+                {"uz": "Yallama", "ru": "Яллама", "en": "Yallama"},
+                {"uz": "Olot", "ru": "Олот", "en": "Olot"},
+                {"uz": "Doʻstlik (Andijon)", "ru": "Дустлик (Андижан)", "en": "Dustlik (Andijan)"},
+                {"uz": "S. Najimov", "ru": "С. Наджимов", "en": "S. Najimov"},
+                {"uz": "Dovut-ota", "ru": "Довут-ота", "en": "Dovut-ota"},
+                {"uz": "Sirdaryo", "ru": "Сырдарья", "en": "Syrdarya"},
+                {"uz": "Ayritom", "ru": "Айритом", "en": "Ayritom"},
+                {"uz": "Jartepa", "ru": "Жартепа", "en": "Jartepa"},
+                {"uz": "Oʻzbekiston", "ru": "Узбекистан", "en": "Uzbekistan"},
+                {"uz": "Oybek", "ru": "Ойбек", "en": "Oybek"},
+            ]
+            for post_name in posts_data:
+                await conn.execute('INSERT INTO customs_posts (name) VALUES ($1)', json.dumps(post_name))
+            logger.info("✅ Customs posts bazaga kiritildi!")
+
+    async def seed_test_agents(self):
+        """Test agentlarni bazaga kiritadi"""
+        async with self.pool.acquire() as conn:
+            count = await conn.fetchval('SELECT COUNT(*) FROM agents')
+            if count > 0:
+                return
+            test_agents = [
+                ("Ali Valiyev", None, 1, 'online'),
+                ("Sardor Karimov", None, 1, 'online'),
+                ("Dilshod Toshev", None, 2, 'online'),
+                ("Jahongir Rahimov", None, 3, 'offline'),
+            ]
+            for agent in test_agents:
+                await conn.execute(
+                    'INSERT INTO agents (full_name, telegram_id, post_id, status) VALUES ($1, $2, $3, $4)',
+                    agent[0], agent[1], agent[2], agent[3]
+                )
+            logger.info("✅ Test agents bazaga kiritildi!")
+
+    # --- USER VA ARIZA METODLARI ---
+
     async def add_user(self, telegram_id, full_name, phone, lang, direction='IMPORT', referral_source=None):
-        """SQL Injection dan 100% himoyalangan foydalanuvchi qo'shish"""
         async with self.pool.acquire() as conn:
             await conn.execute('''
                 INSERT INTO users (telegram_id, full_name, phone_number, language, direction, referral_source, is_verified)
@@ -165,9 +198,6 @@ class Database:
         async with self.pool.acquire() as conn:
             return await conn.fetchrow('SELECT * FROM users WHERE telegram_id = $1', telegram_id)
 
-    # =============================================================
-    # XAVFSIZ ARIZA VA TO'LOV METODLARI
-    # =============================================================
     async def create_application(self, app_code, user_id, app_type='EPI', car_number='', metadata=None):
         async with self.pool.acquire() as conn:
             files_data = metadata.get('photos', []) if metadata else []
@@ -177,6 +207,21 @@ class Database:
                 VALUES ($1, $2, $3, $4, $5, $6, 'new')
                 RETURNING id
             ''', app_code, user_id, car_number, app_type, json.dumps(files_data), json.dumps(metadata or {}))
+
+    async def get_application_by_code(self, app_code):
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow('SELECT * FROM applications WHERE app_code = $1', app_code)
+
+    async def get_application_by_id(self, app_id):
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow('SELECT * FROM applications WHERE id = $1', app_id)
+
+    async def update_application_status(self, app_code, status):
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                'UPDATE applications SET status = $2, updated_at = CURRENT_TIMESTAMP WHERE app_code = $1',
+                app_code, status
+            )
 
     async def create_transaction(self, user_id, application_id, amount, trans_type,
                                 payment_provider=None, payment_id=None, create_time=None):
@@ -190,7 +235,6 @@ class Database:
 
     async def update_transaction_status(self, transaction_id, status, payment_id=None,
                                         perform_time=None, cancel_time=None, cancel_reason=None):
-        """Idempotent yangilash (bir marta yozilgan vaqt o'zgarmaydi)"""
         async with self.pool.acquire() as conn:
             return await conn.fetchrow('''
                 UPDATE transactions
@@ -203,13 +247,17 @@ class Database:
                 RETURNING *
             ''', transaction_id, status, payment_id, perform_time, cancel_time, cancel_reason)
 
-    async def update_application_status(self, app_code, status):
+    async def get_transaction_by_payment_id(self, payment_id):
         async with self.pool.acquire() as conn:
-            await conn.execute(
-                'UPDATE applications SET status = $2, updated_at = CURRENT_TIMESTAMP WHERE app_code = $1',
-                app_code, status
-            )
+            return await conn.fetchrow('SELECT * FROM transactions WHERE payment_id = $1 ORDER BY created_at DESC LIMIT 1', payment_id)
 
-    # ... Boshqa metodlar ham xuddi shu ko'rinishda $1, $2 dan foydalanadi ...
+    async def get_transactions_by_time_range(self, from_time: int, to_time: int):
+        async with self.pool.acquire() as conn:
+            return await conn.fetch('''
+                SELECT t.*, a.app_code FROM transactions t
+                LEFT JOIN applications a ON t.application_id = a.id
+                WHERE t.payment_provider = 'payme' AND t.create_time >= $1 AND t.create_time <= $2
+                ORDER BY t.create_time ASC
+            ''', from_time, to_time)
 
 db = Database()
