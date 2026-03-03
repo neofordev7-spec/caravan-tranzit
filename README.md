@@ -81,12 +81,12 @@ BOT_TOKEN=your_bot_token_here
 DATABASE_URL=postgresql://user:pass@host:port/dbname
 
 # Payme Payment
-PAYME_MERCHANT_ID=694404d0656e7b8e815d85ce
+PAYME_MERCHANT_ID=
 PAYME_MERCHANT_KEY=your_payme_merchant_key
 
 # Click Payment
-CLICK_SERVICE_ID=91522
-CLICK_MERCHANT_ID=40158
+CLICK_SERVICE_ID
+CLICK_MERCHANT_ID
 CLICK_SECRET_KEY=your_click_secret_key
 ```
 
