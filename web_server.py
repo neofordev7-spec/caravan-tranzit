@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 from aiohttp import web
 from payme_api import PaymeAPI
@@ -7,7 +8,8 @@ from click_api import ClickAPI
 # Loglarni sozlash
 logger = logging.getLogger(__name__)
 
-WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
+# Same sanitization as main.py — must stay in sync
+WEBHOOK_SECRET = re.sub(r"[^A-Za-z0-9_\-]", "", os.getenv("WEBHOOK_SECRET", ""))
 
 
 async def create_web_app(bot=None, dp=None, webhook_path=None):

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 import sys
 import os
 from typing import Any, Callable, Dict, Awaitable
@@ -28,7 +29,16 @@ ADMIN_ID = os.getenv("ADMIN_ID")
 # Railway avtomatik o'rnatadi: caravan-tranzit-production.up.railway.app
 RAILWAY_PUBLIC_DOMAIN = os.getenv("RAILWAY_PUBLIC_DOMAIN", "")
 WEBHOOK_PATH = "/webhook"
-WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
+# Telegram only allows [A-Za-z0-9_-] in secret_token.
+# Strip every other character so an improperly-formatted env var never
+# crashes the process at startup.
+_raw_secret = os.getenv("WEBHOOK_SECRET", "")
+WEBHOOK_SECRET = re.sub(r"[^A-Za-z0-9_\-]", "", _raw_secret)
+if _raw_secret and not WEBHOOK_SECRET:
+    logging.warning(
+        "⚠️ WEBHOOK_SECRET faqat [A-Za-z0-9_-] belgilarini qabul qiladi. "
+        "Yaroqsiz belgilar olib tashlandi — token bo'sh qoldi, secret o'chirildi."
+    )
 
 if not BOT_TOKEN:
     logging.error("❌ BOT_TOKEN topilmadi!")
