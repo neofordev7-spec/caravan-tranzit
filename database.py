@@ -278,4 +278,125 @@ class Database:
                 ORDER BY t.create_time ASC
             ''', from_time, to_time)
 
+    # =========================================================================
+    # ADMIN HANDLERS UCHUN METODLAR
+    # =========================================================================
+
+    async def claim_application(self, app_code: str, agent_tg_id: int) -> bool:
+        """Arizani atomik ravishda band qilish (claim).
+
+        Faqat status='new' bo'lgan arizani claim qiladi.
+        Returns True if successfully claimed, False if already taken by someone else.
+        """
+        async with self.pool.acquire() as conn:
+            result = await conn.execute(
+                '''
+                UPDATE applications
+                SET status     = 'claimed',
+                    claimed_by = $2,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE app_code = $1
+                  AND status   = 'new'
+                ''',
+                app_code, agent_tg_id,
+            )
+            # asyncpg returns e.g. "UPDATE 1" or "UPDATE 0"
+            return result == 'UPDATE 1'
+
+    async def update_application_price(self, app_code: str, amount):
+        """Ariza narxini belgilash va statusni 'awaiting_payment' ga o'zgartirish."""
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                '''
+                UPDATE applications
+                SET price      = $2,
+                    status     = 'awaiting_payment',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE app_code = $1
+                ''',
+                app_code, amount,
+            )
+
+    async def get_app_by_car_number(self, vehicle_number: str):
+        """Mashina raqami bo'yicha so'nggi arizani qidirish (katta-kichik harf farqsiz)."""
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow(
+                '''
+                SELECT * FROM applications
+                WHERE UPPER(vehicle_number) = UPPER($1)
+                ORDER BY created_at DESC
+                LIMIT 1
+                ''',
+                vehicle_number,
+            )
+
+    async def update_admin_message_id(self, app_code: str, message_id: int):
+        """Admin guruhga yuborilgan xabar ID'sini arizaga bog'lash."""
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                '''
+                UPDATE applications
+                SET admin_group_message_id = $2,
+                    updated_at             = CURRENT_TIMESTAMP
+                WHERE app_code = $1
+                ''',
+                app_code, message_id,
+            )
+
+    # =========================================================================
+    # HANDLERS.PY UCHUN METODLAR
+    # =========================================================================
+
+    async def get_user_apps(self, user_id: int):
+        """Foydalanuvchining so'nggi 20 ta arizasini olish."""
+        async with self.pool.acquire() as conn:
+            return await conn.fetch(
+                '''
+                SELECT * FROM applications
+                WHERE user_id = $1
+                ORDER BY created_at DESC
+                LIMIT 20
+                ''',
+                user_id,
+            )
+
+    async def get_user_balance(self, user_id: int):
+        """Foydalanuvchi tanga balansini olish. 0.00 qaytaradi agar topilmasa."""
+        async with self.pool.acquire() as conn:
+            result = await conn.fetchval(
+                'SELECT balance FROM users WHERE telegram_id = $1',
+                user_id,
+            )
+            return result if result is not None else Decimal('0.00')
+
+    async def create_referral(self, referrer_id: int, referred_id: int) -> bool:
+        """Referal yaratish va referrerga +2 000 tanga bonus qo'shish.
+
+        Returns True if a new referral was created, False if it already existed.
+        """
+        async with self.pool.acquire() as conn:
+            try:
+                await conn.execute(
+                    'INSERT INTO referrals (referrer_id, referred_id) VALUES ($1, $2)',
+                    referrer_id, referred_id,
+                )
+                # Referrerga bonus tangalar beramiz
+                await conn.execute(
+                    'UPDATE users SET balance = balance + 2000 WHERE telegram_id = $1',
+                    referrer_id,
+                )
+                return True
+            except asyncpg.UniqueViolationError:
+                # Ushbu foydalanuvchi allaqachon birovning referal orqali kelgan
+                return False
+
+    async def clear_user_cache(self, user_id: int):
+        """Foydalanuvchining saqlangan hujjatlar keshini (saved_docs) tozalash."""
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                'DELETE FROM saved_docs WHERE user_id = $1',
+                user_id,
+            )
+
+
 db = Database()
