@@ -24,7 +24,11 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 # ID raqami kodda yozilmagan, u faqat Railway Variables'dan olinadi
-ADMIN_ID = os.getenv("ADMIN_ID") 
+ADMIN_ID = os.getenv("ADMIN_ID")
+# Railway avtomatik o'rnatadi: caravan-tranzit-production.up.railway.app
+RAILWAY_PUBLIC_DOMAIN = os.getenv("RAILWAY_PUBLIC_DOMAIN", "")
+WEBHOOK_PATH = "/webhook"
+WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
 
 if not BOT_TOKEN:
     logging.error("❌ BOT_TOKEN topilmadi!")
@@ -42,24 +46,24 @@ class AdminAccessMiddleware(BaseMiddleware):
         data: Dict[str, Any]
     ) -> Any:
         user = data.get("event_from_user")
-        
+
         # Muhim: ADMIN_ID Railway'da o'rnatilganligini tekshiramiz
         if not ADMIN_ID:
             logging.warning("⚠️ ADMIN_ID o'zgaruvchisi o'rnatilmagan!")
-        
+
         # Faqat ADMIN_ID ga mos keladigan foydalanuvchini o'tkazadi
         if user and str(user.id) != str(ADMIN_ID):
             if isinstance(event, types.Message):
                 await event.answer("⚠️ **Kirish taqiqlangan!**\nSizda admin huquqlari yo'q.")
-            return 
-            
+            return
+
         return await handler(event, data)
 # --------------------------------------------
 
 async def main():
     web_runner = None
 
-    # 4. BAZA VA SERVER
+    # 4. BAZA
     try:
         await db.connect()
         await db.seed_customs_posts()
@@ -68,40 +72,79 @@ async def main():
         print(f"❌ Baza xatosi: {e}")
         return
 
-    try:
-        web_runner = await start_web_server()
-        print("✅ Web server ishga tushdi!")
-    except Exception as e:
-        print(f"⚠️ Web server xatosi: {e}")
-
-    # --- 5. MIDDLEWARE ULASH ---
+    # --- 5. MIDDLEWARE VA ROUTERLAR ---
     admin_router.message.middleware(AdminAccessMiddleware())
     admin_router.callback_query.middleware(AdminAccessMiddleware())
 
-    # Routerlar
     dp.include_router(payment_router)
     dp.include_router(admin_router)
     dp.include_router(webapp_router)
     dp.include_router(router)
 
-    # 6. KONFLIKT VA POLLING
-    await bot.delete_webhook(drop_pending_updates=True)
-    print("⏳ Conflict oldini olish uchun 5 soniya kutilmoqda...")
-    await asyncio.sleep(5)
+    # 6. ISHGA TUSHIRISH REJIMI
+    if RAILWAY_PUBLIC_DOMAIN:
+        # ✅ PRODUCTION: Webhook rejimi (TelegramConflictError bo'lmaydi!)
+        # Polling o'rniga Railway webhook'i orqali yangilanishlar olinadi.
+        webhook_url = f"https://{RAILWAY_PUBLIC_DOMAIN}{WEBHOOK_PATH}"
+        print(f"🌐 Webhook rejimi: {webhook_url}")
 
-    print(f"🚀 Bot polling rejimida ishga tushdi!")
+        try:
+            web_runner = await start_web_server(
+                bot=bot, dp=dp, webhook_path=WEBHOOK_PATH
+            )
+            print("✅ Web server ishga tushdi!")
+        except Exception as e:
+            print(f"❌ Web server xatosi: {e}")
+            return
 
-    try:
-        await dp.start_polling(bot)
-    finally:
-        print("🛑 Graceful shutdown boshlandi...")
-        if web_runner:
-            await web_runner.cleanup()
-        await db.close()
-        if bot.session:
-            await bot.session.close()
-            await asyncio.sleep(0.2) # Sessiyani tozalash uchun pauza
-        print("🛑 Bot to'xtatildi.")
+        await bot.set_webhook(
+            url=webhook_url,
+            secret_token=WEBHOOK_SECRET or None,
+            drop_pending_updates=True,
+            allowed_updates=dp.resolve_used_update_types()
+        )
+        print(f"✅ Webhook o'rnatildi: {webhook_url}")
+
+        try:
+            # Web server barcha so'rovlarni qabul qiladi; bu yerda kutamiz
+            await asyncio.Event().wait()
+        finally:
+            print("🛑 Graceful shutdown boshlandi...")
+            await bot.delete_webhook()
+            if web_runner:
+                await web_runner.cleanup()
+            await db.close()
+            if bot.session:
+                await bot.session.close()
+            print("🛑 Bot to'xtatildi.")
+
+    else:
+        # 🔄 DEVELOPMENT: Polling rejimi (mahalliy ishlatish uchun)
+        try:
+            web_runner = await start_web_server(bot=bot)
+            print("✅ Web server ishga tushdi!")
+        except Exception as e:
+            print(f"⚠️ Web server xatosi: {e}")
+
+        await bot.delete_webhook(drop_pending_updates=True)
+        print("⏳ Conflict oldini olish uchun 10 soniya kutilmoqda...")
+        await asyncio.sleep(10)
+
+        print("🚀 Bot polling rejimida ishga tushdi!")
+        try:
+            await dp.start_polling(
+                bot,
+                allowed_updates=dp.resolve_used_update_types()
+            )
+        finally:
+            print("🛑 Graceful shutdown boshlandi...")
+            if web_runner:
+                await web_runner.cleanup()
+            await db.close()
+            if bot.session:
+                await bot.session.close()
+                await asyncio.sleep(0.2)
+            print("🛑 Bot to'xtatildi.")
 
 if __name__ == "__main__":
     try:
