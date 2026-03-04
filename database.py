@@ -185,6 +185,24 @@ class Database:
 
     # --- USER VA ARIZA METODLARI ---
 
+    async def ensure_user_from_miniapp(self, user_id: int, user_name: str = None, language: str = 'uz'):
+        """Mini App orqali kelgan foydalanuvchini bazada ta'minlash.
+
+        applications.user_id → users.telegram_id FK xatosini oldini oladi.
+        Agar foydalanuvchi allaqachon mavjud bo'lsa, hech narsa qilmaydi.
+        """
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                '''
+                INSERT INTO users (telegram_id, full_name, language, is_verified)
+                VALUES ($1, $2, $3, FALSE)
+                ON CONFLICT (telegram_id) DO NOTHING
+                ''',
+                user_id,
+                (user_name or 'Mini App User')[:255],
+                (language or 'uz')[:10],
+            )
+
     async def add_user(self, telegram_id, full_name, phone, lang, direction='IMPORT', referral_source=None):
         async with self.pool.acquire() as conn:
             await conn.execute('''
