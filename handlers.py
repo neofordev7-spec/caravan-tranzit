@@ -2,6 +2,7 @@ import random
 import re
 import json
 import asyncio
+import logging
 from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaDocument, ReplyKeyboardRemove
 from aiogram.filters import CommandStart
@@ -14,6 +15,7 @@ from states import (
 import keyboards as kb
 from strings import TEXTS
 
+logger = logging.getLogger(__name__)
 router = Router()
 SUPER_ADMIN_ID = 2027194005
 ADMIN_GROUP_ID = -1003463212374
@@ -110,7 +112,7 @@ async def phone_received(message: Message, state: FSMContext):
                 except:
                     pass
     except Exception as e:
-        print(f"❌ Add user error: {e}")
+        logger.error(f"Add user error: {e}")
 
     # Go directly to main menu (skip direction selection)
     t = await get_text(state, 'registered')
@@ -480,7 +482,7 @@ async def epi_docs_done(message: Message, state: FSMContext, bot: Bot):
         try:
             await db.create_application(code, message.from_user.id, 'EPI', data.get('car_number', ''), data)
         except Exception as e:
-            print(f"Error creating application: {e}")
+            logger.error(f"Error creating application: {e}")
 
         # Send to admin group
         await send_to_admin_group(bot, message, code, data, 'EPI')
@@ -637,7 +639,7 @@ async def mb_docs_done(message: Message, state: FSMContext, bot: Bot):
         try:
             await db.create_application(code, message.from_user.id, 'MB', data.get('car_number', ''), data)
         except Exception as e:
-            print(f"Error creating application: {e}")
+            logger.error(f"Error creating application: {e}")
 
         await send_to_admin_group(bot, message, code, data, 'MB')
 
@@ -717,15 +719,13 @@ async def send_to_admin_group(bot: Bot, message: Message, code: str, data: dict,
 
         await bot.send_message(ADMIN_GROUP_ID, f"🆔 `{code}` boshqarish:",
                               reply_markup=kb.get_admin_claim_kb(code), parse_mode="Markdown")
-        print(f"✅ Admin guruhga yuborildi: {code}")
+        logger.info(f"Admin guruhga yuborildi: {code}")
     except Exception as e:
-        print(f"❌ Admin send error [{code}]: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Admin send error [{code}]: {e}", exc_info=True)
         try:
             await bot.send_message(ADMIN_GROUP_ID, f"🆕 Ariza: {code} (Xatolik: {e})")
         except Exception as e2:
-            print(f"❌ Admin fallback send also failed: {e2}")
+            logger.error(f"Admin fallback send also failed: {e2}")
         # Foydalanuvchiga ham xabar beramiz
         try:
             await message.answer(f"⚠️ Texnik xatolik yuz berdi. Iltimos admin bilan bog'laning: @CARAVAN_TRANZIT")
@@ -908,7 +908,7 @@ async def kgd_car_entered(message: Message, state: FSMContext, bot: Bot):
             parse_mode="Markdown"
         )
     except Exception as e:
-        print(f"Error sending KGD request: {e}")
+        logger.error(f"Error sending KGD request: {e}")
 
     lang = await get_user_lang(state)
     await message.answer("✅ So'rovingiz yuborildi! Javobni kutib turing.", reply_markup=kb.get_main_menu(lang))
@@ -971,7 +971,7 @@ async def chat_message_received(message: Message, state: FSMContext, bot: Bot):
             parse_mode="Markdown"
         )
     except Exception as e:
-        print(f"Error sending chat message: {e}")
+        logger.error(f"Error sending chat message: {e}")
 
     # Chat davom etadi - state tozalanmaydi!
     t = await get_text(state, 'chat_continue')
