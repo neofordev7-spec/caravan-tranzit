@@ -233,8 +233,6 @@ def get_contact_info_inline_kb():
 def get_admin_contact_detailed_kb():
     """Admin bilan aloqa - batafsil inline klaviatura"""
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📞 +998 91 702 00 99", url="tel:+998917020099")],
-        [InlineKeyboardButton(text="📞 +998 94 312 00 99", url="tel:+998943120099")],
         [InlineKeyboardButton(text="📱 Telegram: @CARAVAN_TRANZIT", url="https://t.me/CARAVAN_TRANZIT")],
         [InlineKeyboardButton(text="📱 Telegram: @caravan_tranzit1", url="https://t.me/caravan_tranzit1")],
         [InlineKeyboardButton(text="💬 WhatsApp Group", url="https://chat.whatsapp.com/Ka6XhUv2ueVFZPNuHo06BP")]
@@ -281,8 +279,6 @@ def get_settings_kb(lang='uz'):
 def get_admin_contact_kb():
     """Admin bilan aloqa - inline"""
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📞 +998 91 702 00 99", url="tel:+998917020099")],
-        [InlineKeyboardButton(text="📞 +998 94 312 00 99", url="tel:+998943120099")],
         [InlineKeyboardButton(text="📱 Telegram: @CARAVAN_TRANZIT", url="https://t.me/CARAVAN_TRANZIT")],
         [InlineKeyboardButton(text="📱 Telegram: @caravan_tranzit1", url="https://t.me/caravan_tranzit1")],
         [InlineKeyboardButton(text="💬 WhatsApp", url="https://wa.me/998917020099")]
