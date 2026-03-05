@@ -4,53 +4,38 @@ import json
 import asyncio
 import logging
 from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaDocument, ReplyKeyboardRemove
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaDocument
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from database import db
 from states import (
     Registration, EPIKodFlow, MBDeklaratsiyaFlow, ApplicationsFlow,
-    SettingsFlow, ContactInfoFlow, KGDFlow, BonusFlow, ChatFlow, AdminState
+    SettingsFlow, ContactInfoFlow, KGDFlow, BonusFlow, ChatFlow
 )
 import keyboards as kb
 from strings import TEXTS
 
 logger = logging.getLogger(__name__)
 router = Router()
-SUPER_ADMIN_ID = 2027194005
 ADMIN_GROUP_ID = -1003463212374
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
-# ==========================================================
-# HELPER FUNCTIONS
-# ==========================================================
-
+# --- YORDAMCHI FUNKSIYALAR ---
 async def get_text(state: FSMContext, key: str, **kwargs):
-    """Localized matnni olish"""
     data = await state.get_data()
     lang = data.get('lang', 'uz')
     return TEXTS.get(lang, TEXTS['uz']).get(key, "...").format(**kwargs)
 
 async def get_user_lang(state: FSMContext):
-    """Foydalanuvchi tilini aniqlash"""
     data = await state.get_data()
     return data.get('lang', 'uz')
 
 # ==========================================================
-# 1. START & REGISTRATION
+# 1. RO'YXATDAN O'TISH (REGISTRATION)
 # ==========================================================
-
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
-    referrer_id = None
-    if message.text and len(message.text.split()) > 1:
-        try:
-            referrer_id = int(message.text.split()[1])
-            if referrer_id != message.from_user.id:
-                await state.update_data(referrer_id=referrer_id)
-        except: pass
-
     await message.answer(TEXTS['uz']['start'], reply_markup=kb.get_lang_kb())
     await state.set_state(Registration.lang)
 
@@ -59,113 +44,129 @@ async def lang_chosen(call: CallbackQuery, state: FSMContext):
     lang = call.data.split("_")[1]
     await state.update_data(lang=lang)
     await call.message.delete()
-    t = TEXTS.get(lang, TEXTS['uz'])['agreement']
-    await call.message.answer(t, reply_markup=kb.get_agreement_kb(lang))
+    await call.message.answer(TEXTS[lang]['agreement'], reply_markup=kb.get_agreement_kb(lang))
     await state.set_state(Registration.agreement)
 
 @router.callback_query(Registration.agreement)
-async def agreement_accepted(call: CallbackQuery, state: FSMContext):
-    await call.message.delete()
+async def agree(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    t = await get_text(state, 'ask_phone')
-    await call.message.answer(t, reply_markup=kb.get_phone_kb(data['lang']))
+    await call.message.delete()
+    await call.message.answer(TEXTS[data['lang']]['ask_phone'], reply_markup=kb.get_phone_kb(data['lang']))
     await state.set_state(Registration.phone)
 
 @router.message(Registration.phone)
 async def phone_received(message: Message, state: FSMContext):
     data = await state.get_data()
-    lang = data.get('lang', 'uz')
-    referrer_id = data.get('referrer_id')
     ph = message.contact.phone_number if message.contact else message.text
-
-    try:
-        await db.add_user(message.from_user.id, message.from_user.full_name, ph, lang, 'IMPORT', referrer_id)
-        if referrer_id:
-            await db.create_referral(referrer_id, message.from_user.id)
-            try:
-                await message.bot.send_message(referrer_id, f"🎉 **Yangi do'st!** (+2,000 tanga)", parse_mode="Markdown")
-            except: pass
-    except Exception as e: logger.error(f"Add user error: {e}")
-
-    t = await get_text(state, 'registered')
-    await message.answer(t, reply_markup=kb.get_main_menu(lang))
+    await db.add_user(message.from_user.id, message.from_user.full_name, ph, data['lang'])
+    await message.answer("✅ Muvaffaqiyatli ro'yxatdan o'tdingiz!", reply_markup=kb.get_main_menu(data['lang']))
     await state.clear()
-    await state.update_data(lang=lang)
+    await state.update_data(lang=data['lang'])
 
 # ==========================================================
-# 2. MB DEKLARATSIYA FLOW (MAXSUS MANTIQ) 🔥
+# 2. AT DEKLARATSIYA (EPI) FLOW ✅
 # ==========================================================
+@router.message(F.text.startswith("📄"))
+async def start_at(message: Message, state: FSMContext):
+    await state.clear()
+    await state.update_data(lang='uz', app_type='AT')
+    await message.answer("Kirish chegara postini tanlang:", reply_markup=kb.get_posts_kb())
+    await state.set_state(EPIKodFlow.select_border_post)
 
+@router.message(EPIKodFlow.select_border_post)
+async def at_border(message: Message, state: FSMContext):
+    if "ANIQ EMAS" in message.text:
+        await message.answer("Viloyatni tanlang:", reply_markup=kb.get_viloyatlar_kb())
+        await state.set_state(EPIKodFlow.select_viloyat_border)
+        return
+    await state.update_data(border_post=message.text)
+    await message.answer("Manzil (TIF) bojxona postini tanlang:", reply_markup=kb.get_dest_posts_kb())
+    await state.set_state(EPIKodFlow.select_dest_post)
+
+@router.message(EPIKodFlow.select_dest_post)
+async def at_dest(message: Message, state: FSMContext):
+    await state.update_data(dest_post=message.text)
+    await message.answer("Mashina raqamini yozing:", reply_markup=kb.get_cancel_kb())
+    await state.set_state(EPIKodFlow.enter_car_number)
+
+@router.message(EPIKodFlow.enter_car_number)
+async def at_car(message: Message, state: FSMContext):
+    await state.update_data(car_number=message.text.upper(), photos=[])
+    await message.answer("Hujjatlarni yuboring (Rasm yoki PDF):", reply_markup=kb.get_done_kb())
+    await state.set_state(EPIKodFlow.collect_docs)
+
+# ==========================================================
+# 3. MB DEKLARATSIYA FLOW (MAXSUS MANTIQ) ✅
+# ==========================================================
 @router.message(F.text.startswith("📋"))
-async def start_mb_deklaratsiya(message: Message, state: FSMContext):
-    """MB DEKLARATSIYA boshlanishi"""
+async def start_mb(message: Message, state: FSMContext):
     await state.clear()
-    lang = (await db.get_user(message.from_user.id))['language'] if await db.get_user(message.from_user.id) else 'uz'
-    await state.update_data(lang=lang, service_type='MB')
-
-    t = await get_text(state, 'mb_start')
-    await message.answer(t, reply_markup=kb.get_posts_kb()) # Chegara postlari
+    await state.update_data(lang='uz', app_type='MB')
+    await message.answer("Kirish chegara postini tanlang:", reply_markup=kb.get_posts_kb())
     await state.set_state(MBDeklaratsiyaFlow.select_border_post)
 
 @router.message(MBDeklaratsiyaFlow.select_border_post)
-async def mb_border_post_selected(message: Message, state: FSMContext):
-    if message.text.startswith("⬅️"):
-        await state.clear()
-        await message.answer("🏠 Menu", reply_markup=kb.get_main_menu(await get_user_lang(state)))
-        return
-
+async def mb_border(message: Message, state: FSMContext):
     if "ANIQ EMAS" in message.text:
-        t = await get_text(state, 'select_viloyat')
-        await message.answer(t, reply_markup=kb.get_viloyatlar_kb(), parse_mode="Markdown")
+        await message.answer("Viloyatni tanlang:", reply_markup=kb.get_viloyatlar_kb())
         await state.set_state(MBDeklaratsiyaFlow.select_viloyat_border)
         return
-
     await state.update_data(border_post=message.text)
-    # MB uchun: Manzil postida YO'Q/ANIQ EMAS va Chegara postlari chiqadi
-    t = await get_text(state, 'select_dest_post')
-    await message.answer(t, reply_markup=kb.get_mb_dest_posts_kb()) 
-    await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
-
-@router.message(MBDeklaratsiyaFlow.select_viloyat_border)
-async def mb_viloyat_border_selected(message: Message, state: FSMContext):
-    if message.text.startswith("⬅️"):
-        await message.answer("Kirish postini tanlang:", reply_markup=kb.get_posts_kb())
-        await state.set_state(MBDeklaratsiyaFlow.select_border_post)
-        return
-    await state.update_data(border_post=f"ANIQ EMAS ({message.text})")
-    # MB uchun manzil posti tanlash
-    t = await get_text(state, 'select_dest_post')
-    await message.answer(t, reply_markup=kb.get_mb_dest_posts_kb())
+    # MB uchun: Yo'q / Aniq emas / Chegara postlari tugmalari
+    await message.answer("Manzil postini tanlang (MB uchun):", reply_markup=kb.get_mb_dest_posts_kb())
     await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
 
 @router.message(MBDeklaratsiyaFlow.select_dest_post)
-async def mb_dest_post_selected(message: Message, state: FSMContext):
-    if message.text.startswith("⬅️"):
-        await message.answer("Kirish postini tanlang:", reply_markup=kb.get_posts_kb())
-        await state.set_state(MBDeklaratsiyaFlow.select_border_post)
-        return
-
-    if "ANIQ EMAS" in message.text and "YO'Q" not in message.text:
-        t = await get_text(state, 'select_viloyat')
-        await message.answer(t, reply_markup=kb.get_viloyatlar_kb(), parse_mode="Markdown")
-        await state.set_state(MBDeklaratsiyaFlow.select_viloyat_dest)
-        return
-
+async def mb_dest(message: Message, state: FSMContext):
     await state.update_data(dest_post=message.text)
-    t = await get_text(state, 'enter_car_number')
-    await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
+    await message.answer("Mashina raqamini yozing:", reply_markup=kb.get_cancel_kb())
     await state.set_state(MBDeklaratsiyaFlow.enter_car_number)
 
-@router.message(MBDeklaratsiyaFlow.select_viloyat_dest)
-async def mb_viloyat_dest_selected(message: Message, state: FSMContext):
-    if message.text.startswith("⬅️"):
-        await message.answer("Manzil postini tanlang:", reply_markup=kb.get_mb_dest_posts_kb())
-        await state.set_state(MBDeklaratsiyaFlow.select_dest_post)
+@router.message(MBDeklaratsiyaFlow.enter_car_number)
+async def mb_car(message: Message, state: FSMContext):
+    await state.update_data(car_number=message.text.upper(), photos=[])
+    await message.answer("Hujjatlarni yuboring (Rasm yoki PDF):", reply_markup=kb.get_done_kb())
+    await state.set_state(MBDeklaratsiyaFlow.collect_docs)
+
+# ==========================================================
+# 4. HUJJATLARNI QABUL QILISH (SHARED) 📸
+# ==========================================================
+@router.message(EPIKodFlow.collect_docs, F.photo | F.document)
+@router.message(MBDeklaratsiyaFlow.collect_docs, F.photo | F.document)
+async def handle_docs(message: Message, state: FSMContext):
+    data = await state.get_data()
+    photos = data.get('photos', [])
+    
+    file_id = message.photo[-1].file_id if message.photo else message.document.file_id
+    file_type = 'photo' if message.photo else 'document'
+    
+    photos.append({'file_id': file_id, 'type': file_type})
+    await state.update_data(photos=photos)
+    await message.reply(f"✅ {len(photos)}-fayl qabul qilindi!")
+
+@router.message(EPIKodFlow.collect_docs, F.text.startswith("✅"))
+@router.message(MBDeklaratsiyaFlow.collect_docs, F.text.startswith("✅"))
+async def process_finish(message: Message, state: FSMContext, bot: Bot):
+    data = await state.get_data()
+    if not data.get('photos'):
+        await message.answer("⚠️ Kamida bitta rasm yuklang!")
         return
-    await state.update_data(dest_post=f"ANIQ EMAS ({message.text})")
-    t = await get_text(state, 'enter_car_number')
-    await message.answer(t, reply_markup=kb.get_cancel_kb(await get_user_lang(state)))
-    await state.set_state(MBDeklaratsiyaFlow.enter_car_number)
 
-# (Qolgan barcha handlerlar: EPI Flow, Collect Docs, Admin Group va h.k. o'z o'rnida qoldi)
-# ... [Bu yerda siz yuborgan faylning qolgan qismlari joylashadi]
+    atype = data['app_type']
+    code = f"{atype}-{random.randint(10000, 99999)}"
+    await db.create_application(code, message.from_user.id, atype, data['car_number'], data)
+    
+    # Admin xabari
+    cap = f"🆕 **YANGI {atype} ARIZA!**\n🆔 `{code}`\n🚛 {data['car_number']}\n📍 {data['border_post']} -> {data['dest_post']}"
+    await bot.send_message(ADMIN_GROUP_ID, cap, reply_markup=kb.get_admin_claim_kb(code))
+    
+    await message.answer(f"🚀 Ariza qabul qilindi! Kod: `{code}`", reply_markup=kb.get_main_menu())
+    await state.clear()
+
+# ==========================================================
+# 5. GLOBAL HANDLERS (BACK/CANCEL)
+# ==========================================================
+@router.message(F.text.in_(["❌ Bekor qilish", "⬅️ Ortga"]))
+async def global_cancel(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer("🏠 Asosiy menyu", reply_markup=kb.get_main_menu())
