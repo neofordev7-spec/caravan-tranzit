@@ -6,6 +6,7 @@ Admin guruhida ishlatiladigan handlerlar:
 - Statusni yangilash
 """
 import re
+import logging
 from decimal import Decimal
 from aiogram import Router, F, Bot
 from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
@@ -15,6 +16,7 @@ from database import db
 from payme_api import generate_checkout_url
 from click_api import ClickAPI
 
+logger = logging.getLogger(__name__)
 router = Router()
 
 # Admin guruh ID
@@ -78,7 +80,7 @@ async def handle_accept(call: CallbackQuery, bot: Bot):
         await call.answer("✅ Ariza qabul qilindi!")
 
     except Exception as e:
-        print(f"❌ Accept error: {e}")
+        logger.error(f"Accept error: {e}")
         await call.answer("❌ Xatolik yuz berdi!", show_alert=True)
 
 
@@ -119,7 +121,7 @@ async def handle_reject(call: CallbackQuery, bot: Bot):
         await call.answer("✅ Ariza rad etildi va foydalanuvchiga xabar yuborildi.")
 
     except Exception as e:
-        print(f"❌ Reject error: {e}")
+        logger.error(f"Reject error: {e}")
         await call.answer("❌ Xatolik yuz berdi!", show_alert=True)
 
 
@@ -152,7 +154,7 @@ async def handle_set_price(call: CallbackQuery, bot: Bot):
             await call.answer()
 
     except Exception as e:
-        print(f"❌ Set price error: {e}")
+        logger.error(f"Set price error: {e}")
         await call.answer("❌ Xatolik!", show_alert=True)
 
 
@@ -190,7 +192,7 @@ async def handle_price_selected(call: CallbackQuery, bot: Bot):
         await call.answer("✅ Narx belgilandi va foydalanuvchiga yuborildi!")
 
     except Exception as e:
-        print(f"❌ Price selected error: {e}")
+        logger.error(f"Price selected error: {e}")
         await call.answer("❌ Xatolik!", show_alert=True)
 
 
@@ -258,7 +260,7 @@ async def process_custom_price(message: Message, state: FSMContext, bot: Bot):
     except ValueError:
         await message.answer("❌ Noto'g'ri format! Faqat raqam kiriting (masalan: 50000)")
     except Exception as e:
-        print(f"❌ Custom price error: {e}")
+        logger.error(f"Custom price error: {e}")
         await message.answer("❌ Xatolik yuz berdi!")
         await state.clear()
 
@@ -328,7 +330,7 @@ async def send_invoice_to_user(bot: Bot, app, amount: Decimal):
         )
 
     except Exception as e:
-        print(f"❌ Send invoice error: {e}")
+        logger.error(f"Send invoice error: {e}")
 
 
 # =========================================================================

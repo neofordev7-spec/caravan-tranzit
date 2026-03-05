@@ -7,6 +7,7 @@ To'lovlarni qayta ishlash:
 - To'lov tarixini saqlash
 """
 import os
+import logging
 from decimal import Decimal
 from aiogram import Router, F, Bot
 from aiogram.types import (
@@ -17,6 +18,7 @@ from database import db
 from payme_api import generate_checkout_url
 from click_api import ClickAPI
 
+logger = logging.getLogger(__name__)
 router = Router()
 
 # Click Provider Token for Telegram Payments
@@ -68,7 +70,7 @@ async def handle_pay_payme(call: CallbackQuery, bot: Bot):
         await call.answer("To'lov sahifasi tayyor!")
 
     except Exception as e:
-        print(f"Pay payme error: {e}")
+        logger.error(f"Pay payme error: {e}")
         await call.answer("Xatolik!", show_alert=True)
 
 
@@ -116,7 +118,7 @@ async def handle_pay_click(call: CallbackQuery, bot: Bot):
         await call.answer("To'lov sahifasi tayyor!")
 
     except Exception as e:
-        print(f"Pay click error: {e}")
+        logger.error(f"Pay click error: {e}")
         await call.answer("Xatolik!", show_alert=True)
 
 
@@ -168,7 +170,7 @@ async def handle_pay_coins(call: CallbackQuery, bot: Bot):
         )
 
     except Exception as e:
-        print(f"Pay coins error: {e}")
+        logger.error(f"Pay coins error: {e}")
         await call.answer("Xatolik!", show_alert=True)
 
 
@@ -242,7 +244,7 @@ async def handle_confirm_coins(call: CallbackQuery, bot: Bot):
             )
 
     except Exception as e:
-        print(f"Confirm coins error: {e}")
+        logger.error(f"Confirm coins error: {e}")
         await call.answer("Xatolik!", show_alert=True)
 
 
@@ -306,7 +308,7 @@ async def handle_payme_text_button(message: Message, bot: Bot):
         )
 
     except Exception as e:
-        print(f"Payme text button error: {e}")
+        logger.error(f"Payme text button error: {e}")
         await message.answer("Xatolik yuz berdi. Qaytadan urinib ko'ring.")
 
 
@@ -357,7 +359,7 @@ async def handle_click_text_button(message: Message, bot: Bot):
         )
 
     except Exception as e:
-        print(f"Click text button error: {e}")
+        logger.error(f"Click text button error: {e}")
         await message.answer("Xatolik yuz berdi. Qaytadan urinib ko'ring.")
 
 
@@ -415,4 +417,4 @@ async def notify_payment_success(bot: Bot, app_code: str, amount: Decimal, provi
             )
 
     except Exception as e:
-        print(f"Notify payment success error: {e}")
+        logger.error(f"Notify payment success error: {e}")

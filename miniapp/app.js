@@ -140,6 +140,12 @@ function navigateTo(screenId) {
     if (tg) tg.HapticFeedback?.impactOccurred('light');
 }
 
+function updateBottomNav(screenId) {
+    document.querySelectorAll('.nav-item-new').forEach(item => {
+        item.classList.toggle('active', item.getAttribute('data-screen') === screenId);
+    });
+}
+
 function updateBackButton() {
     const mainScreens = ['homeScreen', 'applicationsScreen', 'chatScreen', 'settingsScreen'];
     if (tg) {
@@ -209,12 +215,15 @@ async function submitApplication() {
             
             if (tg) tg.MainButton.hide();
         } else {
-            throw new Error(result.error || 'Server error');
+            const errMsg = (typeof result.error === 'string') ? result.error : 'Server error';
+            throw new Error(errMsg);
         }
     } catch (e) {
-        console.error('Submission error:', e);
-        if (tg) tg.showAlert('Arizani yuborishda xatolik yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
-        else alert('Xatolik!');
+        const alertMsg = (typeof e.message === 'string' && e.message !== 'Server error')
+            ? e.message
+            : t('error_general');
+        if (tg) tg.showAlert(alertMsg);
+        else alert(alertMsg);
     } finally {
         if (tg) tg.MainButton.hideProgress();
     }
@@ -289,6 +298,10 @@ function updateAllUITexts() {
     });
 }
 
+function submitDocuments() {
+    navigateTo('summaryScreen');
+}
+
 function handleMainButton() {
     if (AppState.currentScreen === 'summaryScreen') submitApplication();
     else if (AppState.currentScreen === 'documentsScreen') submitDocuments();
@@ -315,14 +328,13 @@ async function openPaymeLink(appCode) {
                 window.open(result.url, '_blank');
             }
         } else {
-            const errorMsg = result.error || 'Payme havolasini olishda xatolik';
+            const errorMsg = (typeof result.error === 'string') ? result.error : 'Payme havolasini olishda xatolik';
             if (tg) tg.showAlert(errorMsg);
             else alert(errorMsg);
         }
     } catch (e) {
-        console.error('Payme link error:', e);
-        if (tg) tg.showAlert('Tarmoq xatosi. Qaytadan urinib ko\'ring.');
-        else alert('Tarmoq xatosi!');
+        if (tg) tg.showAlert(t('error_general'));
+        else alert(t('error_general'));
     }
 }
 
@@ -334,5 +346,7 @@ Object.assign(window, {
     showApplicationsScreen: () => navigateTo('applicationsScreen'),
     showKGDScreen: () => navigateTo('kgdScreen'),
     showPricesScreen: () => navigateTo('pricesScreen'),
-    showContactsScreen: () => navigateTo('contactsScreen')
+    showContactsScreen: () => navigateTo('contactsScreen'),
+    showMapScreen: () => { if (tg) tg.showAlert(t('coming_soon')); },
+    submitDocuments
 });
