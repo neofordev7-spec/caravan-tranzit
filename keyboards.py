@@ -223,11 +223,11 @@ def get_contact_info_kb(lang='uz'):
     ], resize_keyboard=True)
 
 def get_contact_info_inline_kb():
-    """Admin bilan aloqa - 3 ta tugma"""
+    """Admin bilan aloqa - Telegram va WhatsApp tugmalari (telefon raqamlar matn ichida)"""
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📞 +998 91 702 00 99\n📞 +998 94 312 00 99", callback_data="contact_phone")],
-        [InlineKeyboardButton(text="📱 TELEGRAM: @CARAVAN_TRANZIT @caravan_tranzit1", url="https://t.me/CARAVAN_TRANZIT")],
-        [InlineKeyboardButton(text="💬 WHATSAPP: +998 91 702 00 99\n+998 94 312 00 99", url="https://chat.whatsapp.com/Ka6XhUv2ueVFZPNuHo06BP")]
+        [InlineKeyboardButton(text="📱 Telegram: @CARAVAN_TRANZIT", url="https://t.me/CARAVAN_TRANZIT")],
+        [InlineKeyboardButton(text="📱 Telegram: @caravan_tranzit1", url="https://t.me/caravan_tranzit1")],
+        [InlineKeyboardButton(text="💬 WhatsApp Group", url="https://chat.whatsapp.com/Ka6XhUv2ueVFZPNuHo06BP")]
     ])
 
 def get_admin_contact_detailed_kb():

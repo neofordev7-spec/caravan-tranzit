@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 # 1. KONFIGURATSIYA
 PAYME_MERCHANT_ID = os.getenv("PAYME_MERCHANT_ID", "")
 PAYME_MERCHANT_KEY = os.getenv("PAYME_MERCHANT_KEY", "")
-# ⚡️ YANGILANISH: Ilovani (App) ochish uchun yangi URL
-PAYME_APP_URL = "https://payme.uz/pay"
+# ⚡️ YANGILANISH: Checkout URL (to'g'ridan-to'g'ri to'lov sahifasi)
+PAYME_CHECKOUT_URL = "https://checkout.payme.uz"
 ADMIN_GROUP_ID = os.getenv("ADMIN_GROUP_ID") 
 
 # 🛡 KIBERXAVFSIZLIK: Payme rasmiy IP manzillari
@@ -22,19 +22,15 @@ PAYME_IPS = ["195.158.31.134", "195.158.31.135", "195.158.28.14"]
 # =============================================================
 # ⚡️ APP REDIRECT FUNKSIYASI (ASOSIY O'ZGARISH)
 # =============================================================
-def generate_checkout_url(order_id: str, amount_uzs: Decimal) -> str:
+def generate_checkout_url(app_code: str, amount_uzs: Decimal) -> str:
     """
-    Payme ilovasini (App) to'g'ridan-to'g'ri ochish uchun URL yaratish.
-    Agar telefon bo'lsa - ilovani, kompyuter bo'lsa - brauzerni ochadi.
+    Payme checkout URL yaratish.
+    Format: https://checkout.payme.uz/{Base64(m=MERCHANT_ID;ac.app_code=CODE;a=AMOUNT_TIYINS)}
     """
     amount_tiyin = int(amount_uzs * 100)
-    # Parametrlarni shakllantirish
-    params = f"m={PAYME_MERCHANT_ID};ac.order_id={order_id};a={amount_tiyin}"
-    # Base64 formatiga o'tkazish
+    params = f"m={PAYME_MERCHANT_ID};ac.app_code={app_code};a={amount_tiyin}"
     encoded = base64.b64encode(params.encode()).decode()
-    
-    # https://payme.uz/pay/{base64} ko'rinishida qaytaradi
-    return f"{PAYME_APP_URL}/{encoded}"
+    return f"{PAYME_CHECKOUT_URL}/{encoded}"
 
 # =============================================================
 # AUTENTIFIKATSIYA VA XAVFSIZLIK
@@ -109,8 +105,8 @@ class PaymeAPI:
     @staticmethod
     async def check_perform_transaction(rpc_id, params: dict) -> dict:
         account = params.get("account", {})
-        order_id = account.get("order_id")
-        app = await db.get_application_by_code(order_id)
+        app_code = account.get("app_code") or account.get("order_id")
+        app = await db.get_application_by_code(app_code)
         if not app: return error_response(rpc_id, -31050, "Ariza topilmadi")
         if app['status'] == 'paid': return error_response(rpc_id, -31052, "To'langan")
         return success_response(rpc_id, {"allow": True})
@@ -119,8 +115,8 @@ class PaymeAPI:
     async def create_transaction(rpc_id, params: dict) -> dict:
         payme_id = params.get("id")
         account = params.get("account", {})
-        order_id = account.get("order_id")
-        
+        app_code = account.get("app_code") or account.get("order_id")
+
         existing = await db.get_transaction_by_payment_id(payme_id)
         if existing:
             state = 1 if existing['status'] == 'pending' else 2
@@ -130,7 +126,7 @@ class PaymeAPI:
                 "state": state
             })
 
-        app = await db.get_application_by_code(order_id)
+        app = await db.get_application_by_code(app_code)
         if not app: return error_response(rpc_id, -31050, "Ariza topilmadi")
 
         transaction = await db.create_transaction(
@@ -212,7 +208,7 @@ class PaymeAPI:
         return success_response(rpc_id, {"transactions": [
             {
                 "id": r['payment_id'], "time": int(r['create_time']), "amount": int(r['amount'] * 100),
-                "account": {"order_id": r['app_code']}, "create_time": int(r['create_time']),
+                "account": {"app_code": r['app_code']}, "create_time": int(r['create_time']),
                 "perform_time": int(r['perform_time'] or 0), "cancel_time": int(r['cancel_time'] or 0),
                 "transaction": str(r['id']), "state": 2 if r['status'] == 'completed' else (1 if r['status'] == 'pending' else -1)
             } for r in rows
