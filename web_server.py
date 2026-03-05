@@ -1,5 +1,6 @@
 import os
 import re
+import base64
 import logging
 from aiohttp import web
 from payme_api import PaymeAPI
@@ -7,6 +8,8 @@ from click_api import ClickAPI
 
 # Loglarni sozlash
 logger = logging.getLogger(__name__)
+
+PAYME_MERCHANT_ID = os.getenv("PAYME_MERCHANT_ID", "")
 
 # Same sanitization as main.py — must stay in sync
 WEBHOOK_SECRET = re.sub(r"[^A-Za-z0-9_\-]", "", os.getenv("WEBHOOK_SECRET", ""))
@@ -118,6 +121,7 @@ async def create_web_app(bot=None, dp=None, webhook_path=None):
 
         if bot_instance and admin_group_id_str:
             try:
+                from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
                 admin_group_id = int(admin_group_id_str)
                 msg = (
                     f"🆕 **Yangi ariza kelib tushdi!**\n\n"
@@ -130,12 +134,80 @@ async def create_web_app(bot=None, dp=None, webhook_path=None):
                 await bot_instance.send_message(
                     chat_id=admin_group_id, text=msg, parse_mode="Markdown"
                 )
+                # Send Accept/Reject buttons
+                admin_kb = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text="✅ QABUL QILISH", callback_data=f"claim_{app_code}")],
+                    [InlineKeyboardButton(text="❌ RAD ETISH", callback_data=f"reject_{app_code}")]
+                ])
+                await bot_instance.send_message(
+                    chat_id=admin_group_id,
+                    text=f"🆔 `{app_code}` boshqarish:",
+                    reply_markup=admin_kb,
+                    parse_mode="Markdown"
+                )
             except Exception as e:
                 logger.error(f"❌ Admin guruhga xabar yuborishda xato: {e}")
 
         return web.json_response({'success': True, 'app_code': app_code})
 
-    # 6. TELEGRAM WEBHOOK HANDLER (Webhook rejimi uchun)
+    # 6. DYNAMIC PAYME LINK ENDPOINT
+    async def payme_link_handler(request):
+        """GET /api/payments/payme-link/{app_code} - Generate dynamic Payme checkout URL"""
+        app_code = request.match_info['app_code']
+
+        if not PAYME_MERCHANT_ID:
+            return web.json_response(
+                {'success': False, 'error': 'Payment not configured'}, status=500
+            )
+
+        try:
+            app_record = await db.get_application_by_code(app_code)
+            if not app_record:
+                return web.json_response(
+                    {'success': False, 'error': 'Application not found'}, status=404
+                )
+
+            # Validate ownership: check user_id from query param
+            req_user_id = request.query.get('user_id')
+            if req_user_id:
+                try:
+                    if int(req_user_id) != app_record['user_id']:
+                        return web.json_response(
+                            {'success': False, 'error': 'Unauthorized'}, status=403
+                        )
+                except (ValueError, TypeError):
+                    return web.json_response(
+                        {'success': False, 'error': 'Invalid user_id'}, status=400
+                    )
+
+            price = app_record.get('price')
+            if not price or price <= 0:
+                return web.json_response(
+                    {'success': False, 'error': 'Price not set yet'}, status=400
+                )
+
+            # Convert to tiyins (1 UZS = 100 tiyins)
+            amount_tiyin = int(price * 100)
+
+            # Generate Base64 encoded params
+            params = f"m={PAYME_MERCHANT_ID};ac.app_code={app_code};a={amount_tiyin}"
+            encoded = base64.b64encode(params.encode()).decode()
+            payme_url = f"https://checkout.payme.uz/{encoded}"
+
+            return web.json_response({
+                'success': True,
+                'url': payme_url,
+                'amount': int(price),
+                'app_code': app_code
+            })
+
+        except Exception as e:
+            logger.error(f"❌ Payme link xatosi: {e}")
+            return web.json_response(
+                {'success': False, 'error': 'Server error'}, status=500
+            )
+
+    # 7. TELEGRAM WEBHOOK HANDLER (Webhook rejimi uchun)
     async def telegram_webhook(request):
         from aiogram.types import Update
 
@@ -176,6 +248,7 @@ async def create_web_app(bot=None, dp=None, webhook_path=None):
 
     # API yo'nalishlari
     app.router.add_post('/api/applications', miniapp_api_submit)
+    app.router.add_get('/api/payments/payme-link/{app_code}', payme_link_handler)
     app.router.add_post('/api/payme', PaymeAPI.handle_request)
     app.router.add_post('/api/click', ClickAPI.handle_request)
 

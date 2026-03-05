@@ -294,10 +294,42 @@ function handleMainButton() {
     else if (AppState.currentScreen === 'documentsScreen') submitDocuments();
 }
 
+// ==================== PAYME DYNAMIC LINK ====================
+async function openPaymeLink(appCode) {
+    if (!appCode) {
+        if (tg) tg.showAlert('Ariza kodi topilmadi.');
+        return;
+    }
+
+    try {
+        const params = new URLSearchParams();
+        if (AppState.userId) params.set('user_id', AppState.userId);
+
+        const response = await fetch(`/api/payments/payme-link/${encodeURIComponent(appCode)}?${params.toString()}`);
+        const result = await response.json();
+
+        if (result.success && result.url) {
+            if (tg) {
+                tg.openLink(result.url);
+            } else {
+                window.open(result.url, '_blank');
+            }
+        } else {
+            const errorMsg = result.error || 'Payme havolasini olishda xatolik';
+            if (tg) tg.showAlert(errorMsg);
+            else alert(errorMsg);
+        }
+    } catch (e) {
+        console.error('Payme link error:', e);
+        if (tg) tg.showAlert('Tarmoq xatosi. Qaytadan urinib ko\'ring.');
+        else alert('Tarmoq xatosi!');
+    }
+}
+
 // Global scope export
 Object.assign(window, {
-    startEPIFlow, startMBFlow, selectBorderPost, submitVehicle, 
-    submitApplication, navigateTo, goBack, goHome,
+    startEPIFlow, startMBFlow, selectBorderPost, submitVehicle,
+    submitApplication, navigateTo, goBack, goHome, openPaymeLink,
     formatVehicleNumber, useRecentVehicle: (n) => { document.getElementById('vehicleNumber').value = n; },
     showApplicationsScreen: () => navigateTo('applicationsScreen'),
     showKGDScreen: () => navigateTo('kgdScreen'),

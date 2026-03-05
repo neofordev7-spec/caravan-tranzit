@@ -188,7 +188,8 @@ async def contact_info_option_chosen(message: Message, state: FSMContext):
     elif message.text.startswith("👨‍💼"):
         # Admin bilan aloqa
         t = await get_text(state, 'admin_contact_msg')
-        await message.answer(t,
+        phone_text = "\n\n📞 +998 91 702 00 99\n📞 +998 94 312 00 99"
+        await message.answer(t + phone_text,
             reply_markup=kb.get_admin_contact_detailed_kb(),
             parse_mode="Markdown"
         )
@@ -817,7 +818,8 @@ async def settings_option_chosen(message: Message, state: FSMContext):
 
     elif message.text.startswith("👨‍💼"):
         t = await get_text(state, 'admin_contact_msg')
-        await message.answer(t, reply_markup=kb.get_admin_contact_kb(), parse_mode="Markdown")
+        phone_text = "\n\n📞 +998 91 702 00 99\n📞 +998 94 312 00 99"
+        await message.answer(t + phone_text, reply_markup=kb.get_admin_contact_kb(), parse_mode="Markdown")
 
 @router.message(SettingsFlow.change_phone)
 async def settings_phone_changed(message: Message, state: FSMContext):
