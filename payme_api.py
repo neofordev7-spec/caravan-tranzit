@@ -34,8 +34,8 @@ def generate_checkout_url(app_code: str, amount_uzs: Decimal) -> str:
     # 3. Base64 kodlash
     encoded = base64.b64encode(params.encode()).decode()
     
-    # 🔥 Mobil ilova bittada ochilishi uchun 'payme.uz/pay/' ishlatamiz
-    return f"https://payme.uz/pay/{encoded}"
+    # ✅ checkout.payme.uz har qanday qurilmada ishlaydi (mobil + desktop/laptop)
+    return f"https://checkout.payme.uz/{encoded}"
 
 # =============================================================
 # AUTENTIFIKATSIYA VA YORDAMCHI FUNKSIYALAR
